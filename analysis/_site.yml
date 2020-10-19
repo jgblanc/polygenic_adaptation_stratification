@@ -1,7 +1,7 @@
-name: "polygenic_adaptation_stratification"
+name: polygenic_adaptation_stratification
 output_dir: ../docs
 navbar:
-  title: "polygenic_adaptation_stratification"
+  title: polygenic_adaptation_stratification
   left:
   - text: Home
     href: index.html
@@ -9,6 +9,10 @@ navbar:
     href: about.html
   - text: License
     href: license.html
+  right:
+  - icon: fa-github
+    text: Source code
+    href: https://github.com/jgblanc/polygenic_adaptation_stratification
 output:
   workflowr::wflow_html:
     toc: yes
