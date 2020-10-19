@@ -1,0 +1,84 @@
+---
+title: "Theory"
+author: "Jennifer Blanc"
+date: "10/15/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem  
+
+Consider a true model where an indvidual's phenotype is composed of their genetic component, an environmental variable, and random uncorrelated noise, such that the vector of phenotypes can be written as,  
+
+$$\mathrm{\vec{Y} = \vec{\beta}}\mathbf{M} \mathrm{+ \vec{E}+\vec{\epsilon}}.$$  
+
+Due to computational constraints and the fact that we typically have more SNPs than individuals $(\mathrm{\ell > m})$ in our sample, we do a series a univariate regressions, fitting the model below, 
+
+$$\mathrm{\vec{Y} = \beta_{\ell}}\mathbf{M_{\cdot \ell}} \mathrm{+ \vec{C}+\vec{\varepsilon}}, $$
+
+where $\mathbf{M_{\cdot \ell}}$ is the $\ell^{\text{th}}$ column of the genotype matrix $\mathbf{M}$ and the coufounder $\mathrm{\vec{C}}$ is a vector of length $m$ that includes each individuals environmental variable $\mathrm{E_m}$ plus their genetic value at all other loci $\mathrm{\sum\limits_{i\neq\ell}\beta_i}\mathbf{M_{\cdot i}}$.  
+
+For each site, the resulting regression coeffcient is an estimtate of the true effect size, $\mathrm{\beta_{\ell}}$ and can be written as, 
+
+$$\mathrm{\hat{\beta_{\ell}} = \mathrm{\frac{cov(\mathbf{M_{\cdot \ell}}, \vec{Y})}{var(\mathbf{M_{\cdot \ell}})}}}.$$
+
+Replacing $\mathrm{\vec{Y}}$ with $\mathrm{\beta_{\ell}}\mathbf{M_{\cdot \ell}} \mathrm{+ \vec{C}+\vec{\varepsilon}}$ we can re-write the estimated effect size as, 
+
+$$\mathrm{\hat{\beta_{\ell}} = \mathrm{\frac{cov(\mathbf{M_{\cdot \ell}}, \beta_{\ell} \mathbf{M_{\cdot \ell}} \mathrm{+ \vec{C}+\vec{\varepsilon}})}{var(\mathbf{M_{\cdot \ell}})}}}$$
+
+$$\mathrm{= \frac{cov(\mathbf{M_{\cdot \ell}},\beta_{\ell} \mathbf{M_{\cdot \ell}}) + cov(\mathbf{M_{\cdot \ell}},\vec{C}) + cov(\mathbf{M_{\cdot \ell}},\vec{\varepsilon})}{var(\mathbf{M_{\cdot \ell}})}}$$ 
+
+$$\mathrm{= \frac{\beta_{\ell}var(\mathbf{M_{\cdot \ell}}) + cov(\mathbf{M_{\cdot \ell}},\vec{C}) + cov(\mathbf{M_{\cdot \ell}},\vec{\varepsilon})}{var(\mathbf{M_{\cdot \ell}})}}$$  
+
+$$\mathrm{= \beta_{\ell} + \frac{cov(\mathbf{M_{\cdot \ell}},\vec{C})}{var(\mathbf{M_{\cdot \ell}})} + \frac{cov(\mathbf{M_{\cdot \ell}},\vec{\varepsilon})}{var(\mathbf{M_{\cdot \ell}})}}.$$
+
+Looking at the final line above, we can see that the estimated effect size from GWAS contains three components: the true effect size, the stratification effect, which comes from the covariance between genotype at SNP $\mathrm{\ell}$ and the counfounder $\mathrm{\vec{C}}$, and the covariance between the genotype and the noise, which has expectation zero. Effect sizes will be biased if $\mathbb{E}[\mathrm{\frac{cov(\mathbf{M_{\cdot \ell}},\vec{C})}{var(\mathbf{M_{\cdot \ell}})}] \neq 0}$. 
+
+## Set-up 
+
+We have two panels of genotyped individuals. First is the panel of individuals which the original GWAS was done in. The genotype matrix is denoted $\underset{m\times L}{\mathbf{M}}$ which consists of $m$ individuals genotyped at $L$ loci. Phenotypes for these $m$ individuals are stored in the vector $\underset{1\times m}{\mathrm{\vec{Y}}}$. 
+
+Now we have a second set of non-overlapping (?) individuals that we want to use to test for evidence of polygenic adaptation along some axis. The genotype matrix for these $n$ individuals genotypes at the same $L$ loci is $\underset{n\times L}{\mathbf{X}}$. Additionally, we have our test vector $\underset{1\times n}{\mathrm{\vec{T}}}$. This vector represents any axis along which we want to test for polygenic adapation. For example, if we wanted to test if members of a specific population show evidence of polygenic adaptation, this vector would be a series of 1's and 0's indicating whether each individual belonged to that population or not. In another scenario we could use a continous variable (ex. an inidvidual's latitude or position along a principle componet) as our test vector.  
+
+In order to test for polygenic adaptation, we ask if there is a significant covariance between an indvidials polygenic score (built from GWAS summary statistics) and the test vector in our test panel. In other words, is $\text{cov}(\mathrm{\vec{\hat{\beta}}}\mathbf{X},\mathrm{\vec{T}})$ significantly different from zero. Here the vector of effect sizes $\underset{1\times L}{\mathrm{\vec{\hat{\beta}}}}$, are estimated from doing a GWAS in the original GWAS panel. __conclusion sentence__ 
+
+## Theory  
+
+Consider our test statistic, the covariance bewteen polygenic scores calculated in the test panel using effect sizes estimated in the GWAS panel, 
+$$\text{cov}(\mathrm{\vec{\hat{\beta}}}\mathbf{X},\mathrm{\vec{T}}).$$ Noting that $\text{cov}(\mathrm{\vec{\hat{\beta}}}\mathbf{X},\mathrm{\vec{T}}) =\mathrm{\hat{\beta}(T\mathbf{X})^T}$ we can see that our test statistic amounts to multiplying the loading of genotypes in the test panel on the test vector by estimated effect size and suming across sites. In a situtation of tue polygenic adaptation along the test vector, we expect there to be a non-zero covariance between SNPs that effect the trait and the test vector at sites that have a true causal effect, creating a on-zero test statistic after summing accross sites. Here we ask if under of model no polygenic adaptation, if biased effect sizes can mimic the signal of polygenic adaptation.      
+
+In order to examine the effect of population stratification on our test statistics, let's decompose the estimated effect, 
+$$\mathrm{(\vec{\beta} + \vec{\sigma_s} + \vec{\sigma_e})(\vec{T}\mathbf{X})^T}.$$ 
+
+Here $\mathrm{\vec{\beta}}$ is a vector of true effect sizes while $\mathrm{\vec{\sigma_S}}$ is the effect size of stratification for each SNP. In other words, each entry of $\mathrm{\vec{\sigma}}$ is equal to, 
+$$\mathrm{\vec{\sigma_{s, \ell}} = \frac{cov(\mathbf{M_{\cdot \ell}},\vec{C})}{var(\mathbf{M_{\cdot \ell}})}}.$$  
+
+Similarly, $\mathrm{\vec{\sigma_e}}$, is the effect size of random noise for each SNP where each entry is equal to,  
+$$\mathrm{\vec{\sigma_{e,\ell}} = \frac{cov(\mathbf{M_{\cdot \ell}},\vec{\varepsilon})}{var(\mathbf{M_{\cdot \ell}})}}.$$  
+
+Distributing $\mathrm{(\vec{T}\mathbf{X})^T}$ and recognizing that $\mathrm{\vec{\sigma_s} = \vec{E}\mathbf{M}}$ we can rewrite the test statistic as, 
+$$\mathrm{(\vec{\beta}\mathbf{X}^T\vec{T}^T + \vec{E} \mathbf{M}\mathbf{X}^T\vec{T}^T + \vec{\sigma_e}\mathbf{X}^T\vec{T}^T)}.$$  
+
+To examine the effect of stratification, let's focus on the second term that includes the environmental confounder. This environmental variable causes bias in the GWAS effect size estimates when it covaries with genotypes in the GWAS panel. We want to know if this same variable also covaries with genotypes in the test panel. To do this we will decompose the environmental variable in to two parts, one part that is correlated with the loading of test panel genotypes on the test vector and another part that is uncorrelated,  
+
+$$\mathrm{\vec{E} = \gamma\vec{T}\mathbf{XM}^T + \vec{\mathcal{E}}}.$$  
+
+Plugging this expression for $\mathrm{\vec{E}}$ into the second term in our test statistic we get,
+$$\mathrm{(\gamma\vec{T}\mathbf{XM}^T + \vec{\varepsilon})\mathbf{M}\mathbf{X}^T\vec{T}^T}$$
+$$\mathrm{\gamma\vec{T}\mathbf{XM}^T\mathbf{M}\mathbf{X}^T\vec{T}^T + \vec{\mathcal{E}}\mathbf{M}\mathbf{X}^T\vec{T}^T}.$$  
+
+We can now write our final test statistic as, 
+$$\mathrm{\vec{\beta}\mathbf{X}^T\vec{T}^T + \gamma\vec{T}\mathbf{XM}^T\mathbf{M}\mathbf{X}^T\vec{T}^T + \epsilon_f}$$
+
+Looking at the equation above, we expect popultaion stratification in the GWAS panel to bias our test for polygenic adaptation if $\mathrm{\gamma \neq 0}$.  
+
+
+
+
+
+
+
+
