@@ -10,4 +10,4 @@ editor_options:
 
 Welcome to my research website.  
 
-Theory [link](analysis/Theory.html)
+Theory [link](Theory.html)
