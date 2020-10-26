@@ -73,7 +73,7 @@ $$\mathrm{\gamma\vec{T}\mathbf{XM}^T\mathbf{M}\mathbf{X}^T\vec{T}^T + \vec{\math
 We can now write our final test statistic as, 
 $$\mathrm{\vec{\beta}\mathbf{X}^T\vec{T}^T + \gamma\vec{T}\mathbf{XM}^T\mathbf{M}\mathbf{X}^T\vec{T}^T + \epsilon_f}$$
 
-Looking at the equation above, we expect popultaion stratification in the GWAS panel to bias our test for polygenic adaptation if $\mathrm{\gamma \neq 0}$.  
+Looking at the equation above, we expect popultaion stratification in the GWAS panel to bias our test for polygenic adaptation if $\mathrm{\gamma \neq 0}$ and $\vec{T}\mathbf{XM}^T\mathbf{M}\mathbf{X}^T\vec{T}^T \neq 0$.  
 
 
 

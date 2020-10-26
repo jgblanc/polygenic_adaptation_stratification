@@ -1,0 +1,77 @@
+---
+title: "4PopSplit"
+author: "Jennifer Blanc"
+date: "10/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+```
+
+```{r}
+X <- fread("../data/4PopSplit/testBD_X.txt")
+Tvec <- fread("../data/4PopSplit/testBD_T.txt")
+M <- fread("../data/4PopSplit/testBD_M.txt")
+```
+
+```{r}
+Tvec <- scale(Tvec, scale = F)
+X <- scale(X, scale = F) 
+M <- scale(M, scale = F)
+```
+
+```{r}
+# Load test genotypes onto Test vec
+test_loadings <- as.matrix(t(Tvec)) %*% as.matrix(X)
+hist(test_loadings)
+mean(test_loadings)
+```
+
+```{r}
+txm <- test_loadings %*% t(M)
+hist(txm)
+```
+
+```{r}
+mxt <- M %*% t(X) %*% t(t(Tvec))
+txm %*% mxt
+```
+
+
+
+
+
+```{r}
+X_ok <- fread("../data/4PopSplit/testCD_X.txt")
+Tvec_ok <- fread("../data/4PopSplit/testCD_T.txt")
+M_ok <- fread("../data/4PopSplit/testCD_M.txt")
+```
+
+```{r}
+M_ok <- scale(M_ok, scale = F)
+X_ok <- scale(X_ok, scale = F)
+Tvec_ok <- scale(Tvec_ok, scale = F)
+```
+
+
+```{r}
+# Load test genotypes onto Test vec
+test_loadings_ok <- as.matrix(t(Tvec_ok)) %*% as.matrix(X_ok)
+hist(test_loadings_ok)
+mean(test_loadings_ok)
+```
+
+```{r}
+txm_ok <- test_loadings_ok %*% t(M_ok)
+hist(txm_ok)
+```
+
+
+
+```{r}
+mxt_ok <- M_ok %*% t(X_ok) %*% t(t(Tvec_ok))
+txm_ok %*% mxt_ok
+```
+
