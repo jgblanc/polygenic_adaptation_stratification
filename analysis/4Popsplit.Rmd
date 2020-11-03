@@ -7,71 +7,205 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
 library(data.table)
+library(ggplot2)
 ```
 
+
+## Msprime Simulation 
+
+Sample 500 individuals from 4 equally sized (N = 2000) populations. Populaitons A and B are sister to each other and C and D are sister to each other. 
+
+https://github.com/tskit-dev/msprime/issues/1154
+
+
+```{python, eval=F}
+def split(N_A, N_B, N_C, N_D, split_time1, split_time2):
+
+    # Times are provided in years, so we convert into generations.
+    generation_time = 25
+    T_S1 = split_time1 / generation_time
+    T_S2 = split_time2 / generation_time
+
+
+    # Population IDs correspond to their indexes in the population
+    # configuration array. Therefore, we have 0=A, 1=B, 2=C, 3=D initially.
+    population_configurations = [
+        msprime.PopulationConfiguration(
+            sample_size=500, initial_size=N_A),
+        msprime.PopulationConfiguration(
+            sample_size=500, initial_size=N_B), 
+        msprime.PopulationConfiguration(
+            sample_size=500, initial_size=N_C),
+        msprime.PopulationConfiguration(
+            sample_size=500, initial_size=N_D)
+    ]
+
+    demographic_events = [
+        msprime.MassMigration(
+            time=T_S2, source=3, destination=2, proportion=1.0),
+        msprime.MassMigration(
+            time=T_S2, source=1, destination=0, proportion=1.0),
+        msprime.MassMigration(
+            time=T_S1, source=2, destination = 0, proportion=1.0)
+    ]
+    # Use the demography debugger to print out the demographic history
+    # that we have just described.
+    dd = msprime.DemographyDebugger(
+        population_configurations=population_configurations,
+        demographic_events=demographic_events)
+    dd.print_history()
+    
+    ts = msprime.simulate(population_configurations=population_configurations,
+                         demographic_events=demographic_events, length=1e6, recombination_rate=1e-8)
+    ts = msprime.mutate(ts,rate=5e-7, start_time = T_S1)
+    return ts
+```
+
+
+## Situation: OK  
+
+* GWAS panel: A,B  
+* Test panel: C,D  
+
+Read in $X, T, M$
+```{r}
+X <- fread("../data/4PopSplit/testCD_X.txt")
+Tvec <- fread("../data/4PopSplit/testCD_T.txt")
+M <- fread("../data/4PopSplit/testCD_M.txt")
+```
+
+Get only segregating sites and mean center both genotype matrices and the test vector
+```{r}
+seg_sites <- function(X,M) {
+  fix_X <- which(colSums(X) != 0)
+  fix_M <- which(colSums(M) != 0)
+  keep <- intersect(fix_X, fix_M)
+  new_X <- X[,..keep]
+  new_M <- M[,..keep]
+  return(list(new_X, new_M))
+}
+
+out <- seg_sites(X,M)
+X <- scale(out[[1]], scale = F)
+M <- scale(out[[2]], scale = F)
+Tvec <- scale(Tvec, scale = F)
+```
+
+PCA - Test Panel 
+```{r}
+myE_test <- svd(X)
+vecs <- myE_test$u
+pop_test <- c(rep("C", 500), rep("D", 500))
+qplot(vecs[,1], vecs[,2], col = pop_test)
+```
+
+PCA - GWAS Panel
+```{r}
+myE_gwas <- svd(M)
+vecs <- myE_gwas$u
+pop_gwas <- c(rep("A", 500), rep("B", 500))
+qplot(vecs[,1], vecs[,2], col = pop_gwas)
+```
+
+Recall $\vec{E} = \gamma T_m  + \vec{\varepsilon}$ and $T_m = T^*XM^T$, where $T^* = \text{scale}(T)$. This is the loading of the test vector onto the individuals in the GWAS panel space.     
+
+```{r}
+# Load test pannel onto test panel genotypes 
+TX <- t(Tvec) %*% X
+plot(myE_test$v[,1], TX, xlab = "SNP Loadings Test Panel")  # Plot SNP loadings in test panel vs TX
+
+# Load onto GWAS genotypes
+TXM <- (TX %*% t(M))
+qplot(myE_test$u[,1], TXM, col = pop_test) + xlab("PC 1 Test Panel") # missing constant somewhere? Y axis seems very large  
+```
+
+Now we can do the opposite and project the GWAS genotypes into the test vector space $MX^TT^T$ - this is the same thing as above 
+```{r}
+# Load GWAS snps into test panel snps
+MX <- M %*% t(X) 
+hist(MX)
+
+# Project into test panel 
+MXT <- MX %*% scale(Tvec, scale = F)
+qplot(myE_test$u[,1], MXT, col = pop_test) + xlab("PC 1 Test Panel") # missing constant somewhere 
+```
+
+Compute the final stratifcation term (missing factor of n?)
+```{r}
+H <- diag(1/apply(M, 1, var))
+final <- (TXM %*% H %*% MXT) / (ncol(X) * 1000)
+final
+```
+
+
+
+
+## Situation: Bad  
+
+* GWAS panel: A,C  
+* Test panel: B,D  
+
+Read in $X, T, M$
 ```{r}
 X <- fread("../data/4PopSplit/testBD_X.txt")
 Tvec <- fread("../data/4PopSplit/testBD_T.txt")
 M <- fread("../data/4PopSplit/testBD_M.txt")
 ```
 
+Get only segregating sites and mean center both genotype matrices and the test vector
 ```{r}
+out <- seg_sites(X,M)
+X <- scale(out[[1]], scale = F)
+M <- scale(out[[2]], scale = F)
 Tvec <- scale(Tvec, scale = F)
-X <- scale(X, scale = F) 
-M <- scale(M, scale = F)
 ```
+
+PCA - Test Panel 
+```{r}
+myE_test <- svd(X)
+vecs <- myE_test$u
+pop_test <- c(rep("B", 500), rep("D", 500))
+qplot(vecs[,1], vecs[,2], col = pop_test)
+```
+
+PCA - GWAS Panel
+```{r}
+myE_gwas <- svd(M)
+vecs <- myE_gwas$u
+pop_gwas <- c(rep("A", 500), rep("C", 500))
+qplot(vecs[,1], vecs[,2], col = pop_gwas)
+```
+
+Recall $\vec{E} = \gamma T_m  + \vec{\varepsilon}$ and $T_m = T^*XM^T$, where $T^* = \text{scale}(T)$. This is the loading of the test vector onto the individuals in the GWAS panel space.     
 
 ```{r}
-# Load test genotypes onto Test vec
-test_loadings <- as.matrix(t(Tvec)) %*% as.matrix(X)
-hist(test_loadings)
-mean(test_loadings)
+# Load test pannel onto test panel genotypes 
+TX <- t(Tvec) %*% X
+plot(myE_test$v[,1], TX)  
+
+# Load onto GWAS genotypes
+TXM <- (TX %*% t(M))
+qplot(myE_test$u[,1], TXM, col = pop_test) + xlab("PC 1 Test Panel") # missing constant somewhere 
 ```
 
+Now we can do the opposite and project the GWAS genotypes into the test vector space $MX^TT^T$
 ```{r}
-txm <- test_loadings %*% t(M)
-hist(txm)
+# Load GWAS snps into test panel snps
+MX <- M %*% t(X) 
+hist(MX)
+
+MXT <- MX %*% scale(Tvec, scale = F)
+qplot(myE_test$u[,1], MXT, col = pop_test) + xlab("PC 1 Test Panel") # missing constant somewhere 
 ```
 
+Compute the final stratifcation term (missing factor of n?)
 ```{r}
-mxt <- M %*% t(X) %*% t(t(Tvec))
-txm %*% mxt
+H <- diag(1/apply(M, 1, var))
+final <- (TXM %*% H %*% MXT) / (ncol(X) * 1000 )
+final
 ```
 
 
-
-
-
-```{r}
-X_ok <- fread("../data/4PopSplit/testCD_X.txt")
-Tvec_ok <- fread("../data/4PopSplit/testCD_T.txt")
-M_ok <- fread("../data/4PopSplit/testCD_M.txt")
-```
-
-```{r}
-M_ok <- scale(M_ok, scale = F)
-X_ok <- scale(X_ok, scale = F)
-Tvec_ok <- scale(Tvec_ok, scale = F)
-```
-
-
-```{r}
-# Load test genotypes onto Test vec
-test_loadings_ok <- as.matrix(t(Tvec_ok)) %*% as.matrix(X_ok)
-hist(test_loadings_ok)
-mean(test_loadings_ok)
-```
-
-```{r}
-txm_ok <- test_loadings_ok %*% t(M_ok)
-hist(txm_ok)
-```
-
-
-
-```{r}
-mxt_ok <- M_ok %*% t(X_ok) %*% t(t(Tvec_ok))
-txm_ok %*% mxt_ok
-```
 
