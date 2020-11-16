@@ -12,3 +12,4 @@ Welcome to my research website.
 
 Theory [link](Theory.html)  
 4popslit [link](4Popsplit.html)
+scratch [link](scratch.html)

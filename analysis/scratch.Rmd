@@ -1,0 +1,234 @@
+---
+title: "scratch"
+author: "Jennifer Blanc"
+date: "11/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(corpcor)
+```
+
+Simulate Random Genotypes for both the Test and GWAS panels and a random test vector.  
+GWAS Panel and Test Panel are the same 
+```{r}
+L <- 1000
+n <- 50
+X <- matrix(rbinom(n*L, 2, 0.5), ncol = L, nrow = n) 
+M <- matrix(rbinom(n*L, 2, 0.5), ncol = L, nrow = n) 
+Tvec <- rbinom(n, 1, 0.5)
+```
+
+Mean center everything 
+```{r}
+Tvec <- t(scale(Tvec, scale = F))
+X <- scale(X, scale = F)
+M <- scale(M, scale = F)
+```
+
+Let's say that the GWAS panel is the test panel 
+```{r}
+X <- M
+```
+
+Let's say that $\vec{E} = \vec{T}$. Therefore, 
+
+$$\vec{E} =  T_m$$
+$$\vec{T} = T_m$$
+$$\vec{T} = MX^T(XX^T)^{-1}\vec{T}$$ 
+
+Since $M = X$, 
+
+$$\vec{T} = XX^T(XX^T)^{-1}\vec{T}$$. 
+
+When the test and GWAS panel are the same and the Environmental variable is the test vector, $T_m = T$. 
+
+```{r}
+k <- X %*% t(X) 
+p_inv <- pseudoinverse(k)
+
+Tm <- M %*% t(X) %*% p_inv %*% t(Tvec)
+Tm <- t(round(Tm, 3))
+
+table(Tm)
+table(Tvec)
+```
+
+$T_m$ is the test vector. Let's look at the stratification term, $\sigma_s = \frac{\vec{E}MH}{n}$. When $\vec{T} = \vec{E}$, 
+
+$$\sigma_s = \frac{\vec{T}MH}{n}$$
+
+```{r}
+H <- diag(1/apply(M, 2, var))
+sigma_s <- (Tvec %*% M %*% H) / n
+hist(sigma_s)
+```
+
+Because $\vec{T} = \vec{T_m}$ in this situation, this is equalivalent to,  
+
+$$\sigma_s = \frac{\vec{T_m}MH}{n}$$  
+
+$$\sigma_s = \frac{MX^T(XX^T)^{-1}\vec{T}MH}{n}$$
+
+```{r}
+H <- diag(1/apply(M, 2, var))
+sigma_s_tm <- (Tm %*% M %*% H) / n
+hist(sigma_s_tm)
+```
+
+Remember that each of the $L$ entries in $\sigma_s$ is equal to $\frac{cov(M_{.l}, E)}{var(M_{.l})}$ which in our scenario is equal to $\frac{cov(M_{.l}, T)}{var(M_{.l})}$. We can calulate this term for each site independently and compare to our $\sigma_s$ above.  
+
+```{r}
+cov_sigma <- rep(0, L)
+for (i in 1:L) {
+  c <- cov(M[,i], t(Tvec))
+  cov_sigma[i] <- c / var(M[,i])
+}
+
+#cov_sigma
+plot((sigma_s_tm), cov_sigma)
+cor(t(sigma_s_tm), cov_sigma)
+```
+
+The term $\frac{MX^T(XX^T)^{-1}\vec{T}MH}{n}$ is accurately capturing the stratification. (I think the minor difference is due to dividing by n instead of n - 1).  
+
+Now that we have $\sigma_s$, let's return to the full statistic we are interested in, 
+
+$$A_X = cov(\vec{G}, \vec{T})$$
+$$A_X = \frac{\vec{G}\vec{T}^T}{n}$$
+$$A_X = \frac{\vec{\hat{\beta}}X^T\vec{T}^T}{n}$$
+
+Let's simulate random mean centered $\vec{\hat{\beta}}$ and check that the math checks out. 
+```{r}
+beta <- t(as.matrix(rnorm(L, 0, 0.5)))
+G <- beta %*% t(X)
+
+cov_Ax <- cov(t(G), t(Tvec))
+math_Ax <- beta %*% t(X) %*% t(Tvec) / (n)
+
+cov_Ax
+math_Ax
+```
+
+This slight discrepency is due to dividing by n vs n - 1 (what is the right thing to do?). 
+
+Now let's separate $\hat{\beta}$ into its components, 
+
+$$A_X = (\beta + \sigma_s + \sigma_E)\frac{X^TT^T}{n}$$.  
+
+Looking just at the stratification term and pluggin in $\sigma_s$ from above, 
+
+$$\frac{MX^T(XX^T)^{-1}\vec{T}MH}{n}\frac{X^TT^T}{n}$$. 
+
+```{r}
+sigma_s_tm %*% t(X) %*% t(Tvec) / n
+```
+
+Something still feels wrong because this term scales with L so it will just get bigger the more sites we add which doen't seem right.  
+
+Let's try actually simulating the phenoyptes and doing the GWAS - maybe it will help figure out what is going on. (Keeping the same situation with same test and GWAS panels and $E = T$). Simulate true betas and the use the equation below to make phenotypes.  
+
+$$Y = \beta M^T + T + e$$
+```{r}
+true_beta <-  t(as.matrix(rnorm(L, 0, 1)))
+#true_beta <- t(rep(0, L))
+e <- t(as.matrix(rnorm(n, 0, 0.001)))
+Y <- as.vector((true_beta %*% t(M)) + Tvec + e)
+#Y <- (Y - mean(Y)) / sd(Y)
+hist(Y)
+```
+
+Do GWAS to estimate each $\hat{\beta}$ by regressing phenotype onto genotype. 
+```{r}
+beta_hat <- rep(0, L)
+for (i in 1:L) {
+  x <- as.vector(M[,i])
+  mod <- lm(as.vector(Y) ~ x)
+  beta_hat[i] <- mod$coefficients[2]
+}
+
+hist(beta_hat)
+```
+
+Each entry of $\hat{\beta}$ should equal $\frac{cov(M_{.,l}, Y)}{var(M.,l)}$. Let's check.
+```{r}
+beta_hat_cov <- rep(0, L)
+for (i in 1:L) {
+  x <- as.vector(M[,i])
+  beta_hat_cov[i] <- cov(as.vector(Y),x) / var(x)
+}
+
+plot(beta_hat, beta_hat_cov)
+```
+
+They are exactly the same. Now lets compare the true $\beta$ to the estimated $\hat{\beta}$, they should be biased along the test vector. 
+
+$$\hat{\beta} = \beta + \sigma_s +\sigma_E$$  
+
+Let's calculate $\sigma_E = \frac{cov(M_{.l}, K)}{var(M_{.l})}$ where $K = \sum_{i \neq l}\beta_iM_{.l} + \epsilon$.  
+```{r}
+cov_E <- rep(0, L)
+for (i in 1:L) {
+  #print(i)
+  x <- as.vector(M[,i])
+  K <- (true_beta[-i]  %*% t(M[,-i])) + e
+  cov_E[i] <- cov(as.vector(K),x) / var(x)
+}
+
+hist(cov_E)
+```
+
+
+Let's use our calculation of $\sigma_s$ from above and see if we can recover true beta $\hat{\beta} - \sigma_s-\sigma_E = \beta$
+```{r}
+true_beta_estimate = beta_hat - cov_sigma - cov_E 
+plot(true_beta, true_beta_estimate)
+```
+
+They are are they same (possibly off by n vs n-1). So now turning to our $Ax = cov(G,T)$ statistic, the ground truth using the true beta's is
+```{r}
+Ax_true <- cov(as.vector(true_beta %*% t(M)), as.vector(Tvec))
+Ax_true
+```
+
+Using $\hat{\beta}$
+```{r}
+Ax_betahat <- cov(as.vector(beta_hat %*% t(M)), as.vector(Tvec))
+Ax_betahat
+```
+
+Using the $\hat{\beta}$ corrected for stratification and random error $\hat{\beta} - \sigma_s-\sigma_E = \beta$
+```{r}
+Ax_corrected <-  cov(as.vector((true_beta_estimate) %*% t(M)), as.vector(Tvec))
+Ax_corrected
+```
+
+Using just the correction for stratification along the test vector $\hat{\beta} - \sigma_s$
+```{r}
+Ax_corrected <-  cov(as.vector((beta_hat - cov_sigma) %*% t(M)), as.vector(Tvec))
+Ax_corrected
+```
+
+This does not seem right! 
+
+What if we include $Tm$ (which in this is equal to $T$) in the GWAS as a covariate, this should fix the bias and $\hat{\beta}$ should equal $\beta$ except for random error. 
+```{r}
+beta_hat_tm <- rep(0, L)
+for (i in 1:L) {
+  x <- as.vector(M[,i])
+  mod <- lm(as.vector(Y) ~ x + as.vector(Tm))
+  beta_hat_tm[i] <- mod$coefficients[2]
+}
+```
+
+```{r}
+cov(as.vector((beta_hat_tm) %*% t(M)), as.vector(Tvec))
+
+plot(beta_hat, true_beta)
+```
+
+In conclusion, still very confused! 
+
+
+
