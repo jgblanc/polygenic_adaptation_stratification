@@ -1,0 +1,89 @@
+---
+title: "Test_Vec"
+author: "Jennifer Blanc"
+date: "12/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+simulate_genotypes <- function(n, L, ploidy) {
+  test.genos <- scale(matrix(rbinom(n*L, ploidy, 0.5), ncol = L, nrow = n), scale = F)
+  return(test.genos)
+}
+
+PC_test_vec <- function(eig, num_vec) {
+  vecs <- eig$vectors
+  tvec <- vecs[,num_vec]
+  ctvec <- (tvec-mean(tvec))
+  std.tvec <- ctvec/sqrt(sum(ctvec^2))
+  return(std.tvec)
+}
+
+categorical_test_vec <- function(n) {
+  ninds = n+n
+  tvec <- c(rep(1,ninds/4),rep(0,ninds/4))
+  ctvec <- (tvec-mean(tvec))
+  std.tvec <- ctvec/sqrt(sum(ctvec^2))
+  return(std.tvec)
+}
+
+random_cont_test_vec <- function(n){
+  tvec <- runif(n)
+  ctvec <- (tvec-mean(tvec))
+  std.tvec <- ctvec/sqrt(sum(ctvec^2))
+  return(std.tvec)  
+}
+```
+
+
+We have a vector along which we want to test a panel of individuals for polygenic adaptation. This test vector can be anything - a priniciple component, a continuous environmental variable, a discrete population label. We have theory that suggests when the test panel and GWAS panel are the same, we should be able to write:  
+
+$$T = GG^TTT^T(GG^T)^{-1}T$$ 
+
+This only seems to be true when the test vector is prinicple component 1-(n-1) of the test panel. 
+
+
+Simulate Genotypes
+```{r}
+test.genos <- simulate_genotypes(50, 1000, 100)
+test.cov <- test.genos%*%t(test.genos)/(ncol(test.genos)-1)
+eig <- eigen(test.cov)
+```
+
+
+Use Principal Components as Test Vector
+```{r}
+std.tvec <- PC_test_vec(eig, num_vec = 49)
+t.eigval <- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
+Tm <-  (test.cov %*% std.tvec) / as.numeric(t.eigval)
+
+plot(std.tvec,Tm,type='n',pch=20,bty='n')
+abline(a=0,b=1,col='red',lty=2)
+points(std.tvec,Tm,pch=20)
+```
+
+Use 0/1 as Test Vec
+```{r}
+std.tvec <- categorical_test_vec(50)
+t.eigval <- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
+Tm <-  (test.cov %*% std.tvec) / as.numeric(t.eigval)
+
+plot(std.tvec,Tm,type='n',pch=20,bty='n')
+abline(a=0,b=1,col='red',lty=2)
+points(std.tvec,Tm,pch=20)
+```
+
+Use continuous random test vector
+```{r}
+std.tvec <- random_cont_test_vec(50)
+t.eigval <- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
+Tm <-  (test.cov %*% std.tvec) / as.numeric(t.eigval)
+
+plot(std.tvec,Tm,type='n',pch=20,bty='n')
+abline(a=0,b=1,col='red',lty=2)
+points(std.tvec,Tm,pch=20)
+```
