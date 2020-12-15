@@ -413,7 +413,7 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2020-12-14
+<strong>Last updated:</strong> 2020-12-15
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -504,16 +504,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree675a6155cd1eae8dac8272c65f88fbe6326334detargetblank675a615a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/675a6155cd1eae8dac8272c65f88fbe6326334de" target="_blank">675a615</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree8d38c9dd408cff7b6e8840e7d1876dec6f9fef73targetblank8d38c9da"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/8d38c9dd408cff7b6e8840e7d1876dec6f9fef73" target="_blank">8d38c9d</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree675a6155cd1eae8dac8272c65f88fbe6326334detargetblank675a615a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree8d38c9dd408cff7b6e8840e7d1876dec6f9fef73targetblank8d38c9da" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/675a6155cd1eae8dac8272c65f88fbe6326334de" target="_blank">675a615</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/8d38c9dd408cff7b6e8840e7d1876dec6f9fef73" target="_blank">8d38c9d</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -574,6 +574,40 @@ Message
 Rmd
 </td>
 <td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/8d38c9dd408cff7b6e8840e7d1876dec6f9fef73/analysis/Test_vec.Rmd" target="_blank">8d38c9d</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2020-12-15
+</td>
+<td>
+fixed bug
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/25150cd2fa70005c08724bb459d853b0d4465440/docs/Test_vec.html" target="_blank">25150cd</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2020-12-14
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
 <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/675a6155cd1eae8dac8272c65f88fbe6326334de/analysis/Test_vec.Rmd" target="_blank">675a615</a>
 </td>
 <td>
@@ -594,11 +628,13 @@ Lab meeting
 </div>
 </div>
 <pre class="r"><code>simulate_genotypes &lt;- function(n, L, ploidy) {
+  # Simulate n idividuals, genotyped at L sites with a certain ploidy by drawing from a binomial distribution
   test.genos &lt;- scale(matrix(rbinom(n*L, ploidy, 0.5), ncol = L, nrow = n), scale = F)
   return(test.genos)
 }
 
 PC_test_vec &lt;- function(eig, num_vec) {
+  # Do eigen decomposition and make the &quot;num_nec&quot; eigenvector the test vector and then standardize
   vecs &lt;- eig$vectors
   tvec &lt;- vecs[,num_vec]
   ctvec &lt;- (tvec-mean(tvec))
@@ -607,53 +643,196 @@ PC_test_vec &lt;- function(eig, num_vec) {
 }
 
 categorical_test_vec &lt;- function(n) {
-  ninds = n+n
-  tvec &lt;- c(rep(1,ninds/4),rep(0,ninds/4))
+  # Make the test vector a series of 0&#39;s and 1&#39;s 
+  tvec &lt;- c(rep(1,(n/2)),rep(0, (n/2)))
   ctvec &lt;- (tvec-mean(tvec))
   std.tvec &lt;- ctvec/sqrt(sum(ctvec^2))
   return(std.tvec)
 }
 
 random_cont_test_vec &lt;- function(n){
+  # Make the test vector random, drawn from a uniform distribution 
   tvec &lt;- runif(n)
   ctvec &lt;- (tvec-mean(tvec))
   std.tvec &lt;- ctvec/sqrt(sum(ctvec^2))
   return(std.tvec)  
+}
+
+get_test_vec_coeffs &lt;- function(std.tvec, vecs) {
+  betas &lt;- t(vecs) %*% std.tvec
+  # remove last beta
+  betas &lt;- betas[1:ncol(vecs)-1]
+  return(betas)
 }</code></pre>
-<p>We have a vector along which we want to test a panel of individuals for polygenic adaptation. This test vector can be anything - a priniciple component, a continuous environmental variable, a discrete population label. We have theory that suggests when the test panel and GWAS panel are the same, we should be able to write:</p>
-<p><span class="math display">\[T = GG^TTT^T(GG^T)^{-1}T\]</span></p>
-<p>This only seems to be true when the test vector is prinicple component 1-(n-1) of the test panel.</p>
-<p>Simulate Genotypes</p>
-<pre class="r"><code>test.genos &lt;- simulate_genotypes(50, 1000, 100)
+<p>We have a vector along which we want to test a panel of individuals for polygenic adaptation. This test vector can be anything - a priniciple component, a continuous environmental variable, a discrete population label. When the test panel is equal to the GWAS panel, we can write the test vector as:</p>
+<p><span class="math display">\[T = \sum\limits_{i}^{n-1}\frac{\beta_iGG^TU_i}{\lambda_i}\]</span></p>
+<p>Simulation</p>
+<pre class="r"><code># Simulate genotypes
+test.genos &lt;- simulate_genotypes(50, 1000, 100)
+
+# Covariance matrix
 test.cov &lt;- test.genos%*%t(test.genos)/(ncol(test.genos)-1)
-eig &lt;- eigen(test.cov)</code></pre>
+
+# Eigen decomposition
+eig &lt;- eigen(test.cov)
+vecs &lt;- eig$vectors
+values &lt;- eig$values</code></pre>
 <p>Use Principal Components as Test Vector</p>
-<pre class="r"><code>std.tvec &lt;- PC_test_vec(eig, num_vec = 49)
-t.eigval &lt;- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
-Tm &lt;-  (test.cov %*% std.tvec) / as.numeric(t.eigval)
+<pre class="r"><code>std.tvec &lt;- PC_test_vec(eig, num_vec = 1)
+betas &lt;- get_test_vec_coeffs(std.tvec, vecs)
+
+# Calculate Tm
+out &lt;- matrix(NA, ncol = 50, nrow = 49)
+for (i in 1:49){
+   out[i, ] = betas[i] * ((test.cov %*% vecs[,i]) / eig$values[i])
+ }
+Tm = colSums(out)
 
 plot(std.tvec,Tm,type=&#39;n&#39;,pch=20,bty=&#39;n&#39;)
 abline(a=0,b=1,col=&#39;red&#39;,lty=2)
 points(std.tvec,Tm,pch=20)</code></pre>
 <p><img src="figure/Test_vec.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-3-1">
+Past versions of unnamed-chunk-3-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-3-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/25150cd2fa70005c08724bb459d853b0d4465440/docs/figure/Test_vec.Rmd/unnamed-chunk-3-1.png" target="_blank">25150cd</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2020-12-14
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>Use 0/1 as Test Vec</p>
 <pre class="r"><code>std.tvec &lt;- categorical_test_vec(50)
-t.eigval &lt;- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
-Tm &lt;-  (test.cov %*% std.tvec) / as.numeric(t.eigval)
+betas &lt;- get_test_vec_coeffs(std.tvec, vecs)
+
+# Calculate Tm
+out &lt;- matrix(NA, ncol = 50, nrow = 49)
+for (i in 1:49){
+   out[i, ] = betas[i] * ((test.cov %*% vecs[,i]) / eig$values[i])
+ }
+Tm = colSums(out)
 
 plot(std.tvec,Tm,type=&#39;n&#39;,pch=20,bty=&#39;n&#39;)
 abline(a=0,b=1,col=&#39;red&#39;,lty=2)
 points(std.tvec,Tm,pch=20)</code></pre>
 <p><img src="figure/Test_vec.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
+Past versions of unnamed-chunk-4-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-4-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/25150cd2fa70005c08724bb459d853b0d4465440/docs/figure/Test_vec.Rmd/unnamed-chunk-4-1.png" target="_blank">25150cd</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2020-12-14
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <p>Use continuous random test vector</p>
 <pre class="r"><code>std.tvec &lt;- random_cont_test_vec(50)
-t.eigval &lt;- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
-Tm &lt;-  (test.cov %*% std.tvec) / as.numeric(t.eigval)
+betas &lt;- get_test_vec_coeffs(std.tvec, vecs)
+
+# Calculate Tm
+out &lt;- matrix(NA, ncol = 50, nrow = 49)
+for (i in 1:49){
+   out[i, ] = betas[i] * ((test.cov %*% vecs[,i]) / eig$values[i])
+ }
+Tm = colSums(out)
 
 plot(std.tvec,Tm,type=&#39;n&#39;,pch=20,bty=&#39;n&#39;)
 abline(a=0,b=1,col=&#39;red&#39;,lty=2)
 points(std.tvec,Tm,pch=20)</code></pre>
 <p><img src="figure/Test_vec.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
+Past versions of unnamed-chunk-5-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-5-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/25150cd2fa70005c08724bb459d853b0d4465440/docs/figure/Test_vec.Rmd/unnamed-chunk-5-1.png" target="_blank">25150cd</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2020-12-14
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
