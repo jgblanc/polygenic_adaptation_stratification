@@ -7,15 +7,18 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
 ```
 
 ```{r}
 simulate_genotypes <- function(n, L, ploidy) {
+  # Simulate n idividuals, genotyped at L sites with a certain ploidy by drawing from a binomial distribution
   test.genos <- scale(matrix(rbinom(n*L, ploidy, 0.5), ncol = L, nrow = n), scale = F)
   return(test.genos)
 }
 
 PC_test_vec <- function(eig, num_vec) {
+  # Do eigen decomposition and make the "num_nec" eigenvector the test vector and then standardize
   vecs <- eig$vectors
   tvec <- vecs[,num_vec]
   ctvec <- (tvec-mean(tvec))
@@ -24,42 +27,61 @@ PC_test_vec <- function(eig, num_vec) {
 }
 
 categorical_test_vec <- function(n) {
-  ninds = n+n
-  tvec <- c(rep(1,ninds/4),rep(0,ninds/4))
+  # Make the test vector a series of 0's and 1's 
+  tvec <- c(rep(1,(n/2)),rep(0, (n/2)))
   ctvec <- (tvec-mean(tvec))
   std.tvec <- ctvec/sqrt(sum(ctvec^2))
   return(std.tvec)
 }
 
 random_cont_test_vec <- function(n){
+  # Make the test vector random, drawn from a uniform distribution 
   tvec <- runif(n)
   ctvec <- (tvec-mean(tvec))
   std.tvec <- ctvec/sqrt(sum(ctvec^2))
   return(std.tvec)  
 }
+
+get_test_vec_coeffs <- function(std.tvec, vecs) {
+  betas <- t(vecs) %*% std.tvec
+  # remove last beta
+  betas <- betas[1:ncol(vecs)-1]
+  return(betas)
+}
 ```
 
 
-We have a vector along which we want to test a panel of individuals for polygenic adaptation. This test vector can be anything - a priniciple component, a continuous environmental variable, a discrete population label. We have theory that suggests when the test panel and GWAS panel are the same, we should be able to write:  
+We have a vector along which we want to test a panel of individuals for polygenic adaptation. This test vector can be anything - a priniciple component, a continuous environmental variable, a discrete population label. When the test panel is equal to the GWAS panel, we can write the test vector as:  
 
-$$T = GG^TTT^T(GG^T)^{-1}T$$ 
-
-This only seems to be true when the test vector is prinicple component 1-(n-1) of the test panel. 
+$$T = \sum\limits_{i}^{n-1}\frac{\beta_iGG^TU_i}{\lambda_i}$$
 
 
-Simulate Genotypes
+Simulation
 ```{r}
+# Simulate genotypes
 test.genos <- simulate_genotypes(50, 1000, 100)
+
+# Covariance matrix
 test.cov <- test.genos%*%t(test.genos)/(ncol(test.genos)-1)
+
+# Eigen decomposition
 eig <- eigen(test.cov)
+vecs <- eig$vectors
+values <- eig$values
 ```
 
 
 Use Principal Components as Test Vector
 ```{r}
-std.tvec <- PC_test_vec(eig, num_vec = 49)
-t.eigval <- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
-Tm <-  (test.cov %*% std.tvec) / as.numeric(t.eigval)
+std.tvec <- PC_test_vec(eig, num_vec = 1)
+betas <- get_test_vec_coeffs(std.tvec, vecs)
+
+# Calculate Tm
+out <- matrix(NA, ncol = 50, nrow = 49)
+for (i in 1:49){
+   out[i, ] = betas[i] * ((test.cov %*% vecs[,i]) / eig$values[i])
+ }
+Tm = colSums(out)
 
 plot(std.tvec,Tm,type='n',pch=20,bty='n')
 abline(a=0,b=1,col='red',lty=2)
@@ -69,8 +91,14 @@ points(std.tvec,Tm,pch=20)
 Use 0/1 as Test Vec
 ```{r}
 std.tvec <- categorical_test_vec(50)
-t.eigval <- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
-Tm <-  (test.cov %*% std.tvec) / as.numeric(t.eigval)
+betas <- get_test_vec_coeffs(std.tvec, vecs)
+
+# Calculate Tm
+out <- matrix(NA, ncol = 50, nrow = 49)
+for (i in 1:49){
+   out[i, ] = betas[i] * ((test.cov %*% vecs[,i]) / eig$values[i])
+ }
+Tm = colSums(out)
 
 plot(std.tvec,Tm,type='n',pch=20,bty='n')
 abline(a=0,b=1,col='red',lty=2)
@@ -80,8 +108,14 @@ points(std.tvec,Tm,pch=20)
 Use continuous random test vector
 ```{r}
 std.tvec <- random_cont_test_vec(50)
-t.eigval <- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
-Tm <-  (test.cov %*% std.tvec) / as.numeric(t.eigval)
+betas <- get_test_vec_coeffs(std.tvec, vecs)
+
+# Calculate Tm
+out <- matrix(NA, ncol = 50, nrow = 49)
+for (i in 1:49){
+   out[i, ] = betas[i] * ((test.cov %*% vecs[,i]) / eig$values[i])
+ }
+Tm = colSums(out)
 
 plot(std.tvec,Tm,type='n',pch=20,bty='n')
 abline(a=0,b=1,col='red',lty=2)
