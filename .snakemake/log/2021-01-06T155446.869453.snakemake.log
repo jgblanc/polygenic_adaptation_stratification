@@ -1,0 +1,27 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	format_VCF
+	1
+
+[Wed Jan  6 15:54:46 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/test.vcf
+    output: output/Simulate_Genotypes/4PopSplit/header
+    jobid: 0
+
+[Wed Jan  6 15:54:46 2021]
+Error in rule format_VCF:
+    jobid: 0
+    output: output/Simulate_Genotypes/4PopSplit/header
+    shell:
+        cat output/Simulate_Genotypes/4PopSplit/test.vcf | head -n6 >> output/Simulate_Genotypes/4PopSplit/header
+
+Removing output files of failed job format_VCF since they might be corrupted:
+output/Simulate_Genotypes/4PopSplit/header
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-06T155446.869453.snakemake.log

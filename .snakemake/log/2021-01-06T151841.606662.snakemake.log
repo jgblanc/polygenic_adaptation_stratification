@@ -1,0 +1,26 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	simulate_genotypes_4popsplit
+	1
+
+[Wed Jan  6 15:18:41 2021]
+rule simulate_genotypes_4popsplit:
+    output: output/Simulate_Genotypes/4PopSplit/test.vcf, output/Simulate_Genotypes/4PopSplit/test.pop
+    jobid: 0
+
+[Wed Jan  6 15:18:43 2021]
+Error in rule simulate_genotypes_4popsplit:
+    jobid: 0
+    output: output/Simulate_Genotypes/4PopSplit/test.vcf, output/Simulate_Genotypes/4PopSplit/test.pop
+    shell:
+        python code/Simulate_Genotypes/generate_genotypes.py 	--outpre output/Simulate_Genotypes/4PopSplit/test
+
+Removing output files of failed job simulate_genotypes_4popsplit since they might be corrupted:
+output/Simulate_Genotypes/4PopSplit/test.vcf
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-06T151841.606662.snakemake.log

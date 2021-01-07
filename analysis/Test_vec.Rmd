@@ -83,6 +83,8 @@ for (i in 1:49){
  }
 Tm = colSums(out)
 
+Tm = test.cov %*% vecs[,1:49] %*% diag(1/eig$values[1:49]) %*% t(vecs[,1:49]) %*% std.tvec
+
 plot(std.tvec,Tm,type='n',pch=20,bty='n')
 abline(a=0,b=1,col='red',lty=2)
 points(std.tvec,Tm,pch=20)
@@ -100,6 +102,8 @@ for (i in 1:49){
  }
 Tm = colSums(out)
 
+Tm = test.cov %*% vecs[,1:49] %*% diag(1/eig$values[1:49]) %*% t(vecs[,1:49]) %*% std.tvec
+
 plot(std.tvec,Tm,type='n',pch=20,bty='n')
 abline(a=0,b=1,col='red',lty=2)
 points(std.tvec,Tm,pch=20)
@@ -107,6 +111,7 @@ points(std.tvec,Tm,pch=20)
 
 Use continuous random test vector
 ```{r}
+set.seed(12)
 std.tvec <- random_cont_test_vec(50)
 betas <- get_test_vec_coeffs(std.tvec, vecs)
 
@@ -117,7 +122,50 @@ for (i in 1:49){
  }
 Tm = colSums(out)
 
+
+Tm = test.cov %*% vecs[,1:45] %*% diag(1/eig$values[1:45]) %*% t(vecs[,1:45]) %*% std.tvec
+
+
 plot(std.tvec,Tm,type='n',pch=20,bty='n')
 abline(a=0,b=1,col='red',lty=2)
 points(std.tvec,Tm,pch=20)
 ```
+
+```{r}
+# get betas
+betas <- t(vecs) %*% std.tvec
+betas <- betas[1:ncol(vecs)-1]
+
+# Calculate Tm
+out <- matrix(NA, ncol = 50, nrow = 49)
+for (i in 1:49){
+   out[i, ] = betas[i] * ((test.cov %*% vecs[,i]) / values[i])
+ }
+Tm = colSums(out)
+
+# Calculate Tm a different way 
+#Tm = test.cov %*% vecs[,1:49] %*% diag(1/vals[1:49]) %*% t(vecs[,1:49]) %*% std.tvec
+plot(std.tvec,Tm)
+abline(a=0,b=1,col='red',lty=2)
+```
+
+
+
+```{r}
+X <- fread("../data/4PopSplit/AC_tt.txt")
+X <- X %>% distinct()
+test.genos <- as.matrix(X)
+
+# Covariance matrix
+test.cov <- test.genos%*%t(test.genos)/(ncol(test.genos)-1)
+
+# Eigen decomposition
+eig <- eigen(test.cov)
+vecs <- eig$vectors
+values <- eig$values
+
+values
+```
+
+
+

@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
 library(corpcor)
 ```
 
@@ -14,14 +15,32 @@ Simulate Random Genotypes for both the Test and GWAS panels and a random test ve
 GWAS Panel and Test Panel are the same 
 ```{r}
 L <- 1000
-n <- 50
+n <-100
 X <- matrix(rbinom(n*L, 2, 0.5), ncol = L, nrow = n) 
 M <- matrix(rbinom(n*L, 2, 0.5), ncol = L, nrow = n) 
 Tvec <- rbinom(n, 1, 0.5)
 ```
 
+```{r}
+G <- matrix(rbinom(n*L, 2, 0.5), ncol = 10, nrow = 5) 
+Tvec <- rbinom(5, 1, 0.5)
+Tvec <- Tvec - mean(Tvec)
+Tvec <- Tvec / sqrt(sum(Tvec^2))
+Tvec
+
+
+G %*% t(G) %*% Tvec %*% t(Tvec) %*% pseudoinverse((G %*% t(G))) %*% Tvec
+
+Tvec
+```
+```{r}
+G %*% t(G)
+```
+
+
 Mean center everything 
 ```{r}
+Tvec_un <- Tvec
 Tvec <- t(scale(Tvec, scale = F))
 X <- scale(X, scale = F)
 M <- scale(M, scale = F)
@@ -55,13 +74,31 @@ table(Tm)
 table(Tvec)
 ```
 
+```{r}
+k <- (X %*% t(X)) / (L -1) 
+p_inv <- pseudoinverse(k) 
+
+myE = eigen(k)
+p_inv1 = as.matrix(myE$vectors[,-n]) %*% diag(1/myE$values[-n]) %*% t(as.matrix(myE$vectors[,-n]))
+
+Tm_new <- M %*% t(X) %*% t(Tvec) %*% Tvec %*% p_inv %*% t(Tvec)
+Tm_new <- t(round(Tm_new, 3))
+table(Tm_new)
+
+Tm_new1 <- (M %*% t(X) %*% t(Tvec/sd(Tvec)) %*% (Tvec/sd(Tvec)) %*% myE$vectors %*% diag(1/myE$values) %*% t(myE$vectors) %*% t(Tvec)) / (L -1 )
+Tm_new1 <- t(round(Tm_new1, 3))
+
+table(Tm_new1)
+table(Tvec)
+```
+
 $T_m$ is the test vector. Let's look at the stratification term, $\sigma_s = \frac{\vec{E}MH}{n}$. When $\vec{T} = \vec{E}$, 
 
 $$\sigma_s = \frac{\vec{T}MH}{n}$$
 
 ```{r}
 H <- diag(1/apply(M, 2, var))
-sigma_s <- (Tvec %*% M %*% H) / n
+sigma_s <- (Tvec %*% M %*% H) / (m - 1) 
 hist(sigma_s)
 ```
 
@@ -131,7 +168,7 @@ Let's try actually simulating the phenoyptes and doing the GWAS - maybe it will 
 
 $$Y = \beta M^T + T + e$$
 ```{r}
-true_beta <-  t(as.matrix(rnorm(L, 0, 1)))
+true_beta <-  t(as.matrix(rnorm(L, 0, 5)))
 #true_beta <- t(rep(0, L))
 e <- t(as.matrix(rnorm(n, 0, 0.001)))
 Y <- as.vector((true_beta %*% t(M)) + Tvec + e)
@@ -188,13 +225,13 @@ plot(true_beta, true_beta_estimate)
 
 They are are they same (possibly off by n vs n-1). So now turning to our $Ax = cov(G,T)$ statistic, the ground truth using the true beta's is
 ```{r}
-Ax_true <- cov(as.vector(true_beta %*% t(M)), as.vector(Tvec))
+Ax_true <- cov(as.vector(true_beta %*% t(X)), as.vector(Tvec))
 Ax_true
 ```
 
 Using $\hat{\beta}$
 ```{r}
-Ax_betahat <- cov(as.vector(beta_hat %*% t(M)), as.vector(Tvec))
+Ax_betahat <- cov(as.vector(beta_hat %*% t(X)), as.vector(Tvec))
 Ax_betahat
 ```
 
@@ -203,6 +240,8 @@ Using the $\hat{\beta}$ corrected for stratification and random error $\hat{\bet
 Ax_corrected <-  cov(as.vector((true_beta_estimate) %*% t(M)), as.vector(Tvec))
 Ax_corrected
 ```
+
+This seems "right" in the sense that after subtracting the stratification and error we get the true beta back. 
 
 Using just the correction for stratification along the test vector $\hat{\beta} - \sigma_s$
 ```{r}
@@ -230,5 +269,32 @@ plot(beta_hat, true_beta)
 
 In conclusion, still very confused! 
 
+
+```{r}
+library(ggridges)
+points <- sort(rnorm(1000,0,1))
+dat <- as.data.frame(cbind(points, seq(1,1000,1)/1000)) %>% mutate(bin = cut_width(points, width = 0.1)) %>% group_by(bin) %>% mutate(count = n())
+
+name = rep("name", length(points))
+dat$name = as.factor(name)
+
+ggplot(dat, aes(x=points, y=name,fill = ..x..)) +geom_density_ridges_gradient(scale =1.5, show.legend = F) + scale_fill_viridis_c(name = "Temp. [F]", option = "C")
+
++ scale_fill_gradient(low = "grey", high = "blue")
+```
+
+```{r}
+x <- rnorm(1000)
+y <- density(x, n = 2^12)
+
+dat = data.frame(x = y$x, y = y$y)
+dat = subset(dat, dat$y > 0.05)
+pl <- ggplot(data.frame(x = y$x, y = y$y), aes(x, y)) + geom_line(size = 2) + 
+  geom_segment(aes(xend = x, yend = 0, colour = x)) + 
+  scale_color_gradient2(low = "#91bfdb",mid = "#ffffbf", high = '#fc8d59') + ylim(0,.4) + xlim(-3.5, 3.5) + theme_classic() + theme(axis.ticks=element_blank(),axis.text=element_blank(), axis.title.x = element_text(size = 20, face = "bold"), axis.title.y = element_text(size = 16, face = "bold")) + xlab("polygenic score percentile") + ylab("% of population with polygenic score")
+pl
+
+ggsave("~/Desktop/fig_insight.png", pl, height = 5)
+```
 
 

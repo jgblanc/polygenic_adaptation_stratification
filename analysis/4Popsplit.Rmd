@@ -10,18 +10,19 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list = ls())
 library(data.table)
 library(ggplot2)
+library(corpcor)
 ```
 
 
 ## Msprime Simulation 
 
-Sample 500 individuals from 4 equally sized (N = 2000) populations. Populaitons A and B are sister to each other and C and D are sister to each other. 
+Sample 250 individuals from 4 equally sized (N = 2000) populations. Populaitons A and B are sister to each other and C and D are sister to each other. 
 
 https://github.com/tskit-dev/msprime/issues/1154
 
 
 ```{python, eval=F}
-def split(N_A, N_B, N_C, N_D, split_time1, split_time2):
+def split(N_A, N_B, N_C, N_D, split_time1, split_time2, sample_A, sample_B, sample_C, sample_D, seg_length, recomb_rate, mut_rate):
 
     # Times are provided in years, so we convert into generations.
     generation_time = 25
@@ -33,13 +34,13 @@ def split(N_A, N_B, N_C, N_D, split_time1, split_time2):
     # configuration array. Therefore, we have 0=A, 1=B, 2=C, 3=D initially.
     population_configurations = [
         msprime.PopulationConfiguration(
-            sample_size=500, initial_size=N_A),
+            sample_size=sample_A, initial_size=N_A),
         msprime.PopulationConfiguration(
-            sample_size=500, initial_size=N_B), 
+            sample_size=sample_B, initial_size=N_B), 
         msprime.PopulationConfiguration(
-            sample_size=500, initial_size=N_C),
+            sample_size=sample_C, initial_size=N_C),
         msprime.PopulationConfiguration(
-            sample_size=500, initial_size=N_D)
+            sample_size=sample_D, initial_size=N_D)
     ]
 
     demographic_events = [
@@ -55,49 +56,38 @@ def split(N_A, N_B, N_C, N_D, split_time1, split_time2):
     dd = msprime.DemographyDebugger(
         population_configurations=population_configurations,
         demographic_events=demographic_events)
-    dd.print_history()
+    #dd.print_history()
     
     ts = msprime.simulate(population_configurations=population_configurations,
-                         demographic_events=demographic_events, length=1e6, recombination_rate=1e-8)
-    ts = msprime.mutate(ts,rate=5e-7, start_time = T_S1)
+                         demographic_events=demographic_events, length=seg_length, recombination_rate=recomb_rate)
+    ts = msprime.mutate(ts,rate=mut_rate)
     return ts
 ```
-
 
 ## Situation: OK  
 
 * GWAS panel: A,B  
 * Test panel: C,D  
 
-Read in $X, T, M$
+Read in $X, T, M$ and convert to matrices
 ```{r}
-X <- fread("../data/4PopSplit/testCD_X.txt")
-Tvec <- fread("../data/4PopSplit/testCD_T.txt")
-M <- fread("../data/4PopSplit/testCD_M.txt")
+X <- as.matrix(fread("../data/4PopSplit/testCD_X.txt"))
+Tvec <- as.matrix(fread("../data/4PopSplit/testCD_T.txt"))
+M <- as.matrix(fread("../data/4PopSplit/testCD_M.txt"))
 ```
 
-Get only segregating sites and mean center both genotype matrices and the test vector
+Assign parameters
 ```{r}
-seg_sites <- function(X,M) {
-  fix_X <- which(colSums(X) != 0)
-  fix_M <- which(colSums(M) != 0)
-  keep <- intersect(fix_X, fix_M)
-  new_X <- X[,..keep]
-  new_M <- M[,..keep]
-  return(list(new_X, new_M))
-}
-
-out <- seg_sites(X,M)
-X <- scale(out[[1]], scale = F)
-M <- scale(out[[2]], scale = F)
-Tvec <- scale(Tvec, scale = F)
+L <- ncol(X)
+n <- nrow(X)
+m <- nrow(M)
 ```
 
 PCA - Test Panel 
 ```{r}
 myE_test <- svd(X)
 vecs <- myE_test$u
-pop_test <- c(rep("C", 500), rep("D", 500))
+pop_test <- c(rep("C", 25), rep("D", 25))
 qplot(vecs[,1], vecs[,2], col = pop_test)
 ```
 
@@ -105,40 +95,89 @@ PCA - GWAS Panel
 ```{r}
 myE_gwas <- svd(M)
 vecs <- myE_gwas$u
-pop_gwas <- c(rep("A", 500), rep("B", 500))
+pop_gwas <- c(rep("A", 25), rep("B", 25))
 qplot(vecs[,1], vecs[,2], col = pop_gwas)
 ```
 
-Recall $\vec{E} = \gamma T_m  + \vec{\varepsilon}$ and $T_m = T^*XM^T$, where $T^* = \text{scale}(T)$. This is the loading of the test vector onto the individuals in the GWAS panel space.     
-
+Calculate Tm
 ```{r}
-# Load test pannel onto test panel genotypes 
-TX <- t(Tvec) %*% X
-plot(myE_test$v[,1], TX, xlab = "SNP Loadings Test Panel")  # Plot SNP loadings in test panel vs TX
+## get test covariance matrix and eigendecomposition
+test.cov <- X %*% t(X) / (ncol(X)-1)
+eig <- eigen(test.cov)
+vecs <- eig$vectors
+vals <- eig$values
+neigs <- length(vals)
 
-# Load onto GWAS genotypes
-TXM <- (TX %*% t(M))
-qplot(myE_test$u[,1], TXM, col = pop_test) + xlab("PC 1 Test Panel") # missing constant somewhere? Y axis seems very large  
+# Calculate Tm
+K = (M %*% t(X)) / (ncol(X) -1)
+Tm = K %*% vecs[,1:49] %*% diag(1/vals[1:49]) %*% t(vecs[,1:49]) %*% Tvec
+
+plot(Tvec,Tm)
 ```
 
-Now we can do the opposite and project the GWAS genotypes into the test vector space $MX^TT^T$ - this is the same thing as above 
-```{r}
-# Load GWAS snps into test panel snps
-MX <- M %*% t(X) 
-hist(MX)
 
-# Project into test panel 
-MXT <- MX %*% scale(Tvec, scale = F)
-qplot(myE_test$u[,1], MXT, col = pop_test) + xlab("PC 1 Test Panel") # missing constant somewhere 
+Calculate sigma s via Tm
+```{r}
+qplot(myE_test$u[,1], Tm, col = pop_test) + xlab("PC 1 Test Panel")
 ```
 
-Compute the final stratifcation term (missing factor of n?)
+
+$$\sigma_s = \frac{\vec{T}MH}{m - 1}$$
 ```{r}
-H <- diag(1/apply(M, 1, var))
-final <- (TXM %*% H %*% MXT) / (ncol(X) * 1000)
-final
+H <- diag(1/apply(M, 2, var))
+sigma_s <- (t(Tm) %*% M %*% H) / (m - 1) 
+hist(sigma_s)
 ```
 
+
+Full stratification term $\sigma_s \frac{X^TT^T}{n-1}$
+```{r}
+(sigma_s %*% t(X) %*% Tvec) / (n-1)
+```
+
+
+**Actual GWAS**
+
+$$Y = \beta M^T + T + e$$
+```{r}
+true_beta <-  t(as.matrix(rnorm(L, 0, 0.01)))
+e <- t(as.matrix(rnorm(n, 0, 0.001)))
+Y <- as.vector((true_beta %*% t(M))+ t(Tvec) + e)
+
+df <- as.data.frame(cbind(as.numeric(Y), pop_gwas))
+ggplot(data = df, aes(x = Y, fill = pop_gwas)) + geom_histogram()
+```
+
+Do GWAS to estimate each $\hat{\beta}$ by regressing phenotype onto genotype. 
+```{r}
+beta_hat <- rep(0, L)
+for (i in 1:L) {
+  x <- as.vector(M[,i])
+  mod <- lm(as.vector(Y) ~ x)
+  beta_hat[i] <- mod$coefficients[2]
+}
+
+hist(beta_hat)
+```
+
+Compare PGS in Test Panel 
+```{r}
+G <- as.vector(beta_hat %*% t(X))
+plot(as.factor(pop_test), G)
+```
+
+Includ Tm and compare PGS 
+```{r}
+beta_hat_tm <- rep(0, L)
+for (i in 1:L) {
+  x <- as.vector(M[,i])
+  mod <- lm(as.vector(Y) ~ x + as.vector(Tm))
+  beta_hat_tm[i] <- mod$coefficients[2]
+}
+
+G <- as.vector(beta_hat_tm %*% t(X))
+plot(as.factor(pop_test), G)
+```
 
 
 
@@ -149,24 +188,16 @@ final
 
 Read in $X, T, M$
 ```{r}
-X <- fread("../data/4PopSplit/testBD_X.txt")
-Tvec <- fread("../data/4PopSplit/testBD_T.txt")
-M <- fread("../data/4PopSplit/testBD_M.txt")
-```
-
-Get only segregating sites and mean center both genotype matrices and the test vector
-```{r}
-out <- seg_sites(X,M)
-X <- scale(out[[1]], scale = F)
-M <- scale(out[[2]], scale = F)
-Tvec <- scale(Tvec, scale = F)
+X <- as.matrix(fread("../data/4PopSplit/testBD_X.txt"))
+Tvec <- as.matrix(fread("../data/4PopSplit/testBD_T.txt"))
+M <- as.matrix(fread("../data/4PopSplit/testBD_M.txt"))
 ```
 
 PCA - Test Panel 
 ```{r}
 myE_test <- svd(X)
 vecs <- myE_test$u
-pop_test <- c(rep("B", 500), rep("D", 500))
+pop_test <- c(rep("B", 25), rep("D", 25))
 qplot(vecs[,1], vecs[,2], col = pop_test)
 ```
 
@@ -174,38 +205,211 @@ PCA - GWAS Panel
 ```{r}
 myE_gwas <- svd(M)
 vecs <- myE_gwas$u
-pop_gwas <- c(rep("A", 500), rep("C", 500))
+pop_gwas <- c(rep("A", 25), rep("C", 25))
 qplot(vecs[,1], vecs[,2], col = pop_gwas)
 ```
 
-Recall $\vec{E} = \gamma T_m  + \vec{\varepsilon}$ and $T_m = T^*XM^T$, where $T^* = \text{scale}(T)$. This is the loading of the test vector onto the individuals in the GWAS panel space.     
-
+Calculate Tm
 ```{r}
-# Load test pannel onto test panel genotypes 
-TX <- t(Tvec) %*% X
-plot(myE_test$v[,1], TX)  
+## get test covariance matrix and eigendecomposition
+test.cov <- X %*% t(X) / (ncol(X)-1)
+eig <- eigen(test.cov)
+vecs <- eig$vectors
+vals <- eig$values
+neigs <- length(vals)
 
-# Load onto GWAS genotypes
-TXM <- (TX %*% t(M))
-qplot(myE_test$u[,1], TXM, col = pop_test) + xlab("PC 1 Test Panel") # missing constant somewhere 
+# Calculate Tm
+K = (M %*% t(X)) / (ncol(X) -1)
+Tm = K %*% vecs[,1:49] %*% diag(1/vals[1:49]) %*% t(vecs[,1:49]) %*% Tvec
+
+plot(Tvec,Tm)
 ```
 
-Now we can do the opposite and project the GWAS genotypes into the test vector space $MX^TT^T$
-```{r}
-# Load GWAS snps into test panel snps
-MX <- M %*% t(X) 
-hist(MX)
+$$\sigma_s = \frac{\vec{T_m}MH}{m - 1}$$
 
-MXT <- MX %*% scale(Tvec, scale = F)
-qplot(myE_test$u[,1], MXT, col = pop_test) + xlab("PC 1 Test Panel") # missing constant somewhere 
+```{r}
+H <- diag(1/apply(M, 2, var))
+sigma_s <- (t(Tm) %*% M %*% H) / (m - 1) 
+hist(sigma_s)
 ```
 
-Compute the final stratifcation term (missing factor of n?)
+Full stratification term $\sigma_s \frac{X^TT^T}{n-1}$
+
 ```{r}
-H <- diag(1/apply(M, 1, var))
-final <- (TXM %*% H %*% MXT) / (ncol(X) * 1000 )
-final
+(sigma_s %*% t(X) %*% Tvec) / (n-1)
 ```
 
 
+**Actual GWAS**
 
+$$Y = \beta M^T + T + e$$
+```{r}
+L <- ncol(M)
+true_beta <-  t(as.matrix(rnorm(L, 0, 0.01)))
+e <- t(as.matrix(rnorm(n, 0, 0.001)))
+Y <- as.vector((true_beta %*% t(M))+ t(Tvec) + e)
+
+df <- as.data.frame(cbind(as.numeric(Y), pop_gwas))
+ggplot(data = df, aes(x = Y, fill = pop_gwas)) + geom_histogram()
+```
+
+Do GWAS to estimate each $\hat{\beta}$ by regressing phenotype onto genotype. 
+```{r}
+beta_hat <- rep(0, L)
+for (i in 1:L) {
+  x <- as.vector(M[,i])
+  mod <- lm(as.vector(Y) ~ x)
+  beta_hat[i] <- mod$coefficients[2]
+}
+
+hist(beta_hat)
+```
+
+Compare PGS in Test panel 
+```{r}
+G <- as.vector(beta_hat %*% t(X))
+plot(as.factor(pop_test), G)
+```
+
+
+```{r}
+beta_hat_tm <- rep(0, L)
+tm_effect_size <- rep(0, L)
+for (i in 1:L) {
+  x <- as.vector(M[,i])
+  mod <- lm(as.vector(Y) ~ x + as.vector(Tm))
+  beta_hat_tm[i] <- mod$coefficients[2]
+  tm_effect_size[i] <- mod$coefficients[3]
+}
+
+hist(tm_effect_size)
+G <- as.vector(beta_hat_tm %*% t(X))
+plot(as.factor(pop_test), G)
+```
+
+
+
+```{r}
+X <- fread("../data/4PopSplit/AC_X.txt")
+test.genos <- as.matrix(X)
+
+# Calculate Covariance Matrix 
+test.cov <- test.genos%*%t(test.genos)/(ncol(test.genos)-1)
+eig <- eigen(test.cov)
+neigs <- length(eig$value)
+
+## Eigen decomposition of cov matrix
+eig <- eigen(test.cov)
+neigs <- length(eig$value)
+
+# PC as test vector
+vecs <- eig$vectors
+tvec <- vecs[,184]
+ctvec <- (tvec-mean(tvec))
+std.tvec <- ctvec/sqrt(sum(ctvec^2))
+
+# 0/1 test vector
+#tvec <- c(rep(1,500),rep(0,500))
+#ctvec <- (tvec-mean(tvec))
+#std.tvec <- ctvec/sqrt(sum(ctvec^2))
+
+# Redo test.cov removing last eigenvalue
+test.cov <- eig$vectors[,1:185]%*%diag(eig$values[1:185])%*%t(eig$vectors[,1:185])
+
+## procedure for getting Tm that is written in terms of
+## the the (pseudo)inverse of the test kinship matrix
+## blah = T^T * K^-1 * T
+blah <- t(std.tvec)%*%eig$vectors[,1:(neigs-1)]%*%diag(1/eig$values[-neigs])%*%t(eig$vectors[,1:(neigs-1)])%*%std.tvec
+
+##  Tm = K * T * blah = K * T * T^T * K^-1 * T
+Tm1 <- test.cov%*%std.tvec%*%blah
+
+## procedure for getting Tm that is written in terms of
+## the "eigenvalue" for the T vector
+t.eigval <- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
+Tm2 <- test.cov%*%std.tvec / t.eigval
+
+
+
+## they are ~ the same
+par(mfrow=c(1,3))
+plot(Tm1,Tm2,type='n',pch=20,bty='n')
+abline(a=0,b=1,col='red',lty=2)
+points(Tm1,Tm2,pch=20)
+
+plot(std.tvec, Tm1)
+abline(a=0,b=1,col='red',lty=2)
+
+plot(std.tvec, Tm2)
+abline(a=0,b=1,col='red',lty=2)
+
+
+```
+
+```{r}
+
+# PC as test vector
+vecs <- eig$vectors
+tvec <- vecs[,1]
+ctvec <- (tvec-mean(tvec))
+std.tvec <- ctvec/sqrt(sum(ctvec^2))
+
+# 0/1 test vector
+tvec <- c(rep(1,500),rep(0,500))
+ctvec <- (tvec-mean(tvec))
+std.tvec <- ctvec/sqrt(sum(ctvec^2))
+
+mod <- lm(std.tvec ~ vecs)
+coeffs <- mod$coefficients[-1]
+
+Tm = vecs[,1:999] %*% as.matrix(coeffs[1:999])
+
+out <- matrix(NA, ncol = 1000, nrow = 999)
+for (i in 1:999){
+   out[i, ] = coeffs[i] * ((test.cov %*% vecs[,i]) / eig$values[i])
+}
+
+Tm = colSums(out)
+
+t.eigval <- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
+#t.eigval <- t(std.tvec) %*% eig$vectors[,1:185] %*% diag(eig$values[1:185])%*% t(eig$vectors[,1:185]) %*% std.tvec
+
+Tm2 = (test.cov %*% std.tvec) / as.numeric(t.eigval)
+
+
+plot(Tm,Tm2,pch=20)
+abline(a=0,b=1,col='red',lty=2)
+
+plot(std.tvec, Tm)
+abline(a=0,b=1,col='red',lty=2)
+```
+
+```{r}
+
+# PC as test vector
+vecs <- eig$vectors
+tvec <- vecs[,184]
+ctvec <- (tvec-mean(tvec))
+std.tvec <- ctvec/sqrt(sum(ctvec^2))
+
+mod <- lm(std.tvec ~ vecs)
+coeffs <- mod$coefficients[-1]
+
+Tm = vecs[,1:999] %*% as.matrix(coeffs[1:999])
+
+out <- matrix(NA, ncol = 1000, nrow = 999)
+for (i in 1:999){
+   out[i, ] = coeffs[i] * ((test.cov %*% vecs[,i]) / eig$values[i])
+ }
+Tm = colSums(out)
+
+t.eigval <- as.numeric(t(std.tvec) %*% test.cov %*% std.tvec)
+#t.eigval <- t(std.tvec) %*% eig$vectors[,1:185] %*% diag(eig$values[1:185])%*% t(eig$vectors[,1:185]) %*% std.tvec
+
+Tm2 = (test.cov %*% std.tvec) / as.numeric(t.eigval)
+
+
+plot(Tm,Tm2,pch=20)
+abline(a=0,b=1,col='red',lty=2)
+
+```
