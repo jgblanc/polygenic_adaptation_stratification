@@ -1,0 +1,20 @@
+PLINK v2.00a3 AVX2 (25 Feb 2020)
+Options in effect:
+  --freq
+  --pfile output/Simulate_Genotypes/4PopSplit/test-c1-tp
+
+Hostname: Jennifers-MacBook-Pro.local
+Working directory: /Users/jenniferblanc/polygenic_adaptation_stratification
+Start time: Thu Jan  7 15:23:52 2021
+
+Random number seed: 1610061832
+8192 MiB RAM detected; reserving 4096 MiB for main workspace.
+Using up to 8 compute threads.
+50 samples (0 females, 0 males, 50 ambiguous; 50 founders) loaded from
+output/Simulate_Genotypes/4PopSplit/test-c1-tp.psam.
+12896 variants loaded from output/Simulate_Genotypes/4PopSplit/test-c1-tp.pvar.
+Note: No phenotype data present.
+Calculating allele frequencies... done.
+--freq: Allele frequencies (founders only) written to plink2.afreq .
+
+End time: Thu Jan  7 15:23:52 2021

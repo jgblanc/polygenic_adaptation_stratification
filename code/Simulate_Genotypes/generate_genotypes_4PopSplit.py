@@ -13,10 +13,10 @@ parser.add_argument("--NA","-A",dest="NA",help="haploid effective population siz
 parser.add_argument("--NB","-B",dest="NB",help="haploid effective population size in population B",type=int,default=2000)
 parser.add_argument("--NC","-C",dest="NC",help="haploid effective population size in population C",type=int,default=2000)
 parser.add_argument("--ND","-D",dest="ND",help="haploid effective population size in population A",type=int,default=2000)
-parser.add_argument("--sample_size_A","-a",dest="sample_A",help="haploid sample size in population A",type=int,default=50)
-parser.add_argument("--sample_size_B","-b",dest="sample_B",help="haploid sample size in population A",type=int,default=50)
-parser.add_argument("--sample_size_C","-c",dest="sample_C",help="haploid sample size in population A",type=int,default=50)
-parser.add_argument("--sample_size_D","-d",dest="sample_D",help="haploid sample size in population A",type=int,default=50)
+parser.add_argument("--sample_size_A","-a",dest="sample_A",help="haploid sample size in population A (must be divisible by ploidy)",type=int,default=50)
+parser.add_argument("--sample_size_B","-b",dest="sample_B",help="haploid sample size in population B (must be divisible by ploidy)",type=int,default=50)
+parser.add_argument("--sample_size_C","-c",dest="sample_C",help="haploid sample size in population C (must be divisible by ploidy)",type=int,default=50)
+parser.add_argument("--sample_size_D","-d",dest="sample_D",help="haploid sample size in population D (must be divisible by ploidy)",type=int,default=50)
 req_grp.add_argument("--outpre","-o",dest="outpre",help="output file prefix",type=str,required=True)
 parser.add_argument("--length","-L",dest="length",help="length of chromosome (bp) (def:1e7)",type=int,default=10000000,nargs="?")
 parser.add_argument("--rho","-r",dest="rho",help="recombination rate (def:1e-08)",type=float,default=1e-08,nargs="?")
@@ -87,21 +87,21 @@ with open(args.outpre+".vcf","w") as vcf_file:
 
 #write population for each individual
 deme_id=[]
-for i in range(0, args.sample_A):
+for i in range(0, int(float(args.sample_A)/float(args.ploidy))):
     deme_id.append("A")
-for i in range(0, args.sample_B):
+for i in range(0, int(float(args.sample_B)/float(args.ploidy))):
     deme_id.append("B")
-for i in range(0, args.sample_C):
+for i in range(0, int(float(args.sample_C)/float(args.ploidy))):
     deme_id.append("C")
-for i in range(0, args.sample_C):
+for i in range(0, int(float(args.sample_D)/float(args.ploidy))):
     deme_id.append("D")
     
 #flatten
 deme_id=[item for sublist in deme_id for item in sublist]
 
 #fid and iid
-fid=["tsk_"+str(i) for i in range(0,(args.sample_A + args.sample_B + args.sample_C+ args.sample_D))]
-iid=["tsk_"+str(i) for i in range(0,(args.sample_A + args.sample_B + args.sample_C+ args.sample_D))]
+fid=["tsk_"+str(i) for i in range(0,(int(float(args.sample_A)/float(args.ploidy)) + int(float(args.sample_B)/float(args.ploidy)) + int(float(args.sample_C)/float(args.ploidy)) + int(float(args.sample_D)/float(args.ploidy))))]
+iid=["tsk_"+str(i) for i in range(0,(int(float(args.sample_A)/float(args.ploidy)) + int(float(args.sample_B)/float(args.ploidy)) + int(float(args.sample_C)/float(args.ploidy)) + int(float(args.sample_D)/float(args.ploidy))))]
 
 popdf=pd.DataFrame({"FID":fid,
                   "IID":iid,

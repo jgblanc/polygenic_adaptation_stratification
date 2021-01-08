@@ -1,0 +1,33 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	get_common_snp_list
+	1	get_variant_freq
+	2
+
+[Thu Jan  7 15:24:29 2021]
+rule get_variant_freq:
+    output: output/Simulate_Genotypes/4PopSplit/test-c1-tp.afreq, output/Simulate_Genotypes/4PopSplit/test-c1-gp.afreq
+    jobid: 1
+
+[Thu Jan  7 15:24:29 2021]
+Finished job 1.
+1 of 2 steps (50%) done
+
+[Thu Jan  7 15:24:29 2021]
+rule get_common_snp_list:
+    input: output/Simulate_Genotypes/4PopSplit/test-c1-tp.afreq, output/Simulate_Genotypes/4PopSplit/test-c1-gp.afreq
+    output: output/Simulate_Genotypes/4PopSplit/common_snp_ids.txt
+    jobid: 0
+
+[Thu Jan  7 15:24:29 2021]
+Error in rule get_common_snp_list:
+    jobid: 0
+    output: output/Simulate_Genotypes/4PopSplit/common_snp_ids.txt
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-07T152429.499615.snakemake.log

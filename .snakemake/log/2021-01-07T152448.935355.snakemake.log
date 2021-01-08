@@ -1,0 +1,19 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	get_common_snp_list
+	1
+
+[Thu Jan  7 15:24:48 2021]
+rule get_common_snp_list:
+    input: output/Simulate_Genotypes/4PopSplit/test-c1-tp.afreq, output/Simulate_Genotypes/4PopSplit/test-c1-gp.afreq
+    output: output/Simulate_Genotypes/4PopSplit/common_snp_ids.txt
+    jobid: 0
+
+[Thu Jan  7 15:24:49 2021]
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-07T152448.935355.snakemake.log

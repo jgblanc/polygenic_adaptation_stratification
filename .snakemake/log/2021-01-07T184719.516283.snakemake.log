@@ -1,0 +1,3 @@
+WorkflowError in line 115 of /Users/jenniferblanc/polygenic_adaptation_stratification/Snakefile:
+Duplicate output file pattern in rule remake_panels_with_common_snps. First two duplicate for entries 0 and 3
+  File "/Users/jenniferblanc/polygenic_adaptation_stratification/Snakefile", line 115, in <module>

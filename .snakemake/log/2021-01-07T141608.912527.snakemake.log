@@ -1,0 +1,33 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	split_into_test_gwas
+	1
+
+[Thu Jan  7 14:16:08 2021]
+rule split_into_test_gwas:
+    input: output/Simulate_Genotypes/4PopSplit/test-c1.gwas, output/Simulate_Genotypes/4PopSplit/test-c1.test
+    output: output/Simulate_Genotypes/4PopSplit/test-c1.psam, output/Simulate_Genotypes/4PopSplit/test-c1.pgen, output/Simulate_Genotypes/4PopSplit/test-c1.pvar
+    jobid: 0
+
+[Thu Jan  7 14:16:09 2021]
+Error in rule split_into_test_gwas:
+    jobid: 0
+    output: output/Simulate_Genotypes/4PopSplit/test-c1.psam, output/Simulate_Genotypes/4PopSplit/test-c1.pgen, output/Simulate_Genotypes/4PopSplit/test-c1.pvar
+    shell:
+        
+	~/infer_mutational_bias/code/plink2 	--keep output/Simulate_Genotypes/4PopSplit/test-c1.gwas 	--make-pgen 	--out output/Simulate_Genotypes/4PopSplit/test-c1-gp
+	--pfile output/Simulate_Genotypes/4PopSplit/test
+	--rm-dup exclude-all
+
+        ~/infer_mutational_bias/code/plink2         --keep output/Simulate_Genotypes/4PopSplit/test-c1.test         --make-pgen         --out output/Simulate_Genotypes/4PopSplit/test-c1-tp
+        --pfile output/Simulate_Genotypes/4PopSplit/test
+	--rm-dup exclude-all
+	
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-07T141608.912527.snakemake.log

@@ -1,0 +1,28 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	remake_panels_with_common_snps
+	1
+
+[Thu Jan  7 15:54:27 2021]
+rule remake_panels_with_common_snps:
+    output: output/Simulate_Genotypes/4PopSplit/test-c1-tp_common.psam, output/Simulate_Genotypes/4PopSplit/test-c1-tp_common.pvar, output/Simulate_Genotypes/4PopSplit/test-c1-tp_common.pgen, output/Simulate_Genotypes/4PopSplit/test-c1-gp_common.psam, output/Simulate_Genotypes/4PopSplit/test-c1-gp_common.pvar, output/Simulate_Genotypes/4PopSplit/test-c1-gp_common.pgen
+    jobid: 0
+
+[Thu Jan  7 15:54:27 2021]
+Error in rule remake_panels_with_common_snps:
+    jobid: 0
+    output: output/Simulate_Genotypes/4PopSplit/test-c1-tp_common.psam, output/Simulate_Genotypes/4PopSplit/test-c1-tp_common.pvar, output/Simulate_Genotypes/4PopSplit/test-c1-tp_common.pgen, output/Simulate_Genotypes/4PopSplit/test-c1-gp_common.psam, output/Simulate_Genotypes/4PopSplit/test-c1-gp_common.pvar, output/Simulate_Genotypes/4PopSplit/test-c1-gp_common.pgen
+    shell:
+        
+        ~/infer_mutational_bias/code/plink2         --pfile output/Simulate_Genotypes/4PopSplit/test-c1-tp         --extract          --out output/Simulate_Genotypes/4PopSplit/test-c1-tp_common 	--make-pgen
+
+        ~/infer_mutational_bias/code/plink2         --pfile output/Simulate_Genotypes/4PopSplit/test-c1-gp         --extract          --out output/Simulate_Genotypes/4PopSplit/test-c1-gp_common 	--make-pgen
+        
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-07T155426.971514.snakemake.log

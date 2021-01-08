@@ -1,90 +1,127 @@
 
+
 rule simulate_genotypes_4popsplit:
     output:
-        "output/Simulate_Genotypes/4PopSplit/test.vcf",
-	"output/Simulate_Genotypes/4PopSplit/test.pop"
+        "output/Simulate_Genotypes/{model}/{rep}/genos.vcf",
+	"output/Simulate_Genotypes/{model}/{rep}/genos.pop"
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
-	--outpre output/Simulate_Genotypes/4PopSplit/test"
+	--outpre output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos"
 
 rule format_VCF:
     input:
-        "output/Simulate_Genotypes/4PopSplit/test.vcf"
+        "output/Simulate_Genotypes/{model}/{rep}/genos.vcf"
     output:
-        "output/Simulate_Genotypes/4PopSplit/test.ids.vcf.gz"
+        gz="output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz",
+	csi="output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz.csi"
     shell:
         """
-	head -n6 {input} > output/Simulate_Genotypes/4PopSplit/header.txt,
-	cat output/Simulate_Genotypes/4PopSplit/header.txt <(cat output/Simulate_Genotypes/4PopSplit/test.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output}
-	bcftools index {output}
+	head -n6 {input} > output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header.txt
+	cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header.txt <(cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
+	bcftools index {output.gz}
+	rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header.txt
 	"""
 
-rule LD_clumping_GWAS_atlas:
+rule convert_vcf_to_plink:
     input:
-        "output/GWAS_ATLAS/parsed_gwas/{trait}_parsed.txt"
+        "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
     output:
-        "output/GWAS_ATLAS/clumped/{trait}.clumped"
+        "output/Simulate_Genotypes/{model}/{rep}/genos.psam",
+	"output/Simulate_Genotypes/{model}/{rep}/genos.pgen",
+	"output/Simulate_Genotypes/{model}/{rep}/genos.pvar"
     shell:
-        "code/plink \
-        --noweb \
-        --bfile data/1000G_20101123_v3_GIANT_chr1_23_minimacnamesifnotRS_CEU_MAF0.01/1000G_20101123_v3_GIANT_chr1_23_minimacnamesifnotRS_CEU_MAF0.01_VARID \
-        --clump {input} \
-        --clump-field P \
-        --clump-p1 1 \
-        --clump-p2 1 \
-        --clump-r2 0.5 \
-        --clump-kb 250 \
-        --out output/GWAS_ATLAS/clumped/{wildcards.trait}"
+        "~/infer_mutational_bias/code/plink2 \
+        --double-id \
+        --make-pgen \
+        --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
+        --vcf {input}"
 
-rule Extract_clumped_SNPs_GWAS_ATLAS:
+rule create_panels_4PopSplit:
     input:
-        "output/GWAS_ATLAS/clumped/{trait}.clumped"
+        "output/Simulate_Genotypes/{model}/{rep}/genos.pop"
     output:
-        "output/GWAS_ATLAS/clumped/{trait}_SNPs.txt"
-    shell:
-        "awk '{{ print $3}}' {input} > {output}"
+        "output/Simulate_Genotypes/{model}/{rep}/C1/ids.gwas",
+	"output/Simulate_Genotypes/{model}/{rep}/C1/ids.test",
+	"output/Simulate_Genotypes/{model}/{rep}/C2/ids.gwas",
+	"output/Simulate_Genotypes/{model}/{rep}/C2/ids.test"
+    script:
+        "code/Simulate_Genotypes/split_gwas-test_4PopSplit.R"
 
-rule LD_pruning_GWAS_atlas:
+rule split_into_test_gwas:
     input:
-        "output/GWAS_ATLAS/parsed_gwas/{trait}_{threshold}_parsed.txt"
+        gwas="output/Simulate_Genotypes/{model}/{rep}/{config}/ids.gwas",
+	test="output/Simulate_Genotypes/{model}/{rep}/{config}/ids.test",
     output:
-        "output/GWAS_ATLAS/pruned/{trait}_{threshold}.prune.in"
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pgen",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pvar"
     shell:
         """
-	cut -f 1 -d' ' {input} > all_ss.snps
-	code/plink \
-    	--noweb \
-    	--bfile data/1000G_20101123_v3_GIANT_chr1_23_minimacnamesifnotRS_CEU_MAF0.01/1000G_20101123_v3_GIANT_chr1_23_minimacnamesifnotRS_CEU_MAF0.01_VARID \
-   	--extract all_ss.snps \
-    	--make-bed \
-    	--out all_ss_plink
-	code/plink \
-    	--bfile all_ss_plink \
-    	--indep-pairwise 50 5 0.05 \
-    	--noweb \
-    	--out output/GWAS_ATLAS/pruned/{wildcards.trait}_{wildcards.threshold}
-	rm all_ss*
+	~/infer_mutational_bias/code/plink2 \
+	--keep {input.gwas} \
+	--make-pgen \
+	--out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas \
+	--pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
+	--rm-dup exclude-all
+
+        ~/infer_mutational_bias/code/plink2 \
+        --keep {input.test} \
+        --make-pgen \
+        --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
+	--rm-dup exclude-all
 	"""
 
-rule LD_pruning_STRAT:
-    input:
-        "data/STRAT/chr1_EUR_{MAF}.eigenvec.var.DA.txt"
+rule get_variant_freq:
     output:
-        "output/STRAT/pruned/chr1_EUR_{MAF}.eigenvec.var.DA.prune.in"
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.afreq",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.afreq"
     shell:
         """
-        cut -f2,25 -d',' {input} > all_ss.temp
-	awk '$2 != "NA"' FS=',' all_ss.temp | cut -f1 -d',' > all_ss.snps #Pick only D/A SNPs and get rsID 
-        code/plink \
-        --noweb \
-        --bfile data/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR \
-        --extract all_ss.snps \
-        --make-bed \
-        --out all_ss_plink
-        code/plink \
-        --bfile all_ss_plink \
-        --indep-pairwise 50 5 0.05 \
-        --noweb \
-        --out output/STRAT/pruned/chr1_EUR_{wildcards.MAF}.eigenvec.var.DA
-	rm all_ss*
+        ~/infer_mutational_bias/code/plink2 \
+	--pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test \
+	--freq \
+	--out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test
+
+	~/infer_mutational_bias/code/plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas \
+        --freq \
+        --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas
+        """
+
+rule get_common_snp_list:
+    input:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.afreq",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.afreq"
+    output:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/common_snp_ids.txt"
+    script:
+        "code/Simulate_Genotypes/get_common_snp_list.R"
+
+rule remake_panels_with_common_snps:
+    input:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/common_snp_ids.txt"
+    output:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.pvar",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.pgen",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen"
+    shell:
+        """
+        ~/infer_mutational_bias/code/plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test \
+        --extract {input} \
+        --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+	--make-pgen
+
+        ~/infer_mutational_bias/code/plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas \
+        --extract {input} \
+        --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+	--make-pgen
         """
