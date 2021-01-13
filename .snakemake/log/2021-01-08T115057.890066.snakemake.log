@@ -1,0 +1,55 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	get_common_snp_list
+	1	get_variant_freq
+	1	remake_panels_with_common_snps
+	1	split_into_test_gwas
+	4
+
+[Fri Jan  8 11:50:57 2021]
+rule split_into_test_gwas:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/ids.gwas, output/Simulate_Genotypes/4PopSplit/V1/C2/ids.test, output/Simulate_Genotypes/4PopSplit/V1/genos.psam
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pgen, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pgen, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pvar
+    jobid: 2
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Fri Jan  8 11:50:58 2021]
+Finished job 2.
+1 of 4 steps (25%) done
+
+[Fri Jan  8 11:50:58 2021]
+rule get_variant_freq:
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.afreq, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.afreq
+    jobid: 3
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Fri Jan  8 11:50:58 2021]
+Finished job 3.
+2 of 4 steps (50%) done
+
+[Fri Jan  8 11:50:58 2021]
+rule get_common_snp_list:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.afreq, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.afreq
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/common_snp_ids.txt
+    jobid: 1
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Fri Jan  8 11:50:58 2021]
+Finished job 1.
+3 of 4 steps (75%) done
+
+[Fri Jan  8 11:50:58 2021]
+rule remake_panels_with_common_snps:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/common_snp_ids.txt, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.psam
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common.pgen, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pgen
+    jobid: 0
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Fri Jan  8 11:50:58 2021]
+Finished job 0.
+4 of 4 steps (100%) done
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-08T115057.890066.snakemake.log

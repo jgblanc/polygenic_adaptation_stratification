@@ -13,6 +13,7 @@ parser.add_argument("--NA","-A",dest="NA",help="haploid effective population siz
 parser.add_argument("--NB","-B",dest="NB",help="haploid effective population size in population B",type=int,default=2000)
 parser.add_argument("--NC","-C",dest="NC",help="haploid effective population size in population C",type=int,default=2000)
 parser.add_argument("--ND","-D",dest="ND",help="haploid effective population size in population A",type=int,default=2000)
+parser.add_argument("--Nanc","-anc",dest="Nanc",help="haploid effective ancestral population size before the first split",type=int,default=2000)
 parser.add_argument("--sample_size_A","-a",dest="sample_A",help="haploid sample size in population A (must be divisible by ploidy)",type=int,default=50)
 parser.add_argument("--sample_size_B","-b",dest="sample_B",help="haploid sample size in population B (must be divisible by ploidy)",type=int,default=50)
 parser.add_argument("--sample_size_C","-c",dest="sample_C",help="haploid sample size in population C (must be divisible by ploidy)",type=int,default=50)
@@ -30,7 +31,7 @@ print(args)
 
 
 # Define Function to generate tree sequency under 4 population split model - single population splits into 2 at `split_time_1` and each of those populations splits into 2 at `split_time_2`
-def split(N_A, N_B, N_C, N_D, split_time1, split_time2, sample_A, sample_B, sample_C, sample_D, seg_length, recomb_rate, mut_rate):
+def split(N_A, N_B, N_C, N_D, split_time1, split_time2, sample_A, sample_B, sample_C, sample_D, seg_length, recomb_rate, mut_rate, N_anc):
 
     # Times are provided in years, so we convert into generations.
     generation_time = 25
@@ -57,7 +58,9 @@ def split(N_A, N_B, N_C, N_D, split_time1, split_time2, sample_A, sample_B, samp
         msprime.MassMigration(
             time=T_S2, source=1, destination=0, proportion=1.0),
         msprime.MassMigration(
-            time=T_S1, source=2, destination = 0, proportion=1.0)
+            time=T_S1, source=2, destination = 0, proportion=1.0),
+        msprime.PopulationParametersChange(
+            time=T_S1, initial_size=N_anc, growth_rate=0, population_id=0)
     ]
     
     # Use the demography debugger to print out the demographic history
@@ -65,7 +68,7 @@ def split(N_A, N_B, N_C, N_D, split_time1, split_time2, sample_A, sample_B, samp
     dd = msprime.DemographyDebugger(
         population_configurations=population_configurations,
         demographic_events=demographic_events)
-    #dd.print_history()
+    dd.print_history()
     
     ts = msprime.simulate(population_configurations=population_configurations,
                          demographic_events=demographic_events, length=seg_length, recombination_rate=recomb_rate)
@@ -74,7 +77,7 @@ def split(N_A, N_B, N_C, N_D, split_time1, split_time2, sample_A, sample_B, samp
 
 # Generate Tree Sequence 
 print("simulating genotypes under demographic model")
-ts = split(args.NA, args.NB, args.NC, args.ND, args.split_time1, args.split_time2, args.sample_A, args.sample_B, args.sample_C, args.sample_D, args.length, args.rho, args.mu)
+ts = split(args.NA, args.NB, args.NC, args.ND, args.split_time1, args.split_time2, args.sample_A, args.sample_B, args.sample_C, args.sample_D, args.length, args.rho, args.mu, args.Nanc)
 
 
 # Save to VCF

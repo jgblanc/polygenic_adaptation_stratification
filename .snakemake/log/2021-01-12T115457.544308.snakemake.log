@@ -1,0 +1,4 @@
+Building DAG of jobs...
+MissingInputException in line 172 of /Users/jenniferblanc/polygenic_adaptation_stratification/Snakefile:
+Missing input files for rule simulatate_phenotype_4PopSplit:
+output/Simulate_Penotypes/4PopSplit/V1/C1/genos-gwas_common.gvalue.sscore

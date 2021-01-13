@@ -1,0 +1,38 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	generate_genetic_values
+	1	simulatate_phenotype_4PopSplit
+	2
+
+[Tue Jan 12 11:56:29 2021]
+rule generate_genetic_values:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.psam
+    output: output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.gvalue.sscore
+    jobid: 1
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Tue Jan 12 11:56:29 2021]
+Finished job 1.
+1 of 2 steps (50%) done
+
+[Tue Jan 12 11:56:29 2021]
+rule simulatate_phenotype_4PopSplit:
+    input: output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.gvalue.sscore, output/Simulate_Genotypes/4PopSplit/V1/genos.pop
+    output: output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.phenos.txt
+    jobid: 0
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Tue Jan 12 11:56:30 2021]
+Error in rule simulatate_phenotype_4PopSplit:
+    jobid: 0
+    output: output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.phenos.txt
+    shell:
+        Rscript code/Simulate_Phenotypes/simulate_phenotype_4PopSplit.R output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.gvalue.sscore output/Simulate_Genotypes/4PopSplit/V1/genos.pop output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.phenos.txt 0.8 12
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-12T115629.546370.snakemake.log

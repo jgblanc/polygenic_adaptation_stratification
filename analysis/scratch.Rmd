@@ -297,4 +297,24 @@ pl
 ggsave("~/Desktop/fig_insight.png", pl, height = 5)
 ```
 
+```{r}
+tp <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/tp.afreq", header = T)
+gp <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/gp.afreq", header = T)
+
+t <- subset(tp, tp$ALT_FREQS > 0 & tp$ALT_FREQS < 1)
+g <- subset(gp, gp$ALT_FREQS > 0 & gp$ALT_FREQS < 1)
+
+dat <- merge(t,g, by=c("#CHROM","ID"))
+
+write.table(dat$ID, "~/Desktop/GWAS.txt", quote = F, col.names = F, row.names = F)
+write.table(test, "~/Desktop/GWAS.txt", quote = F, col.names = F)
+
+gwas <- subset(pop, pop$V3 == "A" | pop$V3 == "B")
+test <- subset(pop, pop$V3 == "C" | pop$V3 == "D")  
+
+write.table(gwas, "~/Desktop/GWAS.txt", quote = F, col.names = F)
+write.table(test, "~/Desktop/GWAS.txt", quote = F, col.names = F)
+```
+
+
 
