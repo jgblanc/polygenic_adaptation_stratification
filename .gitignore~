@@ -12,3 +12,4 @@ analysis/site_libs
 data/*
 output/Simulate_Genotypes/*
 output/Simulate_Phenotypes/*
+output/Run_GWAS/*

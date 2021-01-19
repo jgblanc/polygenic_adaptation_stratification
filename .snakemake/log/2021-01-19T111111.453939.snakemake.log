@@ -1,0 +1,26 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	prs_causal
+	1
+
+[Tue Jan 19 11:11:11 2021]
+rule prs_causal:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test_common.psam, output/PRS/4PopSplit/V1/C1/genos-gwas_common.c.betas
+    output: output/PRS/4PopSplit/V1/C1/genos-test_common.sscore
+    jobid: 0
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Tue Jan 19 11:11:11 2021]
+Error in rule prs_causal:
+    jobid: 0
+    output: output/PRS/4PopSplit/V1/C1/genos-test_common.sscore
+    shell:
+        ~/infer_mutational_bias/code/plink2         --pfile output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test_common         --score output/PRS/4PopSplit/V1/C1/genos-gwas_common.c.betas cols=dosagesum,scoresums         --out output/PRS/4PopSplit/V1/C1/genos-test_common         --scoresums --out practice --score-col-nums 3,4
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-19T111111.453939.snakemake.log

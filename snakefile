@@ -196,3 +196,61 @@ rule gwas_no_correction:
         --pheno {input.pheno} \
         --pheno-name pheno_random,pheno_strat \
         --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common"
+
+# PRS
+
+rule pick_SNPS:
+    input:
+        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.effects.txt",
+        gwas_random="output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_random.glm.linear",
+        gwas_strat="output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_strat.glm.linear"
+    output:
+        "output/PRS/{model}/{rep}/{config}/genos-gwas_common.c.betas",
+        "output/PRS/{model}/{rep}/{config}/genos-gwas_common.c.p.betas",
+        "output/PRS/{model}/{rep}/{config}/genos-gwas_common.nc.betas"
+    shell:
+        "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common 5e-4 output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common"
+
+rule calc_prs:
+    input:
+        genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
+        c="output/PRS/{model}/{rep}/{config}/genos-gwas_common.c.betas",
+        cp="output/PRS/{model}/{rep}/{config}/genos-gwas_common.c.p.betas",
+        nc="output/PRS/{model}/{rep}/{config}/genos-gwas_common.nc.betas"
+    output:
+        "output/PRS/{model}/{rep}/{config}/genos-test_common.c.sscore",
+        "output/PRS/{model}/{rep}/{config}/genos-test_common.c.p.sscore",
+        "output/PRS/{model}/{rep}/{config}/genos-test_common.nc.sscore"
+    shell:
+        """
+        ~/infer_mutational_bias/code/plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --score {input.c} cols=dosagesum,scoresums \
+        --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.c \
+        --score-col-nums 3,4
+
+        ~/infer_mutational_bias/code/plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --score {input.cp} cols=dosagesum,scoresums \
+        --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.c.p \
+        --score-col-nums 3,4
+
+        ~/infer_mutational_bias/code/plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --score {input.nc} cols=dosagesum,scoresums \
+        --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.nc \
+        --score-col-nums 3,4
+        """
+rule calc_true_gv:
+    input:
+        genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
+        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.effects.txt",
+    output:
+        "output/PRS/{model}/{rep}/{config}/genos-test_common.true.sscore",
+    shell:
+        """
+        ~/infer_mutational_bias/code/plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --score {input.causal_effect} cols=dosagesum,scoresums \
+        --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.true \
+        """
