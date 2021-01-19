@@ -177,3 +177,22 @@ rule simulatate_phenotype_4PopSplit:
         "output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.phenos.txt"
     shell:
         "Rscript code/Simulate_Phenotypes/simulate_phenotype_4PopSplit.R {input.gvalues} {input.pops} {output} 0.8 12"
+
+# Run GWAS
+
+rule gwas_no_correction:
+    input:
+        genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq",
+        pheno="output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.phenos.txt"
+    output:
+        "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_random.glm.linear",
+        "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_strat.glm.linear"
+    shell:
+        "~/infer_mutational_bias/code/plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+        --read-freq {input.freq} \
+        --glm \
+        --pheno {input.pheno} \
+        --pheno-name pheno_random,pheno_strat \
+        --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common"
