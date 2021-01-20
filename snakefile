@@ -1,32 +1,42 @@
+CHR=["0", "1"]
 
 # Simluate Genotypes
 
 rule simulate_genotypes_4popsplit:
     output:
-        "output/Simulate_Genotypes/{model}/{rep}/genos.vcf",
-	"output/Simulate_Genotypes/{model}/{rep}/genos.pop"
+        temp(expand("output/Simulate_Genotypes/{{model}}/{{rep}}/genos_{chr}.vcf", chr=CHR)),
+	      "output/Simulate_Genotypes/{model}/{rep}/genos.pop"
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
-	--outpre output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
-	--Nanc 10000 \
-	-a 1000 \
-	-b 1000 \
-	-c 1000 \
-	-d 1000"
+	       --outpre output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
+	       --chr 2 \
+	       --Nanc 10000 \
+	       -a 1000 \
+	       -b 1000 \
+	       -c 1000 \
+	       -d 1000"
 
 rule format_VCF:
     input:
-        "output/Simulate_Genotypes/{model}/{rep}/genos.vcf"
+        "output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.vcf"
     output:
-        gz="output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz",
-	csi="output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz.csi"
+        gz=temp("output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz")
+	      #csi="output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz.csi"
     shell:
         """
-	head -n6 {input} > output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header.txt
-	cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header.txt <(cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
-	bcftools index {output.gz}
-	rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header.txt
-	"""
+	      head -n6 {input} > output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt
+	      cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt <(cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos_{wildcards.chr}.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
+	      #bcftools index {output.gz}
+	      rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt
+	      """
+
+rule concat_vcfs:
+    input:
+        expand("output/Simulate_Genotypes/{{model}}/{{rep}}/genos_{chr}.ids.vcf.gz", chr=CHR)
+    output:
+        "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
+    shell:
+        "bcftools concat {input} -o {output} -O z"
 
 rule convert_vcf_to_plink:
     input:
@@ -160,7 +170,8 @@ rule draw_effect_sizes:
 
 rule generate_genetic_values:
     input:
-        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam"
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.effects.txt"
     output:
         "output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.gvalue.sscore"
     shell:

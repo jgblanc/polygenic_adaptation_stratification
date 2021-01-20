@@ -1,0 +1,20 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	format_VCF
+	1
+
+[Tue Jan 19 12:44:51 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz, output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz.csi
+    jobid: 0
+    wildcards: model=4PopSplit, rep=V1, chr=0
+
+[Tue Jan 19 12:45:04 2021]
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-19T124451.621632.snakemake.log

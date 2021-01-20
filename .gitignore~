@@ -13,3 +13,4 @@ data/*
 output/Simulate_Genotypes/*
 output/Simulate_Phenotypes/*
 output/Run_GWAS/*
+output/PRS/*
