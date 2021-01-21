@@ -89,7 +89,7 @@ for i in range(0,args.chrom_num):
     print("writing genotype to vcf file")
 
     with open(args.outpre+"_"+str(i)+".vcf","w") as vcf_file:
-        ts.write_vcf(vcf_file,ploidy=args.ploidy,contig_id=1)
+        ts.write_vcf(vcf_file,ploidy=args.ploidy,contig_id=i+1)
     
 # Write population information file (population identity) 
 

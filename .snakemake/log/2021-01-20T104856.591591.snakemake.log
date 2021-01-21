@@ -1,0 +1,73 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	concat_vcfs
+	1	convert_vcf_to_plink
+	2	format_VCF
+	1	simulate_genotypes_4popsplit
+	5
+
+[Wed Jan 20 10:48:56 2021]
+rule simulate_genotypes_4popsplit:
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos.pop
+    jobid: 4
+    wildcards: model=4PopSplit, rep=V1
+
+[Wed Jan 20 10:49:01 2021]
+Finished job 4.
+1 of 5 steps (20%) done
+
+[Wed Jan 20 10:49:01 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz
+    jobid: 3
+    wildcards: model=4PopSplit, rep=V1, chr=1
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf.
+[Wed Jan 20 10:49:13 2021]
+Finished job 3.
+2 of 5 steps (40%) done
+
+[Wed Jan 20 10:49:13 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz
+    jobid: 2
+    wildcards: model=4PopSplit, rep=V1, chr=0
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf.
+[Wed Jan 20 10:49:25 2021]
+Finished job 2.
+3 of 5 steps (60%) done
+
+[Wed Jan 20 10:49:25 2021]
+rule concat_vcfs:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz, output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz
+    jobid: 1
+    wildcards: model=4PopSplit, rep=V1
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz.
+[Wed Jan 20 10:49:28 2021]
+Finished job 1.
+4 of 5 steps (80%) done
+
+[Wed Jan 20 10:49:28 2021]
+rule convert_vcf_to_plink:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos.psam, output/Simulate_Genotypes/4PopSplit/V1/genos.pgen, output/Simulate_Genotypes/4PopSplit/V1/genos.pvar
+    jobid: 0
+    wildcards: model=4PopSplit, rep=V1
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos.psam.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos.pgen.
+[Wed Jan 20 10:49:29 2021]
+Finished job 0.
+5 of 5 steps (100%) done
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-20T104856.591591.snakemake.log

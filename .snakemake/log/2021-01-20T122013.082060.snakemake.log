@@ -1,0 +1,13 @@
+Building DAG of jobs...
+Job counts:
+	count	jobs
+	1	simulate_genotypes_4popsplit
+	1
+
+[Wed Jan 20 12:20:13 2021]
+rule simulate_genotypes_4popsplit:
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos.pop
+    jobid: 0
+
+RuleException in line 8 of /Users/jenniferblanc/polygenic_adaptation_stratification/Snakefile:
+'Wildcards' object has no attribute 'rep'

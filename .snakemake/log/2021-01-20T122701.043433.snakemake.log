@@ -1,0 +1,13 @@
+Building DAG of jobs...
+Job counts:
+	count	jobs
+	1	simulate_genotypes_4popsplit
+	1
+
+[Wed Jan 20 12:27:01 2021]
+rule simulate_genotypes_4popsplit:
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos.pop
+    jobid: 0
+
+RuleException in line 8 of /Users/jenniferblanc/polygenic_adaptation_stratification/Snakefile:
+NameError: The name 'rep' is unknown in this context. Please make sure that you defined that variable. Also note that braces not used for variable access have to be escaped by repeating them, i.e. {{print $1}}

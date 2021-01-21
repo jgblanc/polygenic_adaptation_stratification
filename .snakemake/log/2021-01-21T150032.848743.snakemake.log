@@ -1,0 +1,87 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	aggregate_prs
+	2	calc_prs
+	2	calc_true_gv
+	2	pick_SNPS
+	7
+
+[Thu Jan 21 15:00:32 2021]
+rule pick_SNPS:
+    input: output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.effects.txt, output/Run_GWAS/4PopSplit/V1/C1/genos-gwas_common.pheno_random.glm.linear, output/Run_GWAS/4PopSplit/V1/C1/genos-gwas_common.pheno_strat.glm.linear
+    output: output/PRS/4PopSplit/V1/C1/genos-gwas_common.c.betas, output/PRS/4PopSplit/V1/C1/genos-gwas_common.c.p.betas, output/PRS/4PopSplit/V1/C1/genos-gwas_common.nc.betas
+    jobid: 6
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Thu Jan 21 15:00:34 2021]
+Finished job 6.
+1 of 7 steps (14%) done
+
+[Thu Jan 21 15:00:34 2021]
+rule pick_SNPS:
+    input: output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.effects.txt, output/Run_GWAS/4PopSplit/V1/C2/genos-gwas_common.pheno_random.glm.linear, output/Run_GWAS/4PopSplit/V1/C2/genos-gwas_common.pheno_strat.glm.linear
+    output: output/PRS/4PopSplit/V1/C2/genos-gwas_common.c.betas, output/PRS/4PopSplit/V1/C2/genos-gwas_common.c.p.betas, output/PRS/4PopSplit/V1/C2/genos-gwas_common.nc.betas
+    jobid: 8
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Thu Jan 21 15:00:35 2021]
+Finished job 8.
+2 of 7 steps (29%) done
+
+[Thu Jan 21 15:00:35 2021]
+rule calc_prs:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common.psam, output/PRS/4PopSplit/V1/C2/genos-gwas_common.c.betas, output/PRS/4PopSplit/V1/C2/genos-gwas_common.c.p.betas, output/PRS/4PopSplit/V1/C2/genos-gwas_common.nc.betas
+    output: output/PRS/4PopSplit/V1/C2/genos-test_common.c.sscore, output/PRS/4PopSplit/V1/C2/genos-test_common.c.p.sscore, output/PRS/4PopSplit/V1/C2/genos-test_common.nc.sscore
+    jobid: 2
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Thu Jan 21 15:00:35 2021]
+Finished job 2.
+3 of 7 steps (43%) done
+
+[Thu Jan 21 15:00:35 2021]
+rule calc_prs:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test_common.psam, output/PRS/4PopSplit/V1/C1/genos-gwas_common.c.betas, output/PRS/4PopSplit/V1/C1/genos-gwas_common.c.p.betas, output/PRS/4PopSplit/V1/C1/genos-gwas_common.nc.betas
+    output: output/PRS/4PopSplit/V1/C1/genos-test_common.c.sscore, output/PRS/4PopSplit/V1/C1/genos-test_common.c.p.sscore, output/PRS/4PopSplit/V1/C1/genos-test_common.nc.sscore
+    jobid: 1
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Thu Jan 21 15:00:36 2021]
+Finished job 1.
+4 of 7 steps (57%) done
+
+[Thu Jan 21 15:00:36 2021]
+rule calc_true_gv:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common.psam, output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.effects.txt
+    output: output/PRS/4PopSplit/V1/C2/genos-test_common.true.sscore
+    jobid: 4
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Thu Jan 21 15:00:36 2021]
+Finished job 4.
+5 of 7 steps (71%) done
+
+[Thu Jan 21 15:00:36 2021]
+rule calc_true_gv:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test_common.psam, output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.effects.txt
+    output: output/PRS/4PopSplit/V1/C1/genos-test_common.true.sscore
+    jobid: 3
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Thu Jan 21 15:00:36 2021]
+Finished job 3.
+6 of 7 steps (86%) done
+
+[Thu Jan 21 15:00:36 2021]
+rule aggregate_prs:
+    input: output/PRS/4PopSplit/V1/C1/genos-test_common.c.p.sscore, output/PRS/4PopSplit/V1/C2/genos-test_common.c.p.sscore, output/PRS/4PopSplit/V1/C1/genos-test_common.true.sscore, output/PRS/4PopSplit/V1/C2/genos-test_common.true.sscore
+    jobid: 0
+
+[Thu Jan 21 15:00:36 2021]
+Finished job 0.
+7 of 7 steps (100%) done
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-21T150032.848743.snakemake.log

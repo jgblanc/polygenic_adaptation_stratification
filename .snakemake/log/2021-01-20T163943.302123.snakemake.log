@@ -1,0 +1,271 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	aggregate_phenotypes
+	2	common_snp_freq
+	1	concat_vcfs
+	1	convert_vcf_to_plink
+	1	create_panels_4PopSplit
+	2	draw_effect_sizes
+	2	format_VCF
+	2	generate_genetic_values
+	2	get_common_snp_list
+	2	get_variant_freq
+	2	remake_panels_with_common_snps
+	2	simulatate_phenotype_4PopSplit
+	1	simulate_genotypes_4popsplit
+	2	split_into_test_gwas
+	23
+
+[Wed Jan 20 16:39:43 2021]
+rule simulate_genotypes_4popsplit:
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos.pop
+    jobid: 4
+    wildcards: rep=V1
+
+[Wed Jan 20 16:39:48 2021]
+Finished job 4.
+1 of 23 steps (4%) done
+
+[Wed Jan 20 16:39:48 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz
+    jobid: 21
+    wildcards: model=4PopSplit, rep=V1, chr=0
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf.
+[Wed Jan 20 16:40:01 2021]
+Finished job 21.
+2 of 23 steps (9%) done
+
+[Wed Jan 20 16:40:01 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz
+    jobid: 22
+    wildcards: model=4PopSplit, rep=V1, chr=1
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf.
+[Wed Jan 20 16:40:13 2021]
+Finished job 22.
+3 of 23 steps (13%) done
+
+[Wed Jan 20 16:40:13 2021]
+rule concat_vcfs:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz, output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz
+    jobid: 20
+    wildcards: model=4PopSplit, rep=V1
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz.
+[Wed Jan 20 16:40:16 2021]
+Finished job 20.
+4 of 23 steps (17%) done
+
+[Wed Jan 20 16:40:16 2021]
+rule convert_vcf_to_plink:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos.psam, output/Simulate_Genotypes/4PopSplit/V1/genos.pgen, output/Simulate_Genotypes/4PopSplit/V1/genos.pvar
+    jobid: 18
+    wildcards: model=4PopSplit, rep=V1
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz.
+[Wed Jan 20 16:40:17 2021]
+Finished job 18.
+5 of 23 steps (22%) done
+
+[Wed Jan 20 16:40:17 2021]
+rule create_panels_4PopSplit:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos.pop
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/ids.gwas, output/Simulate_Genotypes/4PopSplit/V1/C1/ids.test, output/Simulate_Genotypes/4PopSplit/V1/C2/ids.gwas, output/Simulate_Genotypes/4PopSplit/V1/C2/ids.test
+    jobid: 17
+    wildcards: model=4PopSplit, rep=V1
+
+[Wed Jan 20 16:40:17 2021]
+Finished job 17.
+6 of 23 steps (26%) done
+
+[Wed Jan 20 16:40:17 2021]
+rule split_into_test_gwas:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/ids.gwas, output/Simulate_Genotypes/4PopSplit/V1/C1/ids.test, output/Simulate_Genotypes/4PopSplit/V1/genos.psam, output/Simulate_Genotypes/4PopSplit/V1/genos.pvar, output/Simulate_Genotypes/4PopSplit/V1/genos.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pgen, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.pgen, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.pvar
+    jobid: 11
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Wed Jan 20 16:40:18 2021]
+Finished job 11.
+7 of 23 steps (30%) done
+
+[Wed Jan 20 16:40:18 2021]
+rule split_into_test_gwas:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/ids.gwas, output/Simulate_Genotypes/4PopSplit/V1/C2/ids.test, output/Simulate_Genotypes/4PopSplit/V1/genos.psam, output/Simulate_Genotypes/4PopSplit/V1/genos.pvar, output/Simulate_Genotypes/4PopSplit/V1/genos.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pgen, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pgen, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pvar
+    jobid: 14
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos.pvar.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos.psam.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos.pgen.
+[Wed Jan 20 16:40:18 2021]
+Finished job 14.
+8 of 23 steps (35%) done
+
+[Wed Jan 20 16:40:18 2021]
+rule get_variant_freq:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.afreq, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.afreq
+    jobid: 16
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Wed Jan 20 16:40:18 2021]
+Finished job 16.
+9 of 23 steps (39%) done
+
+[Wed Jan 20 16:40:18 2021]
+rule get_variant_freq:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.afreq, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.afreq
+    jobid: 19
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Wed Jan 20 16:40:18 2021]
+Finished job 19.
+10 of 23 steps (43%) done
+
+[Wed Jan 20 16:40:18 2021]
+rule get_common_snp_list:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.afreq, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.afreq
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/common_snp_ids.txt
+    jobid: 10
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.afreq.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.afreq.
+[Wed Jan 20 16:40:19 2021]
+Finished job 10.
+11 of 23 steps (48%) done
+
+[Wed Jan 20 16:40:19 2021]
+rule remake_panels_with_common_snps:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/common_snp_ids.txt, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pgen, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test_common.pgen, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.pgen
+    jobid: 6
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.psam.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pgen.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.psam.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pvar.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.pgen.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.pvar.
+[Wed Jan 20 16:40:19 2021]
+Finished job 6.
+12 of 23 steps (52%) done
+
+[Wed Jan 20 16:40:19 2021]
+rule get_common_snp_list:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.afreq, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.afreq
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/common_snp_ids.txt
+    jobid: 13
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.afreq.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.afreq.
+[Wed Jan 20 16:40:19 2021]
+Finished job 13.
+13 of 23 steps (57%) done
+
+[Wed Jan 20 16:40:19 2021]
+rule remake_panels_with_common_snps:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/common_snp_ids.txt, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pgen, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common.pgen, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pgen
+    jobid: 8
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.psam.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pvar.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pgen.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.psam.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pvar.
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pgen.
+[Wed Jan 20 16:40:19 2021]
+Finished job 8.
+14 of 23 steps (61%) done
+
+[Wed Jan 20 16:40:19 2021]
+rule common_snp_freq:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.afreq
+    jobid: 12
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Wed Jan 20 16:40:19 2021]
+Finished job 12.
+15 of 23 steps (65%) done
+
+[Wed Jan 20 16:40:19 2021]
+rule common_snp_freq:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.afreq
+    jobid: 15
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Wed Jan 20 16:40:19 2021]
+Finished job 15.
+16 of 23 steps (70%) done
+
+[Wed Jan 20 16:40:19 2021]
+rule draw_effect_sizes:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.afreq
+    output: output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.effects.txt
+    jobid: 7
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Wed Jan 20 16:40:21 2021]
+Finished job 7.
+17 of 23 steps (74%) done
+
+[Wed Jan 20 16:40:21 2021]
+rule generate_genetic_values:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.pgen, output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.effects.txt
+    output: output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.gvalue.sscore
+    jobid: 3
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Wed Jan 20 16:40:21 2021]
+Finished job 3.
+18 of 23 steps (78%) done
+
+[Wed Jan 20 16:40:21 2021]
+rule draw_effect_sizes:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.afreq
+    output: output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.effects.txt
+    jobid: 9
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Wed Jan 20 16:40:21 2021]
+Finished job 9.
+19 of 23 steps (83%) done
+
+[Wed Jan 20 16:40:21 2021]
+rule generate_genetic_values:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pgen, output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.effects.txt
+    output: output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.gvalue.sscore
+    jobid: 5
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Wed Jan 20 16:40:21 2021]
+Error in rule generate_genetic_values:
+    jobid: 5
+    output: output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.gvalue.sscore
+    shell:
+        plink2 	      --pfile output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common 	      --out output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.gvalue 	      --score output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.effects.txt cols=dosagesum,scoresums
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /Users/jenniferblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-20T163943.302123.snakemake.log

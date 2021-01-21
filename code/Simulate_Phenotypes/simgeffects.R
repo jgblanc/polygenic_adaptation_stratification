@@ -17,9 +17,11 @@ library(tidyr)
 
 #frequency file
 freq_file=args[1]
+print(paste("The frequency file is",freq_file))
 
 #output file - genetic effects
 effects_file = args[2]
+print(paste("The output file is",effects_file))
 
 #heritability
 h2 = as.numeric(args[3])
@@ -31,7 +33,6 @@ print(paste("Alpha is", alpha))
 
 #random seed
 set.seed(args[5])
-
 
 # load variant frequency file
 p = fread(freq_file)
@@ -69,6 +70,9 @@ causal.variants <- p[, sample.variant(.SD), by=CHROM]
 #for some reason, sometimes the final window does not have a variant. let's remove NAs here
 causal.variants = causal.variants%>%drop_na(ID)
 
+# drop duplicates - NOTE if there are not enough variants from the sim this will decrease the number of causal variants
+causal.variants = causal.variants%>%group_by(ID)%>%filter(row_number(ID) == 1)
+
 #Now generate the effect sizes from these variants
 
 #calculate the independent component of variance required
@@ -92,3 +96,5 @@ fwrite(causal.variants%>%
          select(ID,ALT,beta),
            effects_file,
        row.names=F,col.names=F,quote=F,sep="\t")
+
+

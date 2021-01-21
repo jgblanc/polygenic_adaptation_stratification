@@ -1,16 +1,19 @@
-CHR=["0", "1"]
+CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
+CONFIG=["C1","C2"]
+MODEL=["4PopSplit"]
+REP=["V1"]
 
 # Simluate Genotypes
 
 rule simulate_genotypes_4popsplit:
     output:
-        temp(expand("output/Simulate_Genotypes/{{model}}/{{rep}}/genos_{chr}.vcf", chr=CHR)),
-	      "output/Simulate_Genotypes/{model}/{rep}/genos.pop"
+        temp(expand("output/Simulate_Genotypes/4PopSplit/{{rep}}/genos_{chr}.vcf", chr=CHR)),
+	      "output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
-	       --outpre output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
-	       --chr 2 \
-	       --Nanc 10000 \
+	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
+	       --chr 20 \
+	       --Nanc 40000 \
 	       -a 1000 \
 	       -b 1000 \
 	       -c 1000 \
@@ -34,7 +37,7 @@ rule concat_vcfs:
     input:
         expand("output/Simulate_Genotypes/{{model}}/{{rep}}/genos_{chr}.ids.vcf.gz", chr=CHR)
     output:
-        "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
+        temp("output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz")
     shell:
         "bcftools concat {input} -o {output} -O z"
 
@@ -42,11 +45,11 @@ rule convert_vcf_to_plink:
     input:
         "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
     output:
-        "output/Simulate_Genotypes/{model}/{rep}/genos.psam",
-	"output/Simulate_Genotypes/{model}/{rep}/genos.pgen",
-	"output/Simulate_Genotypes/{model}/{rep}/genos.pvar"
+        temp("output/Simulate_Genotypes/{model}/{rep}/genos.psam"),
+	      temp("output/Simulate_Genotypes/{model}/{rep}/genos.pgen"),
+      	temp("output/Simulate_Genotypes/{model}/{rep}/genos.pvar")
     shell:
-        "~/infer_mutational_bias/code/plink2 \
+        "plink2 \
         --double-id \
         --make-pgen \
         --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
@@ -57,55 +60,59 @@ rule create_panels_4PopSplit:
         "output/Simulate_Genotypes/{model}/{rep}/genos.pop"
     output:
         "output/Simulate_Genotypes/{model}/{rep}/C1/ids.gwas",
-	"output/Simulate_Genotypes/{model}/{rep}/C1/ids.test",
-	"output/Simulate_Genotypes/{model}/{rep}/C2/ids.gwas",
-	"output/Simulate_Genotypes/{model}/{rep}/C2/ids.test"
+	      "output/Simulate_Genotypes/{model}/{rep}/C1/ids.test",
+	      "output/Simulate_Genotypes/{model}/{rep}/C2/ids.gwas",
+	      "output/Simulate_Genotypes/{model}/{rep}/C2/ids.test"
     script:
         "code/Simulate_Genotypes/split_gwas-test_4PopSplit.R"
 
 rule split_into_test_gwas:
     input:
         gwas="output/Simulate_Genotypes/{model}/{rep}/{config}/ids.gwas",
-	test="output/Simulate_Genotypes/{model}/{rep}/{config}/ids.test",
-	pfile="output/Simulate_Genotypes/{model}/{rep}/genos.psam"
+	      test="output/Simulate_Genotypes/{model}/{rep}/{config}/ids.test",
+	      psam="output/Simulate_Genotypes/{model}/{rep}/genos.psam",
+	      pvar="output/Simulate_Genotypes/{model}/{rep}/genos.pvar",
+	      pgen="output/Simulate_Genotypes/{model}/{rep}/genos.pgen"
     output:
-        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pgen",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pvar"
+        temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam"),
+	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen"),
+	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar"),
+	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam"),
+	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pgen"),
+	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pvar")
     shell:
         """
-	~/infer_mutational_bias/code/plink2 \
-	--keep {input.gwas} \
-	--make-pgen \
-	--out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas \
-	--pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
-	--rm-dup exclude-all
+	      plink2 \
+	      --keep {input.gwas} \
+	      --make-pgen \
+	      --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas \
+	      --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
+	      --rm-dup exclude-all
 
-        ~/infer_mutational_bias/code/plink2 \
+        plink2 \
         --keep {input.test} \
         --make-pgen \
         --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
-	--rm-dup exclude-all
-	"""
+	      --rm-dup exclude-all
+	      """
 
 rule get_variant_freq:
     input:
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam"
+	      "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam",
+	      "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar",
+	      "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen"
     output:
-        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.afreq",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.afreq"
+        temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.afreq"),
+	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.afreq")
     shell:
         """
-        ~/infer_mutational_bias/code/plink2 \
-	--pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test \
-	--freq \
-	--out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test
+        plink2 \
+	      --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test \
+	      --freq \
+	      --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test
 
-	~/infer_mutational_bias/code/plink2 \
+	      plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas \
         --freq \
         --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas
@@ -122,41 +129,53 @@ rule get_common_snp_list:
 
 rule remake_panels_with_common_snps:
     input:
-        "output/Simulate_Genotypes/{model}/{rep}/{config}/common_snp_ids.txt",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam"
+        common_id="output/Simulate_Genotypes/{model}/{rep}/{config}/common_snp_ids.txt",
+	      test_psam="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam",
+	      test_pvar="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar",
+	      test_pgen="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen",
+	      gwas_psam="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam",
+	      gwas_pvar="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pvar",
+	      gwas_pgen="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pgen"
     output:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.pvar",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.pgen",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar",
-	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen"
+	      "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.pgen",
+	      "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+	      "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar",
+	      "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen"
     shell:
         """
-        ~/infer_mutational_bias/code/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test \
-        --extract {input} \
+        --extract {input.common_id} \
         --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
-	--make-pgen
+	      --make-pgen
 
-        ~/infer_mutational_bias/code/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas \
-        --extract {input} \
+        --extract {input.common_id} \
         --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	--make-pgen
+	      --make-pgen
         """
 
 rule common_snp_freq:
     input:
-        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam"
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen"
     output:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq"
     shell:
-        "~/infer_mutational_bias/code/plink2 \
-	--pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	--out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	--freq"
+        "plink2 \
+	      --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+	      --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+	      --freq"
+
+rule aggregate_genotypes:
+    input:
+        expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq", model=MODEL, rep=REP, config=CONFIG)
+    shell:
+        "echo {input}"
 
 # Simluate Phenotypes
 
@@ -171,23 +190,31 @@ rule draw_effect_sizes:
 rule generate_genetic_values:
     input:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen",
         "output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.effects.txt"
     output:
         "output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.gvalue.sscore"
     shell:
-        "~/infer_mutational_bias/code/plink2 \
-	--pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	--out output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common.gvalue \
-	--score output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common.effects.txt cols=dosagesum,scoresums"
+        "plink2 \
+	      --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+	      --out output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common.gvalue \
+	      --score output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common.effects.txt cols=dosagesum,scoresums"
 
 rule simulatate_phenotype_4PopSplit:
     input:
-        gvalues="output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.gvalue.sscore",
-        pops="output/Simulate_Genotypes/{model}/{rep}/genos.pop"
+        gvalues="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/genos-gwas_common.gvalue.sscore",
+        pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:
         "output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.phenos.txt"
     shell:
         "Rscript code/Simulate_Phenotypes/simulate_phenotype_4PopSplit.R {input.gvalues} {input.pops} {output} 0.8 12"
+
+rule aggregate_phenotypes:
+    input:
+        expand("output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.phenos.txt", model=MODEL, rep=REP, config=CONFIG)
+    shell:
+        "echo {input}"
 
 # Run GWAS
 
@@ -200,13 +227,19 @@ rule gwas_no_correction:
         "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_random.glm.linear",
         "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_strat.glm.linear"
     shell:
-        "~/infer_mutational_bias/code/plink2 \
+        "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
         --glm \
         --pheno {input.pheno} \
         --pheno-name pheno_random,pheno_strat \
         --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common"
+
+rule aggregate_gwas:
+    input:
+        expand("output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_random.glm.linear", model=MODEL, rep=REP, config=CONFIG)
+    shell:
+        "echo {input}"
 
 # PRS
 
@@ -234,24 +267,25 @@ rule calc_prs:
         "output/PRS/{model}/{rep}/{config}/genos-test_common.nc.sscore"
     shell:
         """
-        ~/infer_mutational_bias/code/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
         --score {input.c} cols=dosagesum,scoresums \
         --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.c \
         --score-col-nums 3,4
 
-        ~/infer_mutational_bias/code/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
         --score {input.cp} cols=dosagesum,scoresums \
         --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.c.p \
         --score-col-nums 3,4
 
-        ~/infer_mutational_bias/code/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
         --score {input.nc} cols=dosagesum,scoresums \
         --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.nc \
         --score-col-nums 3,4
         """
+
 rule calc_true_gv:
     input:
         genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
@@ -260,8 +294,16 @@ rule calc_true_gv:
         "output/PRS/{model}/{rep}/{config}/genos-test_common.true.sscore",
     shell:
         """
-        ~/infer_mutational_bias/code/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
         --score {input.causal_effect} cols=dosagesum,scoresums \
         --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.true \
         """
+
+rule aggregate_prs:
+    input:
+        expand("output/PRS/{model}/{rep}/{config}/genos-test_common.c.p.sscore", model=MODEL, rep=REP, config=CONFIG),
+        expand("output/PRS/{model}/{rep}/{config}/genos-test_common.true.sscore", model=MODEL, rep=REP, config=CONFIG)
+    shell:
+        "echo {input}"
+
