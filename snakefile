@@ -1,7 +1,7 @@
 CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
 CONFIG=["C1","C2"]
 MODEL=["4PopSplit"]
-REP=["V1"]
+REP=["V1", "V2"]
 
 # Simluate Genotypes
 
@@ -14,10 +14,10 @@ rule simulate_genotypes_4popsplit:
 	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
 	       --chr 20 \
 	       --Nanc 40000 \
-	       -a 1000 \
-	       -b 1000 \
-	       -c 1000 \
-	       -d 1000"
+	       -a 5000 \
+	       -b 5000 \
+	       -c 5000 \
+	       -d 5000"
 
 rule format_VCF:
     input:
@@ -255,12 +255,26 @@ rule pick_SNPS:
     shell:
         "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common 5e-4 output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common"
 
+rule test_snp_freq:
+    input:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.pvar",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.pgen"
+    output:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq"
+    shell:
+        "plink2 \
+	      --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+	      --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+	      --freq"
+
 rule calc_prs:
     input:
         genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
         c="output/PRS/{model}/{rep}/{config}/genos-gwas_common.c.betas",
         cp="output/PRS/{model}/{rep}/{config}/genos-gwas_common.c.p.betas",
-        nc="output/PRS/{model}/{rep}/{config}/genos-gwas_common.nc.betas"
+        nc="output/PRS/{model}/{rep}/{config}/genos-gwas_common.nc.betas",
+        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq"
     output:
         "output/PRS/{model}/{rep}/{config}/genos-test_common.c.sscore",
         "output/PRS/{model}/{rep}/{config}/genos-test_common.c.p.sscore",
@@ -269,18 +283,21 @@ rule calc_prs:
         """
         plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --read-freq {input.freq} \
         --score {input.c} cols=dosagesum,scoresums \
         --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.c \
         --score-col-nums 3,4
 
         plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --read-freq {input.freq} \
         --score {input.cp} cols=dosagesum,scoresums \
         --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.c.p \
         --score-col-nums 3,4
 
         plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --read-freq {input.freq} \
         --score {input.nc} cols=dosagesum,scoresums \
         --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.nc \
         --score-col-nums 3,4
@@ -290,12 +307,14 @@ rule calc_true_gv:
     input:
         genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
         causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.effects.txt",
+        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq"
     output:
         "output/PRS/{model}/{rep}/{config}/genos-test_common.true.sscore",
     shell:
         """
         plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --read-freq {input.freq} \
         --score {input.causal_effect} cols=dosagesum,scoresums \
         --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.true \
         """

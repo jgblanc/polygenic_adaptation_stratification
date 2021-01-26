@@ -47,25 +47,35 @@ p$position = as.numeric(p$position)
 #then, select every other variant to be at least 100kb apart
 
 #write function to do this for each chromosome separately
+roundDw <- function(x,to=-1e5){
+  to*(x%/%to + as.logical(x%%to))
+}
 
-sample.variant=function(df1){
-  #sample first variant
-  position1 = as.numeric( sample_n( df1[ position < 1e5, 'position' ], 1 ))
-  #select all other variants to be at least 100kb apart
-  #minimum positions for each window
-  positions = position1 + seq(0,99)*1e5
+sample.variant=function(df){
+  min_pos = roundDw(as.numeric(df[1,3])) + 1e5
+  max_pos = roundDw(as.numeric(tail(df,1)[1,3])) + 1e5
+
+  position1 = as.numeric(sample_n(df[ position < min_pos, 'position' ], 1 ))
+  positions = position1 + seq(0,(max_pos/1e5 - 1))*1e5
+
   #pick variants that are further than these
   positions.adj = lapply( positions, function(x){
-    ix = min( df1[position > x, which =TRUE ] )
-    return(df1[ix])
+    ix = min( df[position > x, which =TRUE ] )
+    return(df[ix])
   })
   #return datatable
   positions.adj = bind_rows(positions.adj)
-  return(positions.adj)
 }
 
+
 #carry this out grouped by chromosome
-causal.variants <- p[, sample.variant(.SD), by=CHROM]
+df = p %>% filter(CHROM == 1)
+causal.variants <- sample.variant(df)
+for (i in 2:20){
+  df = p %>% filter(CHROM == i)
+  out <- sample.variant(df)
+  causal.variants <- rbind(causal.variants, out)
+}
 
 #for some reason, sometimes the final window does not have a variant. let's remove NAs here
 causal.variants = causal.variants%>%drop_na(ID)
@@ -74,7 +84,6 @@ causal.variants = causal.variants%>%drop_na(ID)
 causal.variants = causal.variants%>%group_by(ID)%>%filter(row_number(ID) == 1)
 
 #Now generate the effect sizes from these variants
-
 #calculate the independent component of variance required
 sigma2_l = h2 / sum( sapply( causal.variants$ALT_FREQS,function(x){
   beta= ( 2*x*(1-x)) ^ (1-alpha)
