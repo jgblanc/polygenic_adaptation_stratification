@@ -1,0 +1,30 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	aggregate_phenotypes
+	2	draw_effect_sizes
+	2	generate_genetic_values
+	2	simulatate_phenotype_4PopSplit
+	7
+
+[Wed Jan 27 13:12:22 2021]
+rule draw_effect_sizes:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.afreq
+    output: output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.effects.txt
+    jobid: 9
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Wed Jan 27 13:12:23 2021]
+Error in rule draw_effect_sizes:
+    jobid: 9
+    output: output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.effects.txt
+    shell:
+        Rscript code/Simulate_Phenotypes/simgeffects.R output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.afreq output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.effects.txt 0.8 0.4 12
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /project2/jjberg/jgblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-27T131222.032888.snakemake.log

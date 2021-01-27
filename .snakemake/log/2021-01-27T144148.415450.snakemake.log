@@ -1,0 +1,18 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	aggregate_phenotypes
+	1
+
+[Wed Jan 27 14:41:49 2021]
+rule aggregate_phenotypes:
+    input: output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.phenos.txt, output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.phenos.txt
+    jobid: 0
+
+[Wed Jan 27 14:41:49 2021]
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: /project2/jjberg/jgblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-27T144148.415450.snakemake.log

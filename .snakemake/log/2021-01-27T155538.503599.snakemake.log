@@ -1,0 +1,201 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	aggregate_prs
+	2	calc_prs
+	2	calc_true_gv
+	2	common_snp_freq
+	1	concat_vcfs
+	1	convert_vcf_to_plink
+	1	create_panels_4PopSplit
+	2	draw_effect_sizes
+	20	format_VCF
+	2	generate_genetic_values
+	2	get_common_snp_list
+	2	get_variant_freq
+	2	gwas_no_correction
+	2	pick_SNPS
+	2	remake_panels_with_common_snps
+	2	simulatate_phenotype_4PopSplit
+	2	split_into_test_gwas
+	2	test_snp_freq
+	50
+
+[Wed Jan 27 15:55:40 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_17.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_17.ids.vcf.gz
+    jobid: 48
+    wildcards: model=4PopSplit, rep=V1, chr=17
+
+
+[Wed Jan 27 15:55:40 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_3.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_3.ids.vcf.gz
+    jobid: 34
+    wildcards: model=4PopSplit, rep=V1, chr=3
+
+
+[Wed Jan 27 15:55:40 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_14.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_14.ids.vcf.gz
+    jobid: 45
+    wildcards: model=4PopSplit, rep=V1, chr=14
+
+
+[Wed Jan 27 15:55:40 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_8.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_8.ids.vcf.gz
+    jobid: 39
+    wildcards: model=4PopSplit, rep=V1, chr=8
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_8.vcf.
+[Wed Jan 27 16:09:43 2021]
+Finished job 39.
+1 of 50 steps (2%) done
+
+[Wed Jan 27 16:09:43 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_19.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_19.ids.vcf.gz
+    jobid: 50
+    wildcards: model=4PopSplit, rep=V1, chr=19
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_14.vcf.
+[Wed Jan 27 16:09:45 2021]
+Finished job 45.
+2 of 50 steps (4%) done
+
+[Wed Jan 27 16:09:45 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz
+    jobid: 31
+    wildcards: model=4PopSplit, rep=V1, chr=0
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_3.vcf.
+[Wed Jan 27 16:09:49 2021]
+Finished job 34.
+3 of 50 steps (6%) done
+
+[Wed Jan 27 16:09:49 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_13.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_13.ids.vcf.gz
+    jobid: 44
+    wildcards: model=4PopSplit, rep=V1, chr=13
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_17.vcf.
+[Wed Jan 27 16:09:58 2021]
+Finished job 48.
+4 of 50 steps (8%) done
+
+[Wed Jan 27 16:09:58 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_5.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_5.ids.vcf.gz
+    jobid: 36
+    wildcards: model=4PopSplit, rep=V1, chr=5
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf.
+[Wed Jan 27 16:23:39 2021]
+Finished job 31.
+5 of 50 steps (10%) done
+
+[Wed Jan 27 16:23:39 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_12.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_12.ids.vcf.gz
+    jobid: 43
+    wildcards: model=4PopSplit, rep=V1, chr=12
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_19.vcf.
+[Wed Jan 27 16:23:42 2021]
+Finished job 50.
+6 of 50 steps (12%) done
+
+[Wed Jan 27 16:23:42 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_16.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_16.ids.vcf.gz
+    jobid: 47
+    wildcards: model=4PopSplit, rep=V1, chr=16
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_13.vcf.
+[Wed Jan 27 16:23:52 2021]
+Finished job 44.
+7 of 50 steps (14%) done
+
+[Wed Jan 27 16:23:52 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz
+    jobid: 32
+    wildcards: model=4PopSplit, rep=V1, chr=1
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_5.vcf.
+[Wed Jan 27 16:24:10 2021]
+Finished job 36.
+8 of 50 steps (16%) done
+
+[Wed Jan 27 16:24:10 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_4.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_4.ids.vcf.gz
+    jobid: 35
+    wildcards: model=4PopSplit, rep=V1, chr=4
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_16.vcf.
+[Wed Jan 27 16:37:37 2021]
+Finished job 47.
+9 of 50 steps (18%) done
+
+[Wed Jan 27 16:37:37 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_2.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_2.ids.vcf.gz
+    jobid: 33
+    wildcards: model=4PopSplit, rep=V1, chr=2
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_12.vcf.
+[Wed Jan 27 16:37:42 2021]
+Finished job 43.
+10 of 50 steps (20%) done
+
+[Wed Jan 27 16:37:42 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_6.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_6.ids.vcf.gz
+    jobid: 37
+    wildcards: model=4PopSplit, rep=V1, chr=6
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf.
+[Wed Jan 27 16:37:55 2021]
+Finished job 32.
+11 of 50 steps (22%) done
+
+[Wed Jan 27 16:37:55 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_9.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_9.ids.vcf.gz
+    jobid: 40
+    wildcards: model=4PopSplit, rep=V1, chr=9
+
+Removing temporary output file output/Simulate_Genotypes/4PopSplit/V1/genos_4.vcf.
+[Wed Jan 27 16:38:04 2021]
+Finished job 35.
+12 of 50 steps (24%) done
+
+[Wed Jan 27 16:38:04 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_15.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_15.ids.vcf.gz
+    jobid: 46
+    wildcards: model=4PopSplit, rep=V1, chr=15
+

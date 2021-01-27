@@ -1,7 +1,8 @@
 CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
+#CHR=["0", "1"]
 CONFIG=["C1","C2"]
 MODEL=["4PopSplit"]
-REP=["V1", "V2"]
+REP=["V1"]
 
 # Simluate Genotypes
 
@@ -230,7 +231,7 @@ rule gwas_no_correction:
         "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
-        --glm \
+        --glm allow-no-covars \
         --pheno {input.pheno} \
         --pheno-name pheno_random,pheno_strat \
         --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common"

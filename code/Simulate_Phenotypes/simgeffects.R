@@ -55,12 +55,12 @@ sample.variant=function(df){
   min_pos = roundDw(as.numeric(df[1,3])) + 1e5
   max_pos = roundDw(as.numeric(tail(df,1)[1,3])) + 1e5
 
-  position1 = as.numeric(sample_n(df[ position < min_pos, 'position' ], 1 ))
+  position1 = as.numeric(dplyr::sample_n(df[position < min_pos, 'position' ], 1))
   positions = position1 + seq(0,(max_pos/1e5 - 1))*1e5
 
   #pick variants that are further than these
   positions.adj = lapply( positions, function(x){
-    ix = min( df[position > x, which =TRUE ] )
+    ix = min( df[df$position > x, which =TRUE ] )
     return(df[ix])
   })
   #return datatable
@@ -70,15 +70,18 @@ sample.variant=function(df){
 
 #carry this out grouped by chromosome
 df = p %>% filter(CHROM == 1)
-causal.variants <- sample.variant(df)
-for (i in 2:20){
+nchrms <- length(unique(p$CHROM))
+causal.variants <- sample.variant(as.data.table(df))
+for (i in 2:nchrms){
   df = p %>% filter(CHROM == i)
-  out <- sample.variant(df)
+  out <- sample.variant(as.data.table(df))
   causal.variants <- rbind(causal.variants, out)
 }
 
+print(head(causal.variants))
+
 #for some reason, sometimes the final window does not have a variant. let's remove NAs here
-causal.variants = causal.variants%>%drop_na(ID)
+#causal.variants = causal.variants%>%drop_na(ID)
 
 # drop duplicates - NOTE if there are not enough variants from the sim this will decrease the number of causal variants
 causal.variants = causal.variants%>%group_by(ID)%>%filter(row_number(ID) == 1)

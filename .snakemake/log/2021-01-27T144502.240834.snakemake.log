@@ -1,0 +1,41 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	aggregate_gwas
+	2	gwas_no_correction
+	3
+
+[Wed Jan 27 14:45:02 2021]
+rule gwas_no_correction:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.afreq, output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.phenos.txt
+    output: output/Run_GWAS/4PopSplit/V1/C1/genos-gwas_common.pheno_random.glm.linear, output/Run_GWAS/4PopSplit/V1/C1/genos-gwas_common.pheno_strat.glm.linear
+    jobid: 1
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+[Wed Jan 27 14:45:03 2021]
+Finished job 1.
+1 of 3 steps (33%) done
+
+[Wed Jan 27 14:45:03 2021]
+rule gwas_no_correction:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.afreq, output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.phenos.txt
+    output: output/Run_GWAS/4PopSplit/V1/C2/genos-gwas_common.pheno_random.glm.linear, output/Run_GWAS/4PopSplit/V1/C2/genos-gwas_common.pheno_strat.glm.linear
+    jobid: 2
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+[Wed Jan 27 14:45:03 2021]
+Finished job 2.
+2 of 3 steps (67%) done
+
+[Wed Jan 27 14:45:03 2021]
+rule aggregate_gwas:
+    input: output/Run_GWAS/4PopSplit/V1/C1/genos-gwas_common.pheno_random.glm.linear, output/Run_GWAS/4PopSplit/V1/C2/genos-gwas_common.pheno_random.glm.linear
+    jobid: 0
+
+[Wed Jan 27 14:45:03 2021]
+Finished job 0.
+3 of 3 steps (100%) done
+Complete log: /project2/jjberg/jgblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-27T144502.240834.snakemake.log
