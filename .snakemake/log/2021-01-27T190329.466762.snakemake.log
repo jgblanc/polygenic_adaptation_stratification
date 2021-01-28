@@ -1,0 +1,228 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cluster nodes: 500
+Job counts:
+	count	jobs
+	1	aggregate_genotypes
+	2	common_snp_freq
+	1	concat_vcfs
+	1	convert_vcf_to_plink
+	1	create_panels_4PopSplit
+	2	format_VCF
+	2	get_common_snp_list
+	2	get_variant_freq
+	2	remake_panels_with_common_snps
+	1	simulate_genotypes_4popsplit
+	2	split_into_test_gwas
+	17
+
+[Wed Jan 27 19:03:29 2021]
+rule simulate_genotypes_4popsplit:
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos.pop
+    jobid: 13
+    wildcards: rep=V1
+
+python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py 	       --outpre output/Simulate_Genotypes/4PopSplit/V1/genos 	       --chr 2 	       --Nanc 40000 	       -a 100 	       -b 100 	       -c 100 	       -d 100
+Submitted job 13 with external jobid 'Submitted batch job 8582748'.
+
+[Wed Jan 27 19:03:33 2021]
+rule create_panels_4PopSplit:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos.pop
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/ids.gwas, output/Simulate_Genotypes/4PopSplit/V1/C1/ids.test, output/Simulate_Genotypes/4PopSplit/V1/C2/ids.gwas, output/Simulate_Genotypes/4PopSplit/V1/C2/ids.test
+    jobid: 10
+    wildcards: model=4PopSplit, rep=V1
+
+Submitted job 10 with external jobid 'Submitted batch job 8582751'.
+
+[Wed Jan 27 19:03:39 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz
+    jobid: 15
+    wildcards: model=4PopSplit, rep=V1, chr=0
+
+
+	      head -n6 output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf > output/Simulate_Genotypes/4PopSplit/V1/header_0.txt
+	      cat output/Simulate_Genotypes/4PopSplit/V1/header_0.txt <(cat output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf | awk -v OFS="	" 'NR>6 {$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}') | bgzip > output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz
+	      #bcftools index output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz
+	      rm output/Simulate_Genotypes/4PopSplit/V1/header_0.txt
+	      
+Submitted job 15 with external jobid 'Submitted batch job 8582754'.
+
+[Wed Jan 27 19:03:43 2021]
+rule format_VCF:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz
+    jobid: 16
+    wildcards: model=4PopSplit, rep=V1, chr=1
+
+
+	      head -n6 output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf > output/Simulate_Genotypes/4PopSplit/V1/header_1.txt
+	      cat output/Simulate_Genotypes/4PopSplit/V1/header_1.txt <(cat output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf | awk -v OFS="	" 'NR>6 {$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}') | bgzip > output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz
+	      #bcftools index output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz
+	      rm output/Simulate_Genotypes/4PopSplit/V1/header_1.txt
+	      
+Submitted job 16 with external jobid 'Submitted batch job 8582755'.
+
+[Wed Jan 27 19:03:45 2021]
+rule concat_vcfs:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz, output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz
+    jobid: 14
+    wildcards: model=4PopSplit, rep=V1
+
+bcftools concat output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz -o output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz -O z
+Submitted job 14 with external jobid 'Submitted batch job 8582759'.
+
+[Wed Jan 27 19:03:46 2021]
+rule convert_vcf_to_plink:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos.psam, output/Simulate_Genotypes/4PopSplit/V1/genos.pgen, output/Simulate_Genotypes/4PopSplit/V1/genos.pvar
+    jobid: 11
+    wildcards: model=4PopSplit, rep=V1
+
+plink2         --double-id         --make-pgen         --out output/Simulate_Genotypes/4PopSplit/V1/genos         --vcf output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz
+Submitted job 11 with external jobid 'Submitted batch job 8582762'.
+
+[Wed Jan 27 19:03:52 2021]
+rule split_into_test_gwas:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/ids.gwas, output/Simulate_Genotypes/4PopSplit/V1/C1/ids.test, output/Simulate_Genotypes/4PopSplit/V1/genos.psam, output/Simulate_Genotypes/4PopSplit/V1/genos.pvar, output/Simulate_Genotypes/4PopSplit/V1/genos.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pgen, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.pgen, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.pvar
+    jobid: 6
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+
+	      plink2 	      --keep output/Simulate_Genotypes/4PopSplit/V1/C1/ids.gwas 	      --make-pgen 	      --out output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas 	      --pfile output/Simulate_Genotypes/4PopSplit/V1/genos 	      --rm-dup exclude-all
+
+        plink2         --keep output/Simulate_Genotypes/4PopSplit/V1/C1/ids.test         --make-pgen         --out output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test         --pfile output/Simulate_Genotypes/4PopSplit/V1/genos 	      --rm-dup exclude-all
+	      
+Submitted job 6 with external jobid 'Submitted batch job 8582764'.
+
+[Wed Jan 27 19:03:52 2021]
+rule split_into_test_gwas:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/ids.gwas, output/Simulate_Genotypes/4PopSplit/V1/C2/ids.test, output/Simulate_Genotypes/4PopSplit/V1/genos.psam, output/Simulate_Genotypes/4PopSplit/V1/genos.pvar, output/Simulate_Genotypes/4PopSplit/V1/genos.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pgen, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pgen, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pvar
+    jobid: 8
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+
+	      plink2 	      --keep output/Simulate_Genotypes/4PopSplit/V1/C2/ids.gwas 	      --make-pgen 	      --out output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas 	      --pfile output/Simulate_Genotypes/4PopSplit/V1/genos 	      --rm-dup exclude-all
+
+        plink2         --keep output/Simulate_Genotypes/4PopSplit/V1/C2/ids.test         --make-pgen         --out output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test         --pfile output/Simulate_Genotypes/4PopSplit/V1/genos 	      --rm-dup exclude-all
+	      
+Submitted job 8 with external jobid 'Submitted batch job 8582766'.
+
+[Wed Jan 27 19:04:06 2021]
+rule get_variant_freq:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.afreq, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.afreq
+    jobid: 9
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+
+        plink2 	      --pfile output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test 	      --freq 	      --out output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test
+
+	      plink2         --pfile output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas         --freq         --out output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas
+        
+Submitted job 9 with external jobid 'Submitted batch job 8582769'.
+
+[Wed Jan 27 19:04:09 2021]
+rule get_variant_freq:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.afreq, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.afreq
+    jobid: 12
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+
+        plink2 	      --pfile output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test 	      --freq 	      --out output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test
+
+	      plink2         --pfile output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas         --freq         --out output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas
+        
+[Wed Jan 27 19:04:19 2021]
+Finished job 13.
+1 of 17 steps (6%) done
+Submitted job 12 with external jobid 'Submitted batch job 8582773'.
+
+[Wed Jan 27 19:04:27 2021]
+rule get_common_snp_list:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.afreq, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.afreq
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/common_snp_ids.txt
+    jobid: 7
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+Submitted job 7 with external jobid 'Submitted batch job 8582775'.
+
+[Wed Jan 27 19:04:33 2021]
+rule get_common_snp_list:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.afreq, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.afreq
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/common_snp_ids.txt
+    jobid: 5
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+Submitted job 5 with external jobid 'Submitted batch job 8582778'.
+
+[Wed Jan 27 19:04:34 2021]
+rule remake_panels_with_common_snps:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/common_snp_ids.txt, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test.pgen, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common.pgen, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pgen
+    jobid: 4
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+
+        plink2         --pfile output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test         --extract output/Simulate_Genotypes/4PopSplit/V1/C2/common_snp_ids.txt         --out output/Simulate_Genotypes/4PopSplit/V1/C2/genos-test_common 	      --make-pgen
+
+        plink2         --pfile output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas         --extract output/Simulate_Genotypes/4PopSplit/V1/C2/common_snp_ids.txt         --out output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common 	      --make-pgen
+        
+Submitted job 4 with external jobid 'Submitted batch job 8582784'.
+
+[Wed Jan 27 19:04:38 2021]
+rule remake_panels_with_common_snps:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/common_snp_ids.txt, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test.pgen, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test_common.pgen, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.pgen
+    jobid: 3
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+
+        plink2         --pfile output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test         --extract output/Simulate_Genotypes/4PopSplit/V1/C1/common_snp_ids.txt         --out output/Simulate_Genotypes/4PopSplit/V1/C1/genos-test_common 	      --make-pgen
+
+        plink2         --pfile output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas         --extract output/Simulate_Genotypes/4PopSplit/V1/C1/common_snp_ids.txt         --out output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common 	      --make-pgen
+        
+Submitted job 3 with external jobid 'Submitted batch job 8582789'.
+
+[Wed Jan 27 19:04:50 2021]
+rule common_snp_freq:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.afreq
+    jobid: 2
+    wildcards: model=4PopSplit, rep=V1, config=C2
+
+plink2 	      --pfile output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common 	      --out output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common 	      --freq
+[Wed Jan 27 19:04:50 2021]
+Finished job 10.
+2 of 17 steps (12%) done
+[Wed Jan 27 19:05:01 2021]
+Finished job 15.
+3 of 17 steps (18%) done
+[Wed Jan 27 19:05:01 2021]
+Finished job 16.
+4 of 17 steps (24%) done
+Submitted job 2 with external jobid 'Submitted batch job 8582794'.
+
+[Wed Jan 27 19:05:02 2021]
+rule common_snp_freq:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.psam, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.pvar, output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.pgen
+    output: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.afreq
+    jobid: 1
+    wildcards: model=4PopSplit, rep=V1, config=C1
+
+plink2 	      --pfile output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common 	      --out output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common 	      --freq
+Submitted job 1 with external jobid 'Submitted batch job 8582798'.
+
+[Wed Jan 27 19:05:03 2021]
+rule aggregate_genotypes:
+    input: output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.afreq, output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.afreq
+    jobid: 0
+
+echo output/Simulate_Genotypes/4PopSplit/V1/C1/genos-gwas_common.afreq output/Simulate_Genotypes/4PopSplit/V1/C2/genos-gwas_common.afreq
+Submitted job 0 with external jobid 'Submitted batch job 8582804'.
+Complete log: /project2/jjberg/jgblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-27T190329.466762.snakemake.log

@@ -1,0 +1,3 @@
+WildcardError in line 184 of /project2/jjberg/jgblanc/polygenic_adaptation_stratification/snakefile:
+No values given for wildcard 'model'.
+  File "/project2/jjberg/jgblanc/polygenic_adaptation_stratification/snakefile", line 184, in <module>

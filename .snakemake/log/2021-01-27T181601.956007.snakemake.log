@@ -1,0 +1,4 @@
+Building DAG of jobs...
+MissingInputException in line 29 of /project2/jjberg/jgblanc/polygenic_adaptation_stratification/snakefile:
+Missing input files for rule format_VCF:
+output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf

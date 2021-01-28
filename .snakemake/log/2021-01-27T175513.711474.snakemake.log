@@ -1,0 +1,43 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	2	calc_prs
+	2	calc_true_gv
+	2	common_snp_freq
+	1	concat_vcfs
+	1	convert_vcf_to_plink
+	2	draw_effect_sizes
+	2	generate_genetic_values
+	2	get_common_snp_list
+	2	get_variant_freq
+	2	gwas_no_correction
+	2	pick_SNPS
+	2	remake_panels_with_common_snps
+	2	simulatate_phenotype_4PopSplit
+	2	split_into_test_gwas
+	2	test_snp_freq
+	29
+
+[Wed Jan 27 17:55:15 2021]
+rule concat_vcfs:
+    input: output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz, output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz
+    jobid: 28
+    wildcards: model=4PopSplit, rep=V1
+
+Terminating processes on user request, this might take some time.
+[Wed Jan 27 17:55:42 2021]
+Error in rule concat_vcfs:
+    jobid: 28
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz
+    shell:
+        bcftools concat output/Simulate_Genotypes/4PopSplit/V1/genos_0.ids.vcf.gz output/Simulate_Genotypes/4PopSplit/V1/genos_1.ids.vcf.gz -o output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz -O z
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job concat_vcfs since they might be corrupted:
+output/Simulate_Genotypes/4PopSplit/V1/genos.ids.vcf.gz
+Complete log: /project2/jjberg/jgblanc/polygenic_adaptation_stratification/.snakemake/log/2021-01-27T175513.711474.snakemake.log

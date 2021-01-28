@@ -2,13 +2,19 @@ CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "
 #CHR=["0", "1"]
 CONFIG=["C1","C2"]
 MODEL=["4PopSplit"]
-REP=["V1"]
+REP=["V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9"]
+
+
+rule all:
+    input:
+        expand("output/PRS/{model}/{rep}/{config}/genos-test_common.c.p.sscore", model=MODEL, rep=REP, config=CONFIG),
+        expand("output/PRS/{model}/{rep}/{config}/genos-test_common.true.sscore", model=MODEL, rep=REP, config=CONFIG)
 
 # Simluate Genotypes
 
 rule simulate_genotypes_4popsplit:
     output:
-        temp(expand("output/Simulate_Genotypes/4PopSplit/{{rep}}/genos_{chr}.vcf", chr=CHR)),
+        expand("output/Simulate_Genotypes/4PopSplit/{{rep}}/genos_{chr}.vcf", chr=CHR),
 	      "output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
@@ -24,7 +30,7 @@ rule format_VCF:
     input:
         "output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.vcf"
     output:
-        gz=temp("output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz")
+        gz="output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz"
 	      #csi="output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz.csi"
     shell:
         """
@@ -38,7 +44,7 @@ rule concat_vcfs:
     input:
         expand("output/Simulate_Genotypes/{{model}}/{{rep}}/genos_{chr}.ids.vcf.gz", chr=CHR)
     output:
-        temp("output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz")
+        "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
     shell:
         "bcftools concat {input} -o {output} -O z"
 
@@ -46,9 +52,9 @@ rule convert_vcf_to_plink:
     input:
         "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
     output:
-        temp("output/Simulate_Genotypes/{model}/{rep}/genos.psam"),
-	      temp("output/Simulate_Genotypes/{model}/{rep}/genos.pgen"),
-      	temp("output/Simulate_Genotypes/{model}/{rep}/genos.pvar")
+        "output/Simulate_Genotypes/{model}/{rep}/genos.psam",
+	"output/Simulate_Genotypes/{model}/{rep}/genos.pgen",
+      	"output/Simulate_Genotypes/{model}/{rep}/genos.pvar"
     shell:
         "plink2 \
         --double-id \
@@ -75,12 +81,12 @@ rule split_into_test_gwas:
 	      pvar="output/Simulate_Genotypes/{model}/{rep}/genos.pvar",
 	      pgen="output/Simulate_Genotypes/{model}/{rep}/genos.pgen"
     output:
-        temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam"),
-	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen"),
-	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar"),
-	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam"),
-	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pgen"),
-	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pvar")
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pgen",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pvar"
     shell:
         """
 	      plink2 \
@@ -104,8 +110,8 @@ rule get_variant_freq:
 	      "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar",
 	      "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen"
     output:
-        temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.afreq"),
-	      temp("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.afreq")
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.afreq",
+	"output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.afreq"
     shell:
         """
         plink2 \
@@ -174,9 +180,39 @@ rule common_snp_freq:
 
 rule aggregate_genotypes:
     input:
-        expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq", model=MODEL, rep=REP, config=CONFIG)
+        frq=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq", model=MODEL, rep=REP, config=CONFIG),
+	genos=expand("output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.vcf", chr=CHR, rep=REP, config=CONFIG, model=MODEL),
+	gz_chr=expand("output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz", chr=CHR, model=MODEL, rep=REP),
+	frq_test=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.afreq", model=MODEL, rep=REP, config=CONFIG),
+	frq_gwas=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.afreq", model=MODEL, rep=REP, config=CONFIG),
+	gz=expand("output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz", model=MODEL, rep=REP),
+	gwas_pgen=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pgen", model=MODEL, rep=REP, config=CONFIG),
+	gwas_pvar=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pvar", model=MODEL, rep=REP, config=CONFIG),
+	gwas_psam=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam", model=MODEL, rep=REP, config=CONFIG),
+	test_pgen=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen", model=MODEL, rep=REP, config=CONFIG),
+	test_pvar=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar", model=MODEL, rep=REP, config=CONFIG),
+	test_psam=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam", model=MODEL, rep=REP, config=CONFIG),
+	pgen=expand("output/Simulate_Genotypes/{model}/{rep}/genos.pgen", model=MODEL, rep=REP, config=CONFIG),
+	pvar=expand("output/Simulate_Genotypes/{model}/{rep}/genos.pvar", model=MODEL, rep=REP, config=CONFIG),
+	psam=expand("output/Simulate_Genotypes/{model}/{rep}/genos.psam", model=MODEL, rep=REP, config=CONFIG) 
     shell:
-        "echo {input}"
+        """
+	echo {input.frq}
+	rm {input.genos}
+	rm {input.frq_test}
+	rm {input.frq_gwas}
+	rm {input.gz}
+	rm {input.gz_chr}
+	rm {input.gwas_pgen}
+	rm {input.gwas_pvar}
+	rm {input.gwas_psam}
+	rm {input.test_pgen}
+	rm {input.test_pvar}
+	rm {input.test_psam}
+	rm {input.pgen}
+	rm {input.pvar}
+	rm {input.psam}
+	"""
 
 # Simluate Phenotypes
 

@@ -1,0 +1,36 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cluster nodes: 100
+Job counts:
+	count	jobs
+	1	all
+	2	calc_prs
+	2	calc_true_gv
+	2	common_snp_freq
+	1	concat_vcfs
+	1	convert_vcf_to_plink
+	1	create_panels_4PopSplit
+	2	draw_effect_sizes
+	2	format_VCF
+	2	generate_genetic_values
+	2	get_common_snp_list
+	2	get_variant_freq
+	2	gwas_no_correction
+	2	pick_SNPS
+	2	remake_panels_with_common_snps
+	2	simulatate_phenotype_4PopSplit
+	1	simulate_genotypes_4popsplit
+	2	split_into_test_gwas
+	2	test_snp_freq
+	33
+
+[Wed Jan 27 18:26:22 2021]
+rule simulate_genotypes_4popsplit:
+    output: output/Simulate_Genotypes/4PopSplit/V1/genos_0.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos_1.vcf, output/Simulate_Genotypes/4PopSplit/V1/genos.pop
+    jobid: 27
+    wildcards: rep=V1
+
+WorkflowError in line 15 of /project2/jjberg/jgblanc/polygenic_adaptation_stratification/snakefile:
+'Wildcards' object has no attribute 'time'
+  File "/home/jgblanc/.local/lib/python3.7/site-packages/snakemake/executors/__init__.py", line 115, in run_jobs
+  File "/home/jgblanc/.local/lib/python3.7/site-packages/snakemake/executors/__init__.py", line 920, in run
