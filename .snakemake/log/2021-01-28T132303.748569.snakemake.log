@@ -1,0 +1,2 @@
+SyntaxError in line 199 of /project2/jjberg/jgblanc/polygenic_adaptation_stratification/snakefile:
+Unexpected keyword expand in rule definition (snakefile, line 199)

@@ -1,0 +1,2 @@
+SyntaxError in line 224 of /project2/jjberg/jgblanc/polygenic_adaptation_stratification/snakefile:
+Expecting rule keyword, comment or docstrings inside a rule definition. (snakefile, line 224)

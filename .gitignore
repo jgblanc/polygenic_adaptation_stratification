@@ -10,7 +10,16 @@ analysis/*html
 analysis/*_cache
 analysis/site_libs
 data/*
-output/Simulate_Genotypes/*
+output/Simulate_Genotypes/*/*/*.pgen
+output/Simulate_Genotypes/*/*/*.pvar
+output/Simulate_Genotypes/*/*/*.psam
+output/Simulate_Genotypes/*/*/*.afreq
+output/Simulate_Genotypes/*/*/*.log
+output/Simulate_Genotypes/*/*/*.txt
+output/Simulate_Genotypes/*/*/*/*.p*
+output/Simulate_Genotypes/*/*/*/*.log
+output/Simulate_Genotypes/*/*/*/*.afreq
+output/Simulate_Genotypes/*/*/*/*.txt
 output/Simulate_Phenotypes/*
 output/Run_GWAS/*
 output/PRS/*
