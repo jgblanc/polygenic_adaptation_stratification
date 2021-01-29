@@ -3,7 +3,7 @@ CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "
 CONFIG=["C1","C2"]
 MODEL=["4PopSplit"]
 #REP=["V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9"]
-REP=["V1"]
+REP=["V2"]
 
 rule all:
     input:
@@ -19,7 +19,7 @@ rule simulate_genotypes_4popsplit:
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
 	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
-	       --chr 2 \
+	       --chr 20 \
 	       --Nanc 40000 \
 	       -a 5000 \
 	       -b 5000 \
