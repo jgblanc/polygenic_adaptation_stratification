@@ -30,7 +30,7 @@ agg_data <- function(rep, file_path, file_name) {
   gvalue$REP <- rep
   return(gvalue)
 }
-reps <- list("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9")
+reps <- list("B1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9")
 cols_gwas <- c("red2", "mediumblue")
 df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/genos-gwas_common.gvalue.sscore')
 
@@ -188,7 +188,7 @@ agg_data <- function(rep, file_path, file_name) {
   gvalue$REP <- rep
   return(gvalue)
 }
-reps <- list("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9")
+reps <- list("B1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9")
 cols_gwas <- c("red2", "mediumblue")
 df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C2/genos-gwas_common.gvalue.sscore')
 
@@ -267,7 +267,6 @@ ggplot(data = prs, aes(x=STRAT, fill = POP)) + geom_histogram(data = subset(prs,
 ```
 
 True Genetic Value in Test Population
-
 ```{r}
 agg_true <- function(rep, file_path, file_name) {
   gvalue <- fread(paste0(file_path, rep,file_name ))
@@ -284,7 +283,7 @@ gv <- plyr::ldply(reps, agg_true, file_path='../output/PRS/4PopSplit/', file_nam
 ggplot(gv, aes(x=POP,y=SCORE1_SUM, fill = POP)) + geom_boxplot() + facet_wrap(~REP) + theme_bw() + ylab("True GV") + scale_fill_manual(values = cols_test)
 
 # Histogram 
-ggplot(data = gv, aes(x=SCORE1_SUM, fill = POP)) + geom_histogram(data = subset(gv, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("True GV") + scale_fill_manual(values = cols_test)
+ggplot(data = gv, aes(x=SCORE1_SUM, fill = POP)) + geom_histogram(data = subset(gv, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(gv, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("True GV") + scale_fill_manual(values = cols_test)
 ```
 
 True effect sizes vs. estimated effect sizes

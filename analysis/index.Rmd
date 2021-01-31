@@ -8,9 +8,10 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.  
+  
 
 Theory [link](Theory.html)  
 4popslit [link](4Popsplit.html)  
 scratch [link](scratch.html)  
 test_vec [link](Test_vec.html)
+Plot_4PopSplit [link](Plot_4PopSplit.html)
