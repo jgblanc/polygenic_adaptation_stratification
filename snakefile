@@ -1,9 +1,9 @@
-CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
-#CHR=["0", "1"]
+#CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
+CHR=["0", "1"]
 CONFIG=["C1","C2"]
 MODEL=["4PopSplit"]
 #REP=["V3", "V4", "V5", "V6", "V7", "V8", "V9"]
-REP=["B1"]
+REP=["S1"]
 
 rule all:
     input:
@@ -19,12 +19,12 @@ rule simulate_genotypes_4popsplit:
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
 	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
-	       --chr 20 \
+	       --chr 2 \
 	       --Nanc 40000 \
-	       -a 10000 \
-	       -b 10000 \
-	       -c 10000 \
-	       -d 10000"
+	       -a 100 \
+	       -b 100 \
+	       -c 100 \
+	       -d 100"
 
 rule format_VCF:
     input:
@@ -194,7 +194,7 @@ rule aggregate_genotypes:
 	test_psam=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam", model=MODEL, rep=REP, config=CONFIG),
 	pgen=expand("output/Simulate_Genotypes/{model}/{rep}/genos.pgen", model=MODEL, rep=REP, config=CONFIG),
 	pvar=expand("output/Simulate_Genotypes/{model}/{rep}/genos.pvar", model=MODEL, rep=REP, config=CONFIG),
-	psam=expand("output/Simulate_Genotypes/{model}/{rep}/genos.psam", model=MODEL, rep=REP, config=CONFIG) 
+	psam=expand("output/Simulate_Genotypes/{model}/{rep}/genos.psam", model=MODEL, rep=REP, config=CONFIG)
     output:
         expand("output/Simulate_Genotypes/{model}/{rep}/ff.txt", model=MODEL, rep=REP)
     shell:
@@ -259,11 +259,44 @@ rule aggregate_phenotypes:
 
 # Run GWAS
 
-rule gwas_no_correction:
+rule run_PCA:
+    input:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen"
+    output:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.eigenvec",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.eigenval"
+    shell:
+        "plink2 \
+	      --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+	      --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+	      --pca 10 \
+	      --thin-count 100"
+
+#rule gwas_no_correction:
+#    input:
+#        genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+#        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq",
+#        pheno="output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.phenos.txt"
+#    output:
+#        "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_random.glm.linear",
+#        "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_strat.glm.linear"
+#    shell:
+#        "plink2 \
+#        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+#        --read-freq {input.freq} \
+#        --glm allow-no-covars \
+#        --pheno {input.pheno} \
+#        --pheno-name pheno_random,pheno_strat \
+#        --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common"
+
+rule gwas_correction:
     input:
         genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq",
-        pheno="output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.phenos.txt"
+        pheno="output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.phenos.txt",
+        eigenvec="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.eigenvec"
     output:
         "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_random.glm.linear",
         "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_strat.glm.linear"
@@ -271,16 +304,22 @@ rule gwas_no_correction:
         "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
-        --glm allow-no-covars \
+        --glm hide-covar \
+        --covar {input.eigenvec} \
+        --covar-col-nums 3-12 \
         --pheno {input.pheno} \
         --pheno-name pheno_random,pheno_strat \
         --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common"
 
 rule aggregate_gwas:
     input:
-        expand("output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_random.glm.linear", model=MODEL, rep=REP, config=CONFIG)
+        gwas=expand("output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common.pheno_random.glm.linear", model=MODEL, rep=REP, config=CONFIG),
+        pca=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.eigenvec", model=MODEL, rep=REP, config=CONFIG)
     shell:
-        "echo {input}"
+        """
+        echo {input.gwas}
+        echo {input.pca}
+        """
 
 # PRS
 
