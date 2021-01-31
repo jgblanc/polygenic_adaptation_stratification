@@ -350,5 +350,38 @@ betas_c1 <- fread("~/polygenic_adaptation_stratification/output/Simulate_Phenoty
 betas_c2 <- fread("~/polygenic_adaptation_stratification/output/Simulate_Phenotypes/4PopSplit/V1/C2/genos-gwas_common.effects.txt")
 ```
 
+```{r}
+library(snpStats)
+SNPS <- snpStats::read.plink("/Users/jenniferblanc/scratch/practice2")
+TEST <- snpStats::read.plink("/Users/jenniferblanc/scratch/practice2")
+
+X <- as(SNPS$genotypes,"numeric")
+M <- as(TEST$genotypes, "numeric")
+
+## get test covariance matrix and eigendecomposition
+test.cov <- X %*% t(X) / (ncol(X)-1)
+eig <- eigen(test.cov)
+vecs <- eig$vectors
+vals <- eig$values
+n <- length(vals)
+
+# Random Tvec
+tvec <- runif(n)
+ctvec <- (tvec-mean(tvec))
+Tvec <- ctvec/sqrt(sum(ctvec^2))
+
+# Calculate Tm
+K = (M %*% t(X)) / (ncol(X) -1)
+Tm = K %*% vecs[,1:(n-1)] %*% diag(1/vals[1:(n-1)]) %*% t(vecs[,1:(n-1)]) %*% Tvec
+```
+
+
+```{r}
+Xs <- SNPS$genotypes
+Ms <- TEST$genotypes
+
+test.cov_s <- xxt(snps = Xs)
+
+```
 
 
