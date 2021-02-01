@@ -1,3 +1,0 @@
-SyntaxError:
-Not all output, log and benchmark files of rule simulate_genotypes_4popsplit contain the same wildcards. This is crucial though, in order to avoid that two or more jobs write to the same file.
-  File "/Users/jenniferblanc/polygenic_adaptation_stratification/Snakefile", line 13, in <module>

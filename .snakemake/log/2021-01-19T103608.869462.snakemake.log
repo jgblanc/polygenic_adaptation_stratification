@@ -1,5 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 202 of /Users/jenniferblanc/polygenic_adaptation_stratification/Snakefile:
-Missing input files for rule pick_SNPS:
-output/Run_GWAS/4PopSplit/V1/C1/genos-gwas_common.pheno_strat.glm.linear.gz
-output/Run_GWAS/4PopSplit/V1/C1/genos-gwas_common.pheno_random.glm.linear.gz

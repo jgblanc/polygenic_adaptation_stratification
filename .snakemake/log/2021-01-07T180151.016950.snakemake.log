@@ -1,4 +1,0 @@
-Building DAG of jobs...
-MissingInputException in line 39 of /Users/jenniferblanc/polygenic_adaptation_stratification/Snakefile:
-Missing input files for rule create_panels_4PopSplit:
-output/Simulate_Genotypes/4PopSplit/V1/geno.pop

@@ -25,3 +25,4 @@ output/Run_GWAS/*
 output/PRS/*/*/*/*.log
 plink2
 logs/*
+.snakemake/*

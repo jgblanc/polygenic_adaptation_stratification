@@ -1,9 +1,9 @@
-#CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
-CHR=["0", "1"]
+CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
+#CHR=["0", "1"]
 CONFIG=["C1","C2"]
 MODEL=["4PopSplit"]
 #REP=["V3", "V4", "V5", "V6", "V7", "V8", "V9"]
-REP=["S1"]
+REP=["B1"]
 
 rule all:
     input:
@@ -19,12 +19,12 @@ rule simulate_genotypes_4popsplit:
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
 	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
-	       --chr 2 \
+	       --chr 20 \
 	       --Nanc 40000 \
-	       -a 100 \
-	       -b 100 \
-	       -c 100 \
-	       -d 100"
+	       -a 1000 \
+	       -b 1000 \
+	       -c 1000 \
+	       -d 1000"
 
 rule format_VCF:
     input:
@@ -272,7 +272,7 @@ rule run_PCA:
 	      --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
 	      --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
 	      --pca 10 \
-	      --thin-count 100"
+	      --thin-count 200000"
 
 #rule gwas_no_correction:
 #    input:

@@ -1,3 +1,0 @@
-ValueError in line 8 of /Users/jenniferblanc/polygenic_adaptation_stratification/Snakefile:
-expected '}' before end of string
-  File "/Users/jenniferblanc/polygenic_adaptation_stratification/Snakefile", line 8, in <module>
