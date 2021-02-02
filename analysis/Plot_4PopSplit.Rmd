@@ -61,7 +61,7 @@ ggplot(df, aes(x=POP,y=pheno_strat, fill = POP)) + geom_boxplot() + facet_wrap(~
 ggplot(data = df, aes(x=pheno_strat, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "C"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("Stratified Phenotype") + scale_fill_manual(values = cols_gwas)
 ```
 
-Stratified Phenotype - True Genetic Value $E = Y - X\beta$(Pop A should have positive environment)
+Stratified Phenotype - True Genetic Value  $E = Y - X\beta$(Pop A should have positive environment)
 ```{r}
 genos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/genos-gwas_common.gvalue.sscore')
 phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/genos-gwas_common.phenos.txt")
@@ -79,33 +79,51 @@ ggplot(data = df, aes(x=E, fill =V1)) + geom_histogram(data = subset(df, V1 == "
 
 Polygenic Score in Test Population (estimated effects at known causal sites) - Random Phenotype
 ```{r}
-agg_test <- function(rep, file_path, file_name) {
-  gvalue <- fread(paste0(file_path, rep,file_name ))
+agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
+  
+  prs <- fread(paste0(file_path, rep,file_name_prs))
+  colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
+  
+  gvalue <- fread(paste0(file_path, rep,file_name_gv))
+  colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
+  
   gwas.pop <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/ids.test"), header = F)
   colnames(gwas.pop) <- c("#IID", "FID", "POP")
-  gvalue <- suppressMessages(full_join(gvalue,gwas.pop))
-  gvalue$REP <- rep
-  colnames(gvalue) <- c("IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT", "FID", "POP", "REP")
-  return(gvalue)
+  
+  df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
+  df <- suppressMessages(full_join(df, gwas.pop))
+  df$REP <- rep
+  
+  mprs.adj = df%>%
+  group_by(REP)%>%
+    mutate(random.adjusted = RANDOM-GV,
+           random.adjusted = (random.adjusted - mean(random.adjusted))/sd(random.adjusted),
+           strat.adjusted = STRAT-GV,
+           strat.adjusted = (strat.adjusted - mean(strat.adjusted))/sd(strat.adjusted)
+           )%>%
+    ungroup()
+  
+  return(mprs.adj)
 }
 
-prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name='/C1/genos-test_common.c.sscore')
+prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C1/genos-test_common.nc.sscore', file_name_gv='/C1/genos-test_common.true.sscore')
+
 cols_test <- c("darkgoldenrod1", "darkorchid1")
 
 # Box Plots
-ggplot(prs, aes(x=POP,y=RANDOM, fill = POP)) + geom_boxplot() + facet_wrap(~REP) + theme_bw() + ylab("PRS Random") + scale_fill_manual(values = cols_test)
+ggplot(prs, aes(x=POP,y=random.adjusted, fill = POP)) + geom_boxplot() + facet_wrap(~REP) + theme_bw() + ylab("PRS Random") + scale_fill_manual(values = cols_test)
 
 # Histogram 
-ggplot(data = prs, aes(x=RANDOM, fill = POP)) + geom_histogram(data = subset(prs, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
+ggplot(data = prs, aes(x=random.adjusted, fill = POP)) + geom_histogram(data = subset(prs, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
 ```
 
 Polygenic Score in Test Population (estimated effects at known causal sites) - Stratified Phenotype
 ```{r}
 # Box Plots
-ggplot(prs, aes(x=POP,y=STRAT, fill = POP)) + geom_boxplot() + facet_wrap(~REP) + theme_bw() + ylab("PRS Stratification") + scale_fill_manual(values = cols_test)
+ggplot(prs, aes(x=POP,y=strat.adjusted, fill = POP)) + geom_boxplot() + facet_wrap(~REP) + theme_bw() + ylab("PRS Stratification") + scale_fill_manual(values = cols_test)
 
 # Histogram 
-ggplot(data = prs, aes(x=STRAT, fill = POP)) + geom_histogram(data = subset(prs, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Stratification") + scale_fill_manual(values = cols_test)
+ggplot(data = prs, aes(x=strat.adjusted, fill = POP)) + geom_histogram(data = subset(prs, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Stratification") + scale_fill_manual(values = cols_test)
 ```
 
 True Genetic Value in Test Population
@@ -330,5 +348,85 @@ ggplot(df, aes(x=POP,y=Strat, fill = POP)) + geom_boxplot() + facet_wrap(~REP) +
 ggplot(data = df, aes(x=Strat, fill = POP)) + geom_histogram(data = subset(df, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS - GV") + scale_fill_manual(values = cols_test)
 ```
 
+# Look at including first 10 PCs 
 
+```{r}
+gvalue <- fread("../output/PRS/4PopSplit/B1/C1/genos-test_common.true.sscore")
+gwas.pop <- fread("../output/Simulate_Genotypes/4PopSplit/B1/C1/ids.test", header = F)
+colnames(gwas.pop) <- c("#IID", "FID", "POP")
+gvalue <- suppressMessages(full_join(gvalue,gwas.pop))
+
+ggplot(data = gvalue, aes(x=SCORE1_SUM, fill = POP)) + geom_histogram(data = subset(gvalue, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(gvalue, POP == "D"), alpha = 0.75, bins = 30)  + theme_bw() + xlab("PRS") + scale_fill_manual(values = cols_test)
+```
+
+
+```{r}
+prs <- fread("../output/PRS/4PopSplit/B1/C1/genos-test_common.nc.sscore")
+gwas.pop <- fread("../output/Simulate_Genotypes/4PopSplit/B1/C1/ids.test", header = F)
+colnames(gwas.pop) <- c("#IID", "FID", "POP")
+prs <- suppressMessages(full_join(prs,gwas.pop))
+colnames(prs) <- c("IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT", "FID", "POP")
+
+ggplot(data = prs, aes(x=RANDOM, fill = POP)) + geom_histogram(data = subset(prs, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30)  + theme_bw() + xlab("PRS") + scale_fill_manual(values = cols_test)
+
+
+ggplot(data = prs, aes(x=STRAT, fill = POP)) + geom_histogram(data = subset(prs, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30)  + theme_bw() + xlab("PRS") + scale_fill_manual(values = cols_test)
+```
+
+PRS - True GV ($X\hat\beta-X \beta$) Strat
+```{r}
+df <- as.data.frame(cbind((prs$RANDOM - gvalue$SCORE1_SUM), (prs$STRAT- gvalue$SCORE1_SUM), prs$POP))
+colnames(df) <- c("Random", "Strat", "POP")
+df$Random <- as.numeric(levels(df$Random))[df$Random]
+df$Strat <- as.numeric(levels(df$Strat))[df$Strat]
+
+# Histogram 
+ggplot(data = df, aes(x=Strat, fill = POP)) + geom_histogram(data = subset(df, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "D"), alpha = 0.75, bins = 30)  + theme_bw() + xlab("PRS - GV") + scale_fill_manual(values = cols_test)
+```
+
+
+```{r}
+gvalue <- fread("../output/PRS/4PopSplit/B1/C2/genos-test_common.true.sscore")
+gwas.pop <- fread("../output/Simulate_Genotypes/4PopSplit/B1/C2/ids.test", header = F)
+colnames(gwas.pop) <- c("#IID", "FID", "POP")
+gvalue <- suppressMessages(full_join(gvalue,gwas.pop))
+
+ggplot(data = gvalue, aes(x=SCORE1_SUM, fill = POP)) + geom_histogram(data = subset(gvalue, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(gvalue, POP == "D"), alpha = 0.75, bins = 30)  + theme_bw() + xlab("PRS") + scale_fill_manual(values = cols_test)
+```
+
+```{r}
+tB <- fread("../output/Simulate_Phenotypes/4PopSplit/B1/C1/genos-gwas_common.effects.txt")
+eB <- fread("../output/PRS/4PopSplit/B1/C1/genos-gwas_common.c.betas")
+
+plot(tB$V3, eB$BETA_Random)
+abline(a = 0, b =1)
+
+plot(tB$V3, eB$BETA_Strat)
+abline(a = 0, b =1)
+```
+
+
+```{r}
+prs <- fread("../output/PRS/4PopSplit/B1/C2/genos-test_common.c.sscore")
+gwas.pop <- fread("../output/Simulate_Genotypes/4PopSplit/B1/C2/ids.test", header = F)
+colnames(gwas.pop) <- c("#IID", "FID", "POP")
+prs <- suppressMessages(full_join(prs,gwas.pop))
+colnames(prs) <- c("IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT", "FID", "POP")
+
+ggplot(data = prs, aes(x=RANDOM, fill = POP)) + geom_histogram(data = subset(prs, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30)  + theme_bw() + xlab("PRS") + scale_fill_manual(values = cols_test)
+
+
+ggplot(data = prs, aes(x=STRAT, fill = POP)) + geom_histogram(data = subset(prs, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30)  + theme_bw() + xlab("PRS") + scale_fill_manual(values = cols_test)
+```
+
+PRS - True GV ($X\hat\beta-X \beta$) Strat
+```{r}
+df <- as.data.frame(cbind((prs$RANDOM - gvalue$SCORE1_SUM), (prs$STRAT- gvalue$SCORE1_SUM), prs$POP))
+colnames(df) <- c("Random", "Strat", "POP")
+df$Random <- as.numeric(levels(df$Random))[df$Random]
+df$Strat <- as.numeric(levels(df$Strat))[df$Strat]
+
+# Histogram 
+ggplot(data = df, aes(x=Strat, fill = POP)) + geom_histogram(data = subset(df, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "D"), alpha = 0.75, bins = 30)  + theme_bw() + xlab("PRS - GV") + scale_fill_manual(values = cols_test)
+```
 
