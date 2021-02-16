@@ -17,6 +17,8 @@ output/Simulate_Genotypes/*/*/*.afreq
 output/Simulate_Genotypes/*/*/*.log
 output/Simulate_Genotypes/*/*/*.txt
 output/Simulate_Genotypes/*/*/*/*.p*
+output/Simulate_Genotypes/*/*/*/*.b*
+output/Simulate_Genotypes/*/*/*/*.fam
 output/Simulate_Genotypes/*/*/*/*.log
 output/Simulate_Genotypes/*/*/*/*.afreq
 output/Simulate_Genotypes/*/*/*/*.txt

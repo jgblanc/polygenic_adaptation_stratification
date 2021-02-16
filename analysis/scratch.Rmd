@@ -300,11 +300,12 @@ pl
 
 ```{r}
 library(snpStats)
-SNPS <- snpStats::read.plink("/Users/jenniferblanc/scratch/practice2")
-TEST <- snpStats::read.plink("/Users/jenniferblanc/scratch/practice2")
+SNPS <- snpStats::read.plink("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common")
+TEST <- snpStats::read.plink("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common")
 
-X <- as(SNPS$genotypes,"numeric")
-M <- as(TEST$genotypes, "numeric")
+
+M <- as(SNPS$genotypes,"numeric")
+X <- as(TEST$genotypes, "numeric")
 
 ## get test covariance matrix and eigendecomposition
 test.cov <- X %*% t(X) / (ncol(X)-1)
@@ -314,7 +315,7 @@ vals <- eig$values
 n <- length(vals)
 
 # Random Tvec
-tvec <- runif(n)
+tvec <- c(rep(1, 50), rep(0, 50))
 ctvec <- (tvec-mean(tvec))
 Tvec <- ctvec/sqrt(sum(ctvec^2))
 
@@ -334,4 +335,35 @@ test.cov_s <- xxt(snps = Xs) / (ncol(Xs)-1)
 test.cov_s <- tcrossprod(Xs,Xs) / (ncol(Xs)-1)
 ```
 
+```{r}
+strat <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/S1/C1/genos-test_common.nc.sscore")
+con <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/S1/C1/genos-test_common-Tm.nc.sscore")
+colnames(strat) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
+colnames(con) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM_Tm", "STRAT_Tm")
+
+gvalue <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/S1/C1/genos-test_common.true.sscore")
+colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
+gwas.pop <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/S1/genos.pop")
+colnames(gwas.pop) <- c("#IID", "FID", "POP")
+
+df <- suppressMessages(full_join(strat,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
+df <- full_join(df, con)
+df <- inner_join(df, gwas.pop, by = '#IID')
+
+mprs.adj = df%>%
+    mutate(random.adjusted = RANDOM-GV,
+           random.adjusted = (random.adjusted - mean(random.adjusted))/sd(random.adjusted),
+           strat.adjusted = STRAT-GV,
+           strat.adjusted = (strat.adjusted - mean(strat.adjusted))/sd(strat.adjusted), 
+           random_tm.adjusted = RANDOM_Tm-GV,
+           random_tm.adjusted = (random_tm.adjusted - mean(random_tm.adjusted))/sd(random_tm.adjusted),
+           strat_tm.adjusted = STRAT_Tm-GV,
+           strat_tm.adjusted = (strat_tm.adjusted - mean(strat_tm.adjusted))/sd(strat_tm.adjusted)
+           )%>%
+    ungroup()
+
+ggplot(data = mprs.adj, aes(x=random.adjusted, fill = POP)) + geom_histogram(data = subset(mprs.adj, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(mprs.adj, POP == "D"), alpha = 0.75, bins = 30) + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
+
+ggplot(data = mprs.adj, aes(x=random_tm.adjusted, fill = POP)) + geom_histogram(data = subset(mprs.adj, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(mprs.adj, POP == "D"), alpha = 0.75, bins = 30)  + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
+```
 

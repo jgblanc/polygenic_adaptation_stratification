@@ -167,5 +167,21 @@ values <- eig$values
 values
 ```
 
+```{r}
+std.tvec <- PC_test_vec(eig, num_vec = 1)
+betas <- get_test_vec_coeffs(std.tvec, vecs)
 
+# Calculate Tm
+out <- matrix(NA, ncol = 50, nrow = 49)
+for (i in 1:49){
+   out[i, ] = betas[i] * ((test.cov %*% vecs[,i]) / eig$values[i])
+ }
+Tm = colSums(out)
+
+Tm = test.cov %*% vecs[,1:49] %*% diag(1/eig$values[1:49]) %*% t(vecs[,1:49]) %*% std.tvec
+
+plot(std.tvec,Tm,type='n',pch=20,bty='n')
+abline(a=0,b=1,col='red',lty=2)
+points(std.tvec,Tm,pch=20)
+```
 

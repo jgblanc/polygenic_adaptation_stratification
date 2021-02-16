@@ -31,7 +31,8 @@ agg_data <- function(rep, file_path, file_name) {
   gvalue$REP <- rep
   return(gvalue)
 }
-reps <- list("B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9")
+#reps <- list("B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9")
+reps <- list("S1")
 cols_gwas <- c("red2", "mediumblue")
 df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/genos-gwas_common.gvalue.sscore')
 
@@ -178,6 +179,26 @@ ggplot(data = df , aes(x=Btrue, BETA_Random)) + geom_point() + facet_wrap(~REP) 
 # Stratified 
 ggplot(data = df , aes(x=Btrue, BETA_Strat)) + geom_point() + facet_wrap(~REP) + geom_abline(slope=1, intercept=0, col = "red") + theme_bw()
 ```
+
+Covariance between Test Vector and PGS
+```{r}
+Test_vec <- c(rep(1, 5000), rep(0, 5000))
+std.vec <- scale(Test_vec)
+
+cov.prs = prs%>%
+  group_by(REP)%>%
+  summarize(cov_strat = cov(std.vec, strat.adjusted), cov_random = cov(std.vec, random.adjusted))
+
+kable(colMeans(cov.prs[,2:3]))
+
+V8 <- subset(prs, prs$REP == "B8")
+G <- V8$strat.adjusted
+mod <- lm(std.vec ~ V8$strat.adjusted)
+summary(mod)
+
+cov(std.vec, V8$strat.adjusted)
+```
+
 
 # Configuration 2
 
@@ -341,6 +362,24 @@ ggplot(data = df , aes(x=Btrue, BETA_Random)) + geom_point() + facet_wrap(~REP) 
 ggplot(data = df , aes(x=Btrue, BETA_Strat)) + geom_point() + facet_wrap(~REP) + geom_abline(slope=1, intercept=0, col = "red") + theme_bw()
 ```
 
+Covariance between Test Vector and PGS
+```{r}
+Test_vec <- c(rep(1, 5000), rep(0, 5000))
+std.vec <- scale(Test_vec)
+
+cov.prs = prs%>%
+  group_by(REP)%>%
+  summarize(cov_strat = cov(std.vec, strat.adjusted), cov_random = cov(std.vec, random.adjusted))
+
+kable(colMeans(cov.prs[,2:3]))
+
+V8 <- subset(prs, prs$REP == "B8")
+G <- V8$strat.adjusted
+mod <- lm(std.vec ~ V8$strat.adjusted)
+summary(mod)
+
+cov(std.vec, V8$strat.adjusted)
+```
 
 
 

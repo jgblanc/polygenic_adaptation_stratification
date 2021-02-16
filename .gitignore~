@@ -19,10 +19,10 @@ output/Simulate_Genotypes/*/*/*.txt
 output/Simulate_Genotypes/*/*/*/*.p*
 output/Simulate_Genotypes/*/*/*/*.log
 output/Simulate_Genotypes/*/*/*/*.afreq
-output/Simulate_Genotypes/*/*/*/*.eigenvec
 output/Simulate_Genotypes/*/*/*/*.txt
 output/Simulate_Phenotypes/*/*/*/*.log
 output/Run_GWAS/*
 output/PRS/*/*/*/*.log
 plink2
 logs/*
+.snakemake/*

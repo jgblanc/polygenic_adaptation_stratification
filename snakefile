@@ -1,14 +1,15 @@
-CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
-#CHR=["0", "1"]
+#CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
+CHR=["0", "1"]
 CONFIG=["C1","C2"]
 MODEL=["4PopSplit"]
-REP=["B2","B3", "B4", "B5", "B6", "B7", "B8", "B9"]
-#REP=["B1"]
+REP=["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"]
+#REP=["S2"]
 
 rule all:
     input:
         expand("output/PRS/{model}/{rep}/{config}/genos-test_common.c.p.sscore", model=MODEL, rep=REP, config=CONFIG),
-        expand("output/PRS/{model}/{rep}/{config}/genos-test_common.true.sscore", model=MODEL, rep=REP, config=CONFIG)
+        expand("output/PRS/{model}/{rep}/{config}/genos-test_common.true.sscore", model=MODEL, rep=REP, config=CONFIG),
+        expand("output/PRS/{model}/{rep}/{config}/genos-test_common-Tm.nc.sscore", model=MODEL, rep=REP, config=CONFIG)
 
 # Simluate Genotypes
 
@@ -19,12 +20,12 @@ rule simulate_genotypes_4popsplit:
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
 	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
-	       --chr 20 \
+	       --chr 2 \
 	       --Nanc 40000 \
-	       -a 10000 \
-	       -b 10000 \
-	       -c 10000 \
-	       -d 10000"
+	       -a 200 \
+	       -b 200 \
+	       -c 200 \
+	       -d 200"
 
 rule format_VCF:
     input:
@@ -286,7 +287,7 @@ rule gwas_no_correction:
         "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
-        --glm allow-no-covars \
+        --glm \
         --pheno {input.pheno} \
         --pheno-name pheno_random,pheno_strat \
         --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common"
@@ -406,3 +407,126 @@ rule aggregate_prs:
     shell:
         "echo {input}"
 
+## Include Tm as a covariate
+
+# Convert to plink2 to standard plink files
+
+rule convert_to_plink1:
+    input:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam"
+    output:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.bim",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.bed",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.fam",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.bim",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.bed",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.fam"
+    shell:
+        """
+        plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --make-bed  \
+        --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common
+
+        plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+        --make-bed  \
+        --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common
+        """
+# Calculate Tm
+
+rule calc_Tm:
+    input:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.bim",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.bed",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.fam",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.bim",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.bed",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.fam"
+    output:
+        "output/Calculate_Tm/{model}/{rep}/{config}/Tm.txt"
+    shell:
+        """
+        Rscript code/Calculate_Tm/calc_Tm_small.R \
+        output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common  \
+        output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos.pop \
+        output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/Tm.txt
+
+        rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.b* \
+        output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.fam \
+        output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common.b* \
+        output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common.fam
+        """
+
+# Re-run GWAS
+
+rule gwas_Tm:
+    input:
+        genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq",
+        pheno="output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.phenos.txt",
+        Tm="output/Calculate_Tm/{model}/{rep}/{config}/Tm.txt"
+    output:
+        "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common-Tm.pheno_random.glm.linear",
+        "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common-Tm.pheno_strat.glm.linear"
+    shell:
+        "plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+        --read-freq {input.freq} \
+        --glm hide-covar \
+        --covar {input.Tm} \
+        --covar-col-nums 3 \
+        --pheno {input.pheno} \
+        --pheno-name pheno_random,pheno_strat \
+        --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common-Tm"
+
+# Remake PRS
+
+rule pick_SNPS_Tm:
+    input:
+        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.effects.txt",
+        gwas_random="output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common-Tm.pheno_random.glm.linear",
+        gwas_strat="output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common-Tm.pheno_strat.glm.linear"
+    output:
+        "output/PRS/{model}/{rep}/{config}/genos-gwas_common-Tm.c.betas",
+        "output/PRS/{model}/{rep}/{config}/genos-gwas_common-Tm.c.p.betas",
+        "output/PRS/{model}/{rep}/{config}/genos-gwas_common-Tm.nc.betas"
+    shell:
+        "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common-Tm 5e-4 output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common-Tm"
+
+rule calc_prs_Tm:
+    input:
+        genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
+        c="output/PRS/{model}/{rep}/{config}/genos-gwas_common-Tm.c.betas",
+        cp="output/PRS/{model}/{rep}/{config}/genos-gwas_common-Tm.c.p.betas",
+        nc="output/PRS/{model}/{rep}/{config}/genos-gwas_common-Tm.nc.betas",
+        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq"
+    output:
+        "output/PRS/{model}/{rep}/{config}/genos-test_common-Tm.c.sscore",
+        "output/PRS/{model}/{rep}/{config}/genos-test_common-Tm.c.p.sscore",
+        "output/PRS/{model}/{rep}/{config}/genos-test_common-Tm.nc.sscore"
+    shell:
+        """
+        plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --read-freq {input.freq} \
+        --score {input.c} cols=dosagesum,scoresums \
+        --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common-Tm.c \
+        --score-col-nums 3,4
+
+        plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --read-freq {input.freq} \
+        --score {input.cp} cols=dosagesum,scoresums \
+        --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common-Tm.c.p \
+        --score-col-nums 3,4
+
+        plink2 \
+        --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --read-freq {input.freq} \
+        --score {input.nc} cols=dosagesum,scoresums \
+        --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common-Tm.nc \
+        --score-col-nums 3,4
+        """
