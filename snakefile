@@ -413,7 +413,7 @@ rule aggregate_prs:
 
 rule make_test_vector:
     input:
-        pop="output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos.pop",
+        pop="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
         fam="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam"
     output:
         "output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt"
@@ -477,7 +477,7 @@ rule calc_Tm:
 
 rule format_covars:
     input:
-        pop="output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos.pop",
+        pop="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
         fam="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
         Tm="output/Calculate_Tm/{model}/{rep}/{config}/Tm.txt"
     output:
