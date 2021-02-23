@@ -31,8 +31,8 @@ agg_data <- function(rep, file_path, file_name) {
   gvalue$REP <- rep
   return(gvalue)
 }
-reps <- list("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9")
-#reps <- list("B2")
+#reps <- list("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9")
+reps <- list("S1")
 cols_gwas <- c("red2", "mediumblue")
 df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/genos-gwas_common.gvalue.sscore')
 

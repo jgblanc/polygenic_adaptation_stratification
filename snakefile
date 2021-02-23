@@ -2,14 +2,14 @@
 CHR=["0", "1"]
 CONFIG=["C1","C2"]
 MODEL=["4PopSplit"]
-REP=["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"]
-#REP=["S2"]
+#REP=["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"]
+REP=["S1"]
 
 rule all:
     input:
-        expand("output/PRS/{model}/{rep}/{config}/genos-test_common.c.p.sscore", model=MODEL, rep=REP, config=CONFIG),
+        expand("output/PRS/{model}/{rep}/{config}/genos-test_common-Tm.c.p.sscore", model=MODEL, rep=REP, config=CONFIG),
         expand("output/PRS/{model}/{rep}/{config}/genos-test_common.true.sscore", model=MODEL, rep=REP, config=CONFIG),
-        expand("output/PRS/{model}/{rep}/{config}/genos-test_common-Tm.nc.sscore", model=MODEL, rep=REP, config=CONFIG)
+        expand("output/PRS/{model}/{rep}/{config}/genos-test_common.c.sscore", model=MODEL, rep=REP, config=CONFIG)
 
 # Simluate Genotypes
 
@@ -409,6 +409,18 @@ rule aggregate_prs:
 
 ## Include Tm as a covariate
 
+# Generate Test Vector
+
+rule make_test_vector:
+    input:
+        pop="output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos.pop",
+        fam="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam"
+    output:
+        "output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt"
+    shell:
+        "Rscript code/Calculate_Tm/make_tvec.R {input.pop} {input.fam} {output}"
+
+
 # Convert to plink2 to standard plink files
 
 rule convert_to_plink1:
@@ -434,6 +446,7 @@ rule convert_to_plink1:
         --make-bed  \
         --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common
         """
+
 # Calculate Tm
 
 rule calc_Tm:
@@ -443,22 +456,35 @@ rule calc_Tm:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.fam",
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.bim",
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.bed",
-        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.fam"
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.fam",
+        "output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt"
     output:
         "output/Calculate_Tm/{model}/{rep}/{config}/Tm.txt"
     shell:
         """
-        Rscript code/Calculate_Tm/calc_Tm_small.R \
-        output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
-        output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common  \
-        output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos.pop \
-        output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/Tm.txt
+        python code/Calculate_Tm/calc_Tm_dask.py \
+        --inpre output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/ \
+        --tvec output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/Tvec.txt \
+        --outpre output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/Tm.txt
 
         rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.b* \
         output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common.fam \
         output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common.b* \
         output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common.fam
         """
+
+# Format Covariate file
+
+rule format_covars:
+    input:
+        pop="output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos.pop",
+        fam="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+        Tm="output/Calculate_Tm/{model}/{rep}/{config}/Tm.txt"
+    output:
+        "output/Calculate_Tm/{model}/{rep}/{config}/Tm_covars.txt"
+    shell:
+        "Rscript code/Calculate_Tm/format_covar.R {input.pop} {input.Tm} {input.fam} {output}"
+
 
 # Re-run GWAS
 
@@ -467,7 +493,7 @@ rule gwas_Tm:
         genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq",
         pheno="output/Simulate_Phenotypes/{model}/{rep}/{config}/genos-gwas_common.phenos.txt",
-        Tm="output/Calculate_Tm/{model}/{rep}/{config}/Tm.txt"
+        Tm="output/Calculate_Tm/{model}/{rep}/{config}/Tm_covars.txt"
     output:
         "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common-Tm.pheno_random.glm.linear",
         "output/Run_GWAS/{model}/{rep}/{config}/genos-gwas_common-Tm.pheno_strat.glm.linear"

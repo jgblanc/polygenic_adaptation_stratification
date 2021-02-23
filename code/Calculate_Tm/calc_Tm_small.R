@@ -23,7 +23,9 @@ TEST <- snpStats::read.plink(test_file)
 
 # Convert to numeric matrices
 X <- as(TEST$genotypes,"numeric")
+X <- scale(X, scale = F)
 M <- as(GWAS$genotypes, "numeric")
+M <- scale(M, scale = F)
 
 # Make Test vector
 pops <- fread(pop_file, header = F)
@@ -42,9 +44,18 @@ vecs <- eig$vectors
 vals <- eig$values
 n <- length(vals)
 
+s <- svd(test.cov)
+u <- s$u
+d <- s$d
+v <- s$v
+
 # Calculate Tm
 K = (M %*% t(X)) / (ncol(X) -1)
 Tm = K %*% vecs[,1:(n-1)] %*% diag(1/vals[1:(n-1)]) %*% t(vecs[,1:(n-1)]) %*% Tvec
+
+ev = vecs[,1:(n-1)] %*% diag(1/vals[1:(n-1)]) %*% t(vecs[,1:(n-1)])
+sv = u[,1:(n-1)] %*% diag(1/d[1:(n-1)]) %*% t(u[,1:(n-1)])
+t = u[,1:(n-1)] %*% diag(1/d[1:(n-1)])
 
 # Format datafile
 tmp <- dplyr::inner_join(pops, GWAS$fam, by = c("V1"= "member")) %>% select("V2", "V3")

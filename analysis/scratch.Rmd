@@ -336,14 +336,14 @@ test.cov_s <- tcrossprod(Xs,Xs) / (ncol(Xs)-1)
 ```
 
 ```{r}
-strat <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/S1/C1/genos-test_common.nc.sscore")
-con <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/S1/C1/genos-test_common-Tm.nc.sscore")
+strat <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/S2/C1/genos-test_common.nc.sscore")
+con <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/S2/C1/genos-test_common-Tm.nc.sscore")
 colnames(strat) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
 colnames(con) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM_Tm", "STRAT_Tm")
 
-gvalue <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/S1/C1/genos-test_common.true.sscore")
+gvalue <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/S2/C1/genos-test_common.true.sscore")
 colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
-gwas.pop <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/S1/genos.pop")
+gwas.pop <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/S2/genos.pop")
 colnames(gwas.pop) <- c("#IID", "FID", "POP")
 
 df <- suppressMessages(full_join(strat,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
@@ -362,8 +362,8 @@ mprs.adj = df%>%
            )%>%
     ungroup()
 
-ggplot(data = mprs.adj, aes(x=random.adjusted, fill = POP)) + geom_histogram(data = subset(mprs.adj, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(mprs.adj, POP == "D"), alpha = 0.75, bins = 30) + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
+ggplot(data = mprs.adj, aes(x=strat.adjusted, fill = POP)) + geom_histogram(data = subset(mprs.adj, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(mprs.adj, POP == "D"), alpha = 0.75, bins = 30) + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
 
-ggplot(data = mprs.adj, aes(x=random_tm.adjusted, fill = POP)) + geom_histogram(data = subset(mprs.adj, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(mprs.adj, POP == "D"), alpha = 0.75, bins = 30)  + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
+ggplot(data = mprs.adj, aes(x=strat_tm.adjusted, fill = POP)) + geom_histogram(data = subset(mprs.adj, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(mprs.adj, POP == "D"), alpha = 0.75, bins = 30)  + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
 ```
 
