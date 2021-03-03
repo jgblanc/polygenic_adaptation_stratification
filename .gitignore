@@ -24,6 +24,7 @@ output/Simulate_Genotypes/*/*/*/*.afreq
 output/Simulate_Genotypes/*/*/*/*.txt
 output/Simulate_Phenotypes/*/*/*/*.log
 output/Run_GWAS/*
+output/Calculate_Tm/*
 output/PRS/*/*/*/*.log
 plink2
 logs/*

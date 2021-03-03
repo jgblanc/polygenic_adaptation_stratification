@@ -2,6 +2,7 @@
 
 library(dplyr)
 library(data.table)
+library(rhdf5)
 
 args=commandArgs(TRUE)
 
@@ -15,8 +16,17 @@ output_file = args[4]
 
 # Read in files
 pops <- fread(pop_file, header = F)
-Tm <- fread(Tm_file, header = F)
 fam <- fread(fam_file)
+
+# Make Tm
+#file <- h5file(Tm_file)
+#file$ls(recursive = T)
+#n <- file[['output']]$maxdims
+#Tm <- rep(0, n)
+#for (i in 1:n) {
+#  Tm[i] = file[['output']][i]
+#}
+Tm <- h5read(Tm_file, "output/")
 
 # Format datafile
 tmp <- dplyr::inner_join(pops, fam, by = c("V1"= "IID")) %>% select("V2", "V3")
