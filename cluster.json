@@ -1,11 +1,11 @@
 {
     "__default__" :
     {
-        "mem" : 16000,
+        "mem" : "40G",
 	"partition" : "broadwl",
         "ntasks" : 1,
 	"tasks": 1,
-	"mem-per-cpu" : 2000,
+	"cpus-per-task" : 10,
 	"output" : "logs/{rule}.{wildcards}.out",
         "error"  : "logs/{rule}.{wildcards}.err",
 	"job-name": "{rule}.{wildcards}"
