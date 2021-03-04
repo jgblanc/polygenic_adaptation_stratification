@@ -39,23 +39,30 @@ Tvec <- ctvec/sqrt(sum(ctvec^2))
 
 ## get test covariance matrix and eigendecomposition
 test.cov <- X %*% t(X) / (ncol(X)-1)
+test.cov <- X %*% t(X) / (nrow(X))
+X <- scale(X)
 eig <- eigen(test.cov)
 vecs <- eig$vectors
 vals <- eig$values
 n <- length(vals)
+head(vals)
 
-s <- svd(test.cov)
+s <- svd(X)
 u <- s$u
 d <- s$d
 v <- s$v
+head(d^2 / (ncol(X) - 1))
+
+
+
 
 # Calculate Tm
 K = (M %*% t(X)) / (ncol(X) -1)
 Tm = K %*% vecs[,1:(n-1)] %*% diag(1/vals[1:(n-1)]) %*% t(vecs[,1:(n-1)]) %*% Tvec
 
-ev = vecs[,1:(n-1)] %*% diag(1/vals[1:(n-1)]) %*% t(vecs[,1:(n-1)])
-sv = u[,1:(n-1)] %*% diag(1/d[1:(n-1)]) %*% t(u[,1:(n-1)])
-t = u[,1:(n-1)] %*% diag(1/d[1:(n-1)])
+#ev = vecs[,1:(n-1)] %*% diag(1/vals[1:(n-1)]) %*% t(vecs[,1:(n-1)])
+#sv = u[,1:(n-1)] %*% diag(1/d[1:(n-1)]) %*% t(u[,1:(n-1)])
+#t = u[,1:(n-1)] %*% diag(1/d[1:(n-1)])
 
 # Format datafile
 tmp <- dplyr::inner_join(pops, GWAS$fam, by = c("V1"= "member")) %>% select("V2", "V3")
