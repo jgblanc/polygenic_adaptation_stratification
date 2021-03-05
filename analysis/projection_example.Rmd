@@ -1,0 +1,259 @@
+---
+title: "projection_example"
+author: "Jennifer Blanc"
+date: "3/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+library(snpStats)
+library(data.table)
+```
+
+## Comparing Different Dimensional Reduction Methods
+
+$$T_m = \frac{M X^T (XX^T)^{-1}T}{L^2}$$
+
+M and X are mean centered genotype matrices and L is the number of sites. Here I am going to set X = M so that the genotype and test panels are the same. In this case, Tm should equal T.    
+
+```{r}
+GWAS <- snpStats::read.plink("../data/projection_example/genos")
+X <- as(GWAS$genotypes,"numeric")
+X <- scale(X, scale = F)
+M <- X
+L <- ncol(X)
+```
+
+
+T is a test vector that is standardized so it has mean 0 and variance 1
+```{r}
+#tvec <- c(rep(1,50), rep(0, 50))
+tvec <- runif(100)
+ctvec <- (tvec-mean(tvec))
+Tvec <- ctvec/sqrt(sum(ctvec^2))
+head(Tvec)
+```
+
+
+## Eigen Decomposition on the covariance matrix  
+
+This is the method I started with, I know this method is "correct" because when $M = X$, $T_m = T$  
+
+```{r}
+# Covariance Matrix 
+test.cov <- X %*% t(X) / L
+
+# Eigen decomposition
+eig <- eigen(test.cov)
+vecs <- eig$vectors
+vals <- eig$values
+n <- length(vals)
+
+# Calculate Tm
+K = (M %*% t(X)) / L
+Tm = K %*% vecs[,1:(n-1)] %*% diag(1/vals[1:(n-1)]) %*% t(vecs[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm)
+abline(a = 0, b =1 , col = "red")
+```
+
+## SVD of the genotype matrix X
+
+This is identical to doing eigen decomposition on the covariance matrix as long as you square the singular values and divide by L. $T_m$ still equals $T$ 
+
+```{r}
+# Do SVD
+s <- svd(X)
+u <- s$u
+d <- s$d
+
+# Square singular values and divide by L
+svd_vals <- (d^2 / L)
+
+# Calculate Tm
+K = (M %*% t(X)) / (L)
+Tm = K %*% u[,1:(n-1)] %*% diag(1/svd_vals[1:(n-1)]) %*% t(u[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm)
+abline(a = 0, b =1 , col = "red")
+```
+
+## Eigen decomposition of the standardized genotype matrix   
+
+If you standardize the genotype matrices and calculate Tm doing eigen decomposition of the covariance matrix it also works and you get $T = T_m$. The eigen values don't match but as long as you multiply the pseudoinverse by the standardized genotype matrices you can recover $T_m$.    
+
+```{r}
+# Standardize both genotypes matrices 
+X_stan <- scale(X)
+M_stan <- scale(M)
+
+# Covariance Matrix 
+test.cov_stan <- X_stan %*% t(X_stan) / L
+
+# Eigen decomposition
+eig_stan <- eigen(test.cov_stan)
+vecs_stan <- eig_stan$vectors
+vals_stan <- eig_stan$values
+n <- length(vals_stan)
+
+# Calculate Tm using standardized X and M matrices 
+K_stan = (M_stan %*% t(X_stan)) / L
+Tm_stan = K_stan%*% vecs_stan[,1:(n-1)] %*% diag(1/vals_stan[1:(n-1)]) %*% t(vecs_stan[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm_stan)
+abline(a = 0, b = 1 , col = "red")
+```
+
+If you don't multiply by the standardized version of $X$ and $M$, you get a Tm that's not equal to T.  
+```{r}
+# Calculate Tm using only mean centered X and M matrices 
+K = (M %*% t(X)) / L
+Tm_mc = K %*% vecs_stan[,1:(n-1)] %*% diag(1/vals_stan[1:(n-1)]) %*% t(vecs_stan[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm_mc)
+abline(a = 0, b = 1 , col = "red")
+```
+
+## SVD of the standardized genotype matrix 
+
+Same with the example above, as long as you use standardized matrices the whole way through you recover $T = T_m$ 
+
+```{r}
+# Do SVD
+s <- svd(X_stan)
+u <- s$u
+d <- s$d
+
+# Square singular values and divide by L
+svd_vals <- (d^2 / L)
+
+# Calculate Tm
+K_stan = (M_stan %*% t(X_stan)) / (L)
+Tm_stan = K_stan %*% u[,1:(n-1)] %*% diag(1/svd_vals[1:(n-1)]) %*% t(u[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm_stan)
+abline(a = 0, b =1 , col = "red")
+```
+
+## Make pseudo inverse using plink pca decomposition 
+
+I use the pca flag in plink to get the .eigenvec and .eigenval files and use those to compute the pseudoinverse. Making sure to use standardized X and M matricies, you almost get Tm back (correlation = 0.99). I'm not sure why I get different answers using plink as compared to doing eigen decompostion of the standardized genotype matrix like above since as far as I understand they should be doing the same thing. (possibly plink is automatically filtering very low frequency variants?)   
+
+```{bash, results='hide'}
+# Run PCA using plink
+~/Desktop/plink -bfile ../data/projection_example/genos -pca 100 --out ../data/projection_example/genos_pca
+```
+
+```{r}
+# Load eigenvectos and eigen values
+plink_vecs <- fread("../data/projection_example/genos_pca.eigenvec")[,3:102]
+plink_vecs <- apply(plink_vecs, 2, as.numeric)
+plink_vals <- fread("../data/projection_example/genos_pca.eigenval")
+plink_vals <- as.numeric(plink_vals$V1)
+
+# Calculate Tm
+K_stan = (M_stan %*% t(X_stan)) / (L)
+Tm_plink = K_stan %*% plink_vecs[,1:(n-1)] %*% diag(1/plink_vals[1:(n-1)]) %*% t(plink_vecs[,1:(n-1)]) %*% Tvec
+
+# T and Tm are almost the same
+plot(Tvec, Tm_plink)
+abline(a = 0, b =1 , col = "red")
+```
+
+## Make pseudo inverse using gcta decomposition
+
+Extremely similar to plink (down to the 1e-5 place)
+
+```{bash}
+# Make GRM
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --make-grm --out ../data/projection_example/GRM
+
+# Do PCA
+~/Desktop/gcta64 --grm ../data/projection_example/GRM --pca 100 --out ../data/projection_example/GRM
+```
+
+```{r}
+# Load eigenvectors and eigen values
+gcta_vecs <- fread("../data/projection_example/GRM.eigenvec")[,3:102]
+gcta_vecs <- apply(gcta_vecs, 2, as.numeric)
+gcta_vals <- fread("../data/projection_example/GRM.eigenval")
+gcta_vals <- as.numeric(gcta_vals$V1)
+
+# Calculate Tm
+K_stan = (M_stan %*% t(X_stan)) / (L)
+Tm_gcta = K_stan %*% gcta_vecs[,1:(n-1)] %*% diag(1/gcta_vals[1:(n-1)]) %*% t(gcta_vecs[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm_gcta)
+abline(a = 0, b =1 , col = "red")
+```
+
+## Use GCTA to project T into test 
+
+I tried using GCTA (https://cnsgenomics.com/software/gcta/#PCloadingandprojection) to project the test vector into the test panel. It did not work very well, I think the problem is that --pc-loading requires both a .eigenvec and .eigenval file. So you can make a .eigenvec file where you insert the test vector instead of a PC but it still uses a .eigenval file to do the projection so its using the first eigenvalue rather that the eigenvalue that represents the amount variation explained by the test vector.  
+
+```{r}
+# Format Test vector
+Test_vec_file <- fread("../data/projection_example/GRM.eigenvec")[,1:2]
+Test_vec_file$V3 <- Tvec
+
+write.table(Test_vec_file, file = "../data/projection_example/test_vec.eigenvec", col.names = F, row.names = F, quote = F)
+```
+
+```{bash}
+# Rename eigenval file to match 
+cp ../data/projection_example/GRM.eigenval ../data/projection_example/test_vec.eigenval
+
+# Get SNP loadings on test vector
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --pc-loading ../data/projection_example/test_vec --out ../data/projection_example/test_vec_loadings
+```
+
+```{bash, results='hide'}
+# Project into test matrix
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --project-loading ../data/projection_example/test_vec_loadings 1 --out ../data/projection_example/projection
+```
+
+```{r}
+Tm_proj <- fread("../data/projection_example/projection.proj.eigenvec")
+Tm_proj <- as.numeric(Tm_proj$V3)
+
+# T and Tm are not the same
+plot(Tvec, Tm_proj)
+abline(a = 0, b =1 , col = "red")
+```
+
+I wanted to see if I could calculate $\lambda_T$ (amount of variation explained by test vector) and use that as the eigenvalue to do the projection. It seems to "work pretty well".  
+
+$$\lambda_T = TU \Lambda U^T T$$
+
+```{r}
+# Caclulate lamba T using eigenvecs calculated in plink 
+T_lambda <- t(Tvec) %*% gcta_vecs[,1:n-1] %*% diag(gcta_vals[1:n-1]) %*% t(gcta_vecs[,1:n-1]) %*% Tvec
+write.table(T_lambda, "../data/projection_example/test_vec.eigenval", quote = F, col.names = F, row.names = F)
+```
+
+```{bash, results='hide'}
+# Get SNP loadings on test vector - using lambda T
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --pc-loading  ../data/projection_example/test_vec --out ../data/projection_example/test_vec_loadings 
+
+# Project into test matrix
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --project-loading ../data/projection_example/test_vec_loadings 1 --out ../data/projection_example/projection
+```
+
+```{r}
+Tm_proj <- fread("../data/projection_example/projection.proj.eigenvec")
+Tm_proj <- as.numeric(Tm_proj$V3)
+
+# T and Tm are not exactly the same but are pretty close 
+plot(Tvec, Tm_proj)
+abline(a = 0, b =1 , col = "red")
+```
+
+I need to figure out exactly what this projection step is doing to figure out why we can't recreate T perfectly. 
