@@ -19,6 +19,15 @@
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
@@ -43,11 +52,6 @@ div.section {
     </style>
 
 <style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
-  pre:not([class]) {
-    background-color: white;
-  }
-</style>
 <script type="text/javascript">
 if (window.hljs) {
   hljs.configure({languages: []});
@@ -60,32 +64,6 @@ if (window.hljs) {
 
 
 
-<style type="text/css">
-h1 {
-  font-size: 34px;
-}
-h1.title {
-  font-size: 38px;
-}
-h2 {
-  font-size: 30px;
-}
-h3 {
-  font-size: 24px;
-}
-h4 {
-  font-size: 18px;
-}
-h5 {
-  font-size: 16px;
-}
-h6 {
-  font-size: 12px;
-}
-.table th:not([align]) {
-  text-align: left;
-}
-</style>
 
 
 
@@ -96,10 +74,6 @@ h6 {
   max-width: 940px;
   margin-left: auto;
   margin-right: auto;
-}
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
 }
 img {
   max-width:100%;
@@ -116,40 +90,13 @@ button.code-folding-btn:focus {
 summary {
   display: list-item;
 }
+pre code {
+  padding: 0;
+}
 </style>
 
 
 <style type="text/css">
-/* padding for bootstrap navbar */
-body {
-  padding-top: 51px;
-  padding-bottom: 40px;
-}
-/* offset scroll position for anchor links (for fixed navbar)  */
-.section h1 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h2 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h3 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h4 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h5 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h6 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
 .dropdown-submenu {
   position: relative;
 }
@@ -177,7 +124,7 @@ body {
   margin-right: -10px;
 }
 .dropdown-submenu:hover>a:after {
-  border-left-color: #ffffff;
+  border-left-color: #adb5bd;
 }
 .dropdown-submenu.pull-left {
   float: none;
@@ -189,7 +136,7 @@ body {
 }
 </style>
 
-<script>
+<script type="text/javascript">
 // manage active state of menu based on current page
 $(document).ready(function () {
   // active menu anchor
@@ -200,10 +147,23 @@ $(document).ready(function () {
   var menuAnchor = $('a[href="' + href + '"]');
 
   // mark it active
-  menuAnchor.parent().addClass('active');
+  menuAnchor.tab('show');
 
   // if it's got a parent navbar menu mark it active as well
   menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
 });
 </script>
 
@@ -215,7 +175,6 @@ $(document).ready(function () {
   max-height: 500px;
   min-height: 44px;
   overflow-y: auto;
-  background: white;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
@@ -314,7 +273,7 @@ $(document).ready(function () {
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-<div class="fluid-row" id="header">
+<div id="header">
 
 
 
@@ -343,7 +302,7 @@ $(document).ready(function () {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-01-31
+<strong>Last updated:</strong> 2021-03-04
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -374,16 +333,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree645d3aa8666de71d46e9e090bc4bc90f1911693btargetblank645d3aaa"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/645d3aa8666de71d46e9e090bc4bc90f1911693b" target="_blank">645d3aa</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree2d14caf606eada4a7f878c269e62793673b7dd5btargetblank2d14cafa"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/2d14caf606eada4a7f878c269e62793673b7dd5b" target="_blank">2d14caf</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree645d3aa8666de71d46e9e090bc4bc90f1911693btargetblank645d3aaa" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree2d14caf606eada4a7f878c269e62793673b7dd5btargetblank2d14cafa" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/645d3aa8666de71d46e9e090bc4bc90f1911693b" target="_blank">645d3aa</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/2d14caf606eada4a7f878c269e62793673b7dd5b" target="_blank">2d14caf</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -393,6 +352,39 @@ Ignored files:
     Ignored:    .DS_Store
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    .snakemake/
+    Ignored:    code/.DS_Store
+    Ignored:    code/Calculate_Tm/.ipynb_checkpoints/
+    Ignored:    data/projection_example/
+    Ignored:    output/Calculate_Tm/
+    Ignored:    output/PRS/4PopSplit/S3/
+    Ignored:    output/PRS/4PopSplit/S4/
+    Ignored:    output/PRS/4PopSplit/S5/
+    Ignored:    output/PRS/4PopSplit/S6/
+    Ignored:    output/PRS/4PopSplit/S7/
+    Ignored:    output/PRS/4PopSplit/S8/
+    Ignored:    output/PRS/4PopSplit/S9/
+    Ignored:    output/Run_GWAS/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S3/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S4/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S5/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S6/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S7/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S8/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S9/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S3/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S4/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S5/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S6/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S7/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S8/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S9/
+
+Untracked files:
+    Untracked:  analysis/genos_pca.log
+
+Unstaged changes:
+    Modified:   jupyter_notebooks/Matrix_Multiplication.ipynb
 
 </code></pre>
 <p>
@@ -431,6 +423,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/2d14caf606eada4a7f878c269e62793673b7dd5b/analysis/index.Rmd" target="_blank">2d14caf</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-03-04
+</td>
+<td>
+projection example
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/be1f7f87a2462914f1fc7bcf770d313a5748b80f/docs/index.html" target="_blank">be1f7f8</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-01-31
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -662,7 +688,8 @@ Start workflowr project.
 <p>Theory <a href="Theory.html">link</a><br />
 4popslit <a href="4Popsplit.html">link</a><br />
 scratch <a href="scratch.html">link</a><br />
-test_vec <a href="Test_vec.html">link</a> Plot_4PopSplit <a href="Plot_4PopSplit.html">link</a></p>
+test_vec <a href="Test_vec.html">link</a> Plot_4PopSplit <a href="Plot_4PopSplit.html">link</a><br />
+projection_example <a href="projection_example.html">link</a></p>
 
 
 <!-- Adjust MathJax settings so that all math formulae are shown using
@@ -703,7 +730,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
   $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
+    $(this).parent().toggleClass('nav-tabs-open');
   });
 });
 </script>

@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Jennifer Blanc" />
+
+
+<title>projection_example</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-sm-12 col-md-4 col-lg-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-sm-12 col-md-8 col-lg-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">polygenic_adaptation_stratification</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jgblanc/polygenic_adaptation_stratification">
+    <span class="fas fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">projection_example</h1>
+<h4 class="author">Jennifer Blanc</h4>
+<h4 class="date">3/4/2021</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2021-03-04
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>polygenic_adaptation_stratification/analysis/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.6.2). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20201015code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20201015)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20201015code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20201015)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree2d14caf606eada4a7f878c269e62793673b7dd5btargetblank2d14cafa"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/2d14caf606eada4a7f878c269e62793673b7dd5b" target="_blank">2d14caf</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree2d14caf606eada4a7f878c269e62793673b7dd5btargetblank2d14cafa" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/2d14caf606eada4a7f878c269e62793673b7dd5b" target="_blank">2d14caf</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    .snakemake/
+    Ignored:    code/.DS_Store
+    Ignored:    code/Calculate_Tm/.ipynb_checkpoints/
+    Ignored:    data/projection_example/
+    Ignored:    output/Calculate_Tm/
+    Ignored:    output/PRS/4PopSplit/S3/
+    Ignored:    output/PRS/4PopSplit/S4/
+    Ignored:    output/PRS/4PopSplit/S5/
+    Ignored:    output/PRS/4PopSplit/S6/
+    Ignored:    output/PRS/4PopSplit/S7/
+    Ignored:    output/PRS/4PopSplit/S8/
+    Ignored:    output/PRS/4PopSplit/S9/
+    Ignored:    output/Run_GWAS/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S3/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S4/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S5/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S6/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S7/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S8/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S9/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S3/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S4/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S5/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S6/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S7/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S8/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/S9/
+
+Untracked files:
+    Untracked:  analysis/genos_pca.log
+
+Unstaged changes:
+    Modified:   jupyter_notebooks/Matrix_Multiplication.ipynb
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/projection_example.Rmd</code>) and HTML (<code>docs/projection_example.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/2d14caf606eada4a7f878c269e62793673b7dd5b/analysis/projection_example.Rmd" target="_blank">2d14caf</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-03-04
+</td>
+<td>
+projection example
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="comparing-different-dimensional-reduction-methods" class="section level2">
+<h2>Comparing Different Dimensional Reduction Methods</h2>
+<p><span class="math display">\[T_m = \frac{M X^T (XX^T)^{-1}T}{L^2}\]</span></p>
+<p>M and X are mean centered genotype matrices and L is the number of sites. Here I am going to set X = M so that the genotype and test panels are the same. In this case, Tm should equal T.</p>
+<pre class="r"><code>GWAS &lt;- snpStats::read.plink(&quot;../data/projection_example/genos&quot;)
+X &lt;- as(GWAS$genotypes,&quot;numeric&quot;)
+X &lt;- scale(X, scale = F)
+M &lt;- X
+L &lt;- ncol(X)</code></pre>
+<p>T is a test vector that is standardized so it has mean 0 and variance 1</p>
+<pre class="r"><code>#tvec &lt;- c(rep(1,50), rep(0, 50))
+tvec &lt;- runif(100)
+ctvec &lt;- (tvec-mean(tvec))
+Tvec &lt;- ctvec/sqrt(sum(ctvec^2))
+head(Tvec)</code></pre>
+<pre><code>[1] -0.142239851 -0.053907442  0.171826618 -0.135256842  0.062938278
+[6]  0.005859508</code></pre>
+</div>
+<div id="eigen-decomposition-on-the-covariance-matrix" class="section level2">
+<h2>Eigen Decomposition on the covariance matrix</h2>
+<p>This is the method I started with, I know this method is “correct” because when <span class="math inline">\(M = X\)</span>, <span class="math inline">\(T_m = T\)</span></p>
+<pre class="r"><code># Covariance Matrix 
+test.cov &lt;- X %*% t(X) / L
+
+# Eigen decomposition
+eig &lt;- eigen(test.cov)
+vecs &lt;- eig$vectors
+vals &lt;- eig$values
+n &lt;- length(vals)
+
+# Calculate Tm
+K = (M %*% t(X)) / L
+Tm = K %*% vecs[,1:(n-1)] %*% diag(1/vals[1:(n-1)]) %*% t(vecs[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm)
+abline(a = 0, b =1 , col = &quot;red&quot;)</code></pre>
+<p><img src="figure/projection_example.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="svd-of-the-genotype-matrix-x" class="section level2">
+<h2>SVD of the genotype matrix X</h2>
+<p>This is identical to doing eigen decomposition on the covariance matrix as long as you square the singular values and divide by L. <span class="math inline">\(T_m\)</span> still equals <span class="math inline">\(T\)</span></p>
+<pre class="r"><code># Do SVD
+s &lt;- svd(X)
+u &lt;- s$u
+d &lt;- s$d
+
+# Square singular values and divide by L
+svd_vals &lt;- (d^2 / L)
+
+# Calculate Tm
+K = (M %*% t(X)) / (L)
+Tm = K %*% u[,1:(n-1)] %*% diag(1/svd_vals[1:(n-1)]) %*% t(u[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm)
+abline(a = 0, b =1 , col = &quot;red&quot;)</code></pre>
+<p><img src="figure/projection_example.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="eigen-decomposition-of-the-standardized-genotype-matrix" class="section level2">
+<h2>Eigen decomposition of the standardized genotype matrix</h2>
+<p>If you standardize the genotype matrices and calculate Tm doing eigen decomposition of the covariance matrix it also works and you get <span class="math inline">\(T = T_m\)</span>. The eigen values don’t match but as long as you multiply the pseudoinverse by the standardized genotype matrices you can recover <span class="math inline">\(T_m\)</span>.</p>
+<pre class="r"><code># Standardize both genotypes matrices 
+X_stan &lt;- scale(X)
+M_stan &lt;- scale(M)
+
+# Covariance Matrix 
+test.cov_stan &lt;- X_stan %*% t(X_stan) / L
+
+# Eigen decomposition
+eig_stan &lt;- eigen(test.cov_stan)
+vecs_stan &lt;- eig_stan$vectors
+vals_stan &lt;- eig_stan$values
+n &lt;- length(vals_stan)
+
+# Calculate Tm using standardized X and M matrices 
+K_stan = (M_stan %*% t(X_stan)) / L
+Tm_stan = K_stan%*% vecs_stan[,1:(n-1)] %*% diag(1/vals_stan[1:(n-1)]) %*% t(vecs_stan[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm_stan)
+abline(a = 0, b = 1 , col = &quot;red&quot;)</code></pre>
+<p><img src="figure/projection_example.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>If you don’t multiply by the standardized version of <span class="math inline">\(X\)</span> and <span class="math inline">\(M\)</span>, you get a Tm that’s not equal to T.</p>
+<pre class="r"><code># Calculate Tm using only mean centered X and M matrices 
+K = (M %*% t(X)) / L
+Tm_mc = K %*% vecs_stan[,1:(n-1)] %*% diag(1/vals_stan[1:(n-1)]) %*% t(vecs_stan[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm_mc)
+abline(a = 0, b = 1 , col = &quot;red&quot;)</code></pre>
+<p><img src="figure/projection_example.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="svd-of-the-standardized-genotype-matrix" class="section level2">
+<h2>SVD of the standardized genotype matrix</h2>
+<p>Same with the example above, as long as you use standardized matrices the whole way through you recover <span class="math inline">\(T = T_m\)</span></p>
+<pre class="r"><code># Do SVD
+s &lt;- svd(X_stan)
+u &lt;- s$u
+d &lt;- s$d
+
+# Square singular values and divide by L
+svd_vals &lt;- (d^2 / L)
+
+# Calculate Tm
+K_stan = (M_stan %*% t(X_stan)) / (L)
+Tm_stan = K_stan %*% u[,1:(n-1)] %*% diag(1/svd_vals[1:(n-1)]) %*% t(u[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm_stan)
+abline(a = 0, b =1 , col = &quot;red&quot;)</code></pre>
+<p><img src="figure/projection_example.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="make-pseudo-inverse-using-plink-pca-decomposition" class="section level2">
+<h2>Make pseudo inverse using plink pca decomposition</h2>
+<p>I use the pca flag in plink to get the .eigenvec and .eigenval files and use those to compute the pseudoinverse. Making sure to use standardized X and M matricies, you almost get Tm back (correlation = 0.99). I’m not sure why I get different answers using plink as compared to doing eigen decompostion of the standardized genotype matrix like above since as far as I understand they should be doing the same thing. (possibly plink is automatically filtering very low frequency variants?)</p>
+<pre class="bash"><code># Run PCA using plink
+~/Desktop/plink -bfile ../data/projection_example/genos -pca 100 --out ../data/projection_example/genos_pca</code></pre>
+<pre class="r"><code># Load eigenvectos and eigen values
+plink_vecs &lt;- fread(&quot;../data/projection_example/genos_pca.eigenvec&quot;)[,3:102]
+plink_vecs &lt;- apply(plink_vecs, 2, as.numeric)
+plink_vals &lt;- fread(&quot;../data/projection_example/genos_pca.eigenval&quot;)
+plink_vals &lt;- as.numeric(plink_vals$V1)
+
+# Calculate Tm
+K_stan = (M_stan %*% t(X_stan)) / (L)
+Tm_plink = K_stan %*% plink_vecs[,1:(n-1)] %*% diag(1/plink_vals[1:(n-1)]) %*% t(plink_vecs[,1:(n-1)]) %*% Tvec
+
+# T and Tm are almost the same
+plot(Tvec, Tm_plink)
+abline(a = 0, b =1 , col = &quot;red&quot;)</code></pre>
+<p><img src="figure/projection_example.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="make-pseudo-inverse-using-gcta-decomposition" class="section level2">
+<h2>Make pseudo inverse using gcta decomposition</h2>
+<p>Extremely similar to plink (down to the 1e-5 place)</p>
+<pre class="bash"><code># Make GRM
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --make-grm --out ../data/projection_example/GRM
+
+# Do PCA
+~/Desktop/gcta64 --grm ../data/projection_example/GRM --pca 100 --out ../data/projection_example/GRM</code></pre>
+<pre><code>*******************************************************************
+* Genome-wide Complex Trait Analysis (GCTA)
+* version 1.93.2 beta Mac
+* (C) 2010-present, Jian Yang, The University of Queensland
+* Please report bugs to Jian Yang &lt;jian.yang.qt@gmail.com&gt;
+*******************************************************************
+Analysis started at 20:12:16 PST on Thu Mar 04 2021.
+Hostname: Jennifers-MacBook-Pro.local
+
+Options: 
+ 
+--bfile ../data/projection_example/genos 
+--make-grm 
+--out ../data/projection_example/GRM 
+
+Note: GRM is computed using the SNPs on the autosome.
+Reading PLINK FAM file from [../data/projection_example/genos.fam]...
+100 individuals to be included from FAM file.
+100 individuals to be included. 0 males, 0 females, 100 unknown.
+Reading PLINK BIM file from [../data/projection_example/genos.bim]...
+45361 SNPs to be included from BIM file(s).
+Computing the genetic relationship matrix (GRM) v2 ...
+Subset 1/1, no. subject 1-100
+  100 samples, 45361 markers, 5050 GRM elements
+IDs for the GRM file has been saved in the file [../data/projection_example/GRM.grm.id]
+Computing GRM...
+  100% finished in 0.0 sec
+45361 SNPs have been processed.
+  Used 45361 valid SNPs.
+The GRM computation is completed.
+Saving GRM...
+GRM has been saved in the file [../data/projection_example/GRM.grm.bin]
+Number of SNPs in each pair of individuals has been saved in the file [../data/projection_example/GRM.grm.N.bin]
+
+Analysis finished at 20:12:16 PST on Thu Mar 04 2021
+Overall computational time: 0.13 sec.
+*******************************************************************
+* Genome-wide Complex Trait Analysis (GCTA)
+* version 1.93.2 beta Mac
+* (C) 2010-present, Jian Yang, The University of Queensland
+* Please report bugs to Jian Yang &lt;jian.yang.qt@gmail.com&gt;
+*******************************************************************
+Analysis started at 20:12:16 PST on Thu Mar 04 2021.
+Hostname: Jennifers-MacBook-Pro.local
+
+Accepted options:
+--grm ../data/projection_example/GRM
+--pca 100
+--out ../data/projection_example/GRM
+
+Note: This is a multi-thread program. You could specify the number of threads by the --thread-num option to speed up the computation if there are multiple processors in your machine.
+
+Reading IDs of the GRM from [../data/projection_example/GRM.grm.id].
+100 IDs read from [../data/projection_example/GRM.grm.id].
+Reading the GRM from [../data/projection_example/GRM.grm.bin].
+GRM for 100 individuals are included from [../data/projection_example/GRM.grm.bin].
+
+Performing principal component analysis ...
+Eigenvalues of 100 individuals have been saved in [../data/projection_example/GRM.eigenval].
+The first 100 eigenvectors of 100 individuals have been saved in [../data/projection_example/GRM.eigenvec].
+
+Analysis finished at 20:12:16 PST on Thu Mar 04 2021
+Overall computational time: 0.02 sec.</code></pre>
+<pre class="r"><code># Load eigenvectors and eigen values
+gcta_vecs &lt;- fread(&quot;../data/projection_example/GRM.eigenvec&quot;)[,3:102]
+gcta_vecs &lt;- apply(gcta_vecs, 2, as.numeric)
+gcta_vals &lt;- fread(&quot;../data/projection_example/GRM.eigenval&quot;)
+gcta_vals &lt;- as.numeric(gcta_vals$V1)
+
+# Calculate Tm
+K_stan = (M_stan %*% t(X_stan)) / (L)
+Tm_gcta = K_stan %*% gcta_vecs[,1:(n-1)] %*% diag(1/gcta_vals[1:(n-1)]) %*% t(gcta_vecs[,1:(n-1)]) %*% Tvec
+
+# T and Tm are the same
+plot(Tvec, Tm_gcta)
+abline(a = 0, b =1 , col = &quot;red&quot;)</code></pre>
+<p><img src="figure/projection_example.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="use-gcta-to-project-t-into-test" class="section level2">
+<h2>Use GCTA to project T into test</h2>
+<p>I tried using GCTA (<a href="https://cnsgenomics.com/software/gcta/#PCloadingandprojection" class="uri">https://cnsgenomics.com/software/gcta/#PCloadingandprojection</a>) to project the test vector into the test panel. It did not work very well, I think the problem is that –pc-loading requires both a .eigenvec and .eigenval file. So you can make a .eigenvec file where you insert the test vector instead of a PC but it still uses a .eigenval file to do the projection so its using the first eigenvalue rather that the eigenvalue that represents the amount variation explained by the test vector.</p>
+<pre class="r"><code># Format Test vector
+Test_vec_file &lt;- fread(&quot;../data/projection_example/GRM.eigenvec&quot;)[,1:2]
+Test_vec_file$V3 &lt;- Tvec
+
+write.table(Test_vec_file, file = &quot;../data/projection_example/test_vec.eigenvec&quot;, col.names = F, row.names = F, quote = F)</code></pre>
+<pre class="bash"><code># Rename eigenval file to match 
+cp ../data/projection_example/GRM.eigenval ../data/projection_example/test_vec.eigenval
+
+# Get SNP loadings on test vector
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --pc-loading ../data/projection_example/test_vec --out ../data/projection_example/test_vec_loadings</code></pre>
+<pre><code>*******************************************************************
+* Genome-wide Complex Trait Analysis (GCTA)
+* version 1.93.2 beta Mac
+* (C) 2010-present, Jian Yang, The University of Queensland
+* Please report bugs to Jian Yang &lt;jian.yang.qt@gmail.com&gt;
+*******************************************************************
+Analysis started at 20:12:17 PST on Thu Mar 04 2021.
+Hostname: Jennifers-MacBook-Pro.local
+
+Accepted options:
+--bfile ../data/projection_example/genos
+--pc-loading ../data/projection_example/test_vec
+--out ../data/projection_example/test_vec_loadings
+
+Note: This is a multi-thread program. You could specify the number of threads by the --thread-num option to speed up the computation if there are multiple processors in your machine.
+
+Reading PLINK FAM file from [../data/projection_example/genos.fam].
+100 individuals to be included from [../data/projection_example/genos.fam].
+Reading PLINK BIM file from [../data/projection_example/genos.bim].
+45361 SNPs to be included from [../data/projection_example/genos.bim].
+Reading PLINK BED file from [../data/projection_example/genos.bed] in SNP-major format ...
+Genotype data for 100 individuals and 45361 SNPs to be included from [../data/projection_example/genos.bed].
+Reading eigenvectors from [../data/projection_example/test_vec.eigenvec].
+1 eigenvectors of 100 individuals are included from [../data/projection_example/test_vec.eigenvec].
+
+Reading eigenvalues from [../data/projection_example/test_vec.eigenval].
+1 eigenvalues read from [../data/projection_example/test_vec.eigenval]
+100 individuals in common between the input files are included in the analysis.
+Calculating allele frequencies ...
+
+Calculating SNP loading ...
+
+Saving the PC loading of 45361 SNPs to [../data/projection_example/test_vec_loadings.pcl] ...
+
+Analysis finished at 20:12:17 PST on Thu Mar 04 2021
+Overall computational time: 0.29 sec.</code></pre>
+<pre class="bash"><code># Project into test matrix
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --project-loading ../data/projection_example/test_vec_loadings 1 --out ../data/projection_example/projection</code></pre>
+<pre class="r"><code>Tm_proj &lt;- fread(&quot;../data/projection_example/projection.proj.eigenvec&quot;)
+Tm_proj &lt;- as.numeric(Tm_proj$V3)
+
+# T and Tm are not the same
+plot(Tvec, Tm_proj)
+abline(a = 0, b =1 , col = &quot;red&quot;)</code></pre>
+<p><img src="figure/projection_example.Rmd/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>I wanted to see if I could calculate <span class="math inline">\(\lambda_T\)</span> (amount of variation explained by test vector) and use that as the eigenvalue to do the projection. It seems to “work pretty well”.</p>
+<p><span class="math display">\[\lambda_T = TU \Lambda U^T T\]</span></p>
+<pre class="r"><code># Caclulate lamba T using eigenvecs calculated in plink 
+T_lambda &lt;- t(Tvec) %*% gcta_vecs[,1:n-1] %*% diag(gcta_vals[1:n-1]) %*% t(gcta_vecs[,1:n-1]) %*% Tvec
+write.table(T_lambda, &quot;../data/projection_example/test_vec.eigenval&quot;, quote = F, col.names = F, row.names = F)</code></pre>
+<pre class="bash"><code># Get SNP loadings on test vector - using lambda T
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --pc-loading  ../data/projection_example/test_vec --out ../data/projection_example/test_vec_loadings 
+
+# Project into test matrix
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --project-loading ../data/projection_example/test_vec_loadings 1 --out ../data/projection_example/projection</code></pre>
+<pre class="r"><code>Tm_proj &lt;- fread(&quot;../data/projection_example/projection.proj.eigenvec&quot;)
+Tm_proj &lt;- as.numeric(Tm_proj$V3)
+
+# T and Tm are not exactly the same but are pretty close 
+plot(Tvec, Tm_proj)
+abline(a = 0, b =1 , col = &quot;red&quot;)</code></pre>
+<p><img src="figure/projection_example.Rmd/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>I need to figure out exactly what this projection step is doing to figure out why we can’t recreate T perfectly.</p>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.6.2 (2019-12-12)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.6
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] data.table_1.14.0 snpStats_1.36.0   Matrix_1.3-2      survival_3.2-7   
+[5] workflowr_1.6.2  
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_1.0.6          highr_0.8           pillar_1.5.0       
+ [4] compiler_3.6.2      later_1.1.0.1       git2r_0.28.0       
+ [7] tools_3.6.2         zlibbioc_1.32.0     digest_0.6.27      
+[10] evaluate_0.14       lifecycle_1.0.0     tibble_3.1.0       
+[13] lattice_0.20-41     pkgconfig_2.0.3     rlang_0.4.10       
+[16] parallel_3.6.2      yaml_2.2.1          xfun_0.21          
+[19] stringr_1.4.0       knitr_1.31          fs_1.5.0           
+[22] vctrs_0.3.6         rprojroot_2.0.2     grid_3.6.2         
+[25] glue_1.4.2          R6_2.5.0            fansi_0.4.2        
+[28] rmarkdown_2.7       magrittr_2.0.1      whisker_0.4        
+[31] promises_1.2.0.1    ellipsis_0.3.1      htmltools_0.5.1.1  
+[34] splines_3.6.2       BiocGenerics_0.32.0 httpuv_1.5.5       
+[37] utf8_1.1.4          stringi_1.5.3       crayon_1.4.1       </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
