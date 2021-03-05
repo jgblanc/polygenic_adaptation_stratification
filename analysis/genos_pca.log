@@ -1,0 +1,15 @@
+PLINK v1.90b6.6 64-bit (10 Oct 2018)
+Options in effect:
+  --bfile genos
+  --out genos_pca
+  --pca 100
+
+Hostname: Jennifers-MacBook-Pro.local
+Working directory: /Users/jenniferblanc/polygenic_adaptation_stratification/analysis
+Start time: Thu Mar  4 16:40:54 2021
+
+Random number seed: 1614904854
+8192 MB RAM detected; reserving 4096 MB for main workspace.
+Error: Failed to open genos.bed.
+
+End time: Thu Mar  4 16:40:54 2021
