@@ -1,0 +1,315 @@
+---
+title: "Projection_plink2"
+author: "Jennifer Blanc"
+date: "3/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+library(pgenlibr)
+library(data.table)
+```
+
+## Projecting the Test vector using Plink2 
+
+$$T_m = \frac{M X^T (XX^T)^{-1}T}{L^2}$$
+
+```{r}
+# Read GWAS Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-gwas_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-gwas_common.pgen")
+M <- ReadList(d1,seq(1,95974), meanimpute=F)
+M <- scale(M)
+
+# Read in Test Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.pgen")
+X <- ReadList(d1,seq(1,95974), meanimpute=F)
+X <- scale(X)
+
+# Read in Test Vector 
+#Tvec <- fread("../output/Calculate_Tm/4PopSplit/S1/C1/Tvec.txt")$V1
+L <- ncol(X)
+
+tvec <- runif(200)
+ctvec <- (tvec-mean(tvec))
+Tvec <- ctvec/sqrt(sum(ctvec^2))
+head(Tvec)
+```
+
+Calculate Tm using SVD
+```{r}
+# Do SVD
+s <- svd(X)
+u <- s$u
+d <- s$d
+v <- s$v
+
+# Square singular values and divide by L
+svd_vals <- (d^2 / L)
+n <- nrow(X)
+
+# Calculate Tm
+K = (M %*% t(X)) / (L)
+Tm = K %*% u[,1:(n-1)] %*% diag(1/svd_vals[1:(n-1)]) %*% t(u[,1:(n-1)]) %*% Tvec
+```
+
+Calculate Tm via projecting each eigenvector individually and weighting by the Betas
+```{r}
+betas <- t(u) %*% Tvec
+
+tmp <- M %*% t(X)%*% u[,1:(n-1)] %*% diag(1/svd_vals[1:(n-1)]) %*% t(u[,1:(n-1)]) %*% u[,1:(n-1)]
+Tm_weighted <- tmp %*% betas[1:(n-1)] / L
+
+plot(Tm, Tm_weighted)
+abline(a = 0, b =1 , col = "red")
+```
+
+Calculate Tm via projecting each eigenvector individually using right singular values (loadings) and weighting by the Betas  
+```{r}
+tmp <- M %*% v[,1:(n-1)] %*% diag(1/d[1:(n-1)])
+Tm_weighted_v <- tmp %*% betas[1:(n-1)] 
+
+plot(Tm, Tm_weighted_v)
+abline(a = 0, b =1 , col = "red")
+```
+
+Do PCA in plink (including loadings)
+```{bash}
+~/Desktop/plink2 --pfile ../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common \
+       --pca biallelic-var-wts 199 \
+       --out ../data/projection_example/S2_PC
+```
+
+Calculating Tm, creating pseudoinverse with plink vecs 
+```{r}
+plink_vecs <-fread("../data/projection_example/S2_PC.eigenvec")[,3:201]
+plink_vecs <- apply(plink_vecs, 2, as.numeric)
+plink_vals <- fread("../data/projection_example/S2_PC.eigenval")$V1
+
+betas_plink <- t(plink_vecs) %*% Tvec
+tmp <- M %*% t(X)%*% plink_vecs[,1:(n-1)] %*% diag(1/plink_vals[1:(n-1)]) %*% t(plink_vecs[,1:(n-1)]) %*% plink_vecs[,1:(n-1)]
+Tm_plink <- tmp %*% betas_plink[1:(n-1)] / L
+
+plot(Tm, Tm_plink)
+abline(a = 0, b =1 , col = "red")
+```
+
+Calculate Tm, using loadings from plink
+```{r}
+plink_loadings <- fread("../data/projection_example/S2_PC.eigenvec.var")[,5:203]
+plink_loadings <- apply(plink_loadings, 2, as.numeric)
+
+tmp <- M %*% plink_loadings %*% diag(1/sqrt(plink_vals[1:(n-1)])) 
+Tm_plink <- tmp %*% diag(1/sqrt(plink_vals)) %*% betas_plink[1:(n-1)] 
+
+plot(Tm, Tm_plink)
+abline(a = 0, b =1 , col = "red")
+```
+
+Calculate using projection step from plink2 
+```{bash}
+~/Desktop/plink2 --pfile ../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common \
+       --pca allele-wts 199 \
+       --out ../data/projection_example/S2_PC_proj
+
+~/Desktop/plink2 --pfile ../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-gwas_common \
+       --score ../data/projection_example/S2_PC_proj.eigenvec.allele 2 5 header-read no-mean-imputation \
+               variance-standardize \
+       --score-col-nums 6-204 \
+       --out ../data/projection_example/S2_projection
+```
+
+```{r}
+proj_vecs_plink <- fread("../data/projection_example/S2_projection.sscore")[,5:203]
+proj_vecs_plink <- apply(proj_vecs_plink, 2, as.numeric)
+
+Tm_plink <- proj_vecs_plink %*% diag(1/sqrt(plink_vals)) %*% betas_plink[1:199] 
+
+plot(Tm, Tm_plink)
+abline(a = 0, b =1 , col = "red")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Calculate Tm via plink2
+```{bash}
+#~/Desktop/plink2 --pfile ../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common \
+#       --pca allele-wts 199 \
+#       --out ../data/projection_example/S1_PC
+```
+
+```{bash}
+#~/Desktop/plink2 --pfile ../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common \
+#       --score ../data/projection_example/S1_PC.eigenvec.allele 2 5 header-read no-mean-imputation \
+#               variance-standardize \
+#       --score-col-nums 6-204 \
+#       --out ../data/projection_example/S1_projection
+```
+
+```{bash}
+#~/Desktop/plink2 --pfile ../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common \
+#       --score ../data/projection_example/S1_PC.eigenvec.allele 2 5 header-read no-mean-imputation \
+#               variance-standardize \
+#       --score-col-nums 6-204 \
+#       --out ../data/projection_example/S1_projection
+```
+
+```{r}
+#plink_vecs <- fread("../data/projection_example/S1_PC.eigenvec")[,3:201]
+#plink_vecs <- apply(plink_vecs, 2, as.numeric)
+
+#betas <- t(plink_vecs) %*% Tvec
+
+#proj_vecs_plink <- fread("../data/projection_example/S1_projection.sscore")[,5:203]
+#proj_vecs_plink <- apply(proj_vecs_plink, 2, as.numeric)
+#plink_vals <- fread("../data/projection_example/S1_PC.eigenval")
+#tst <- proj_vecs_plink %*%  diag(1/sqrt(plink_vals$V1))
+
+#Tm_plink <- tst %*% betas[1:199] 
+
+#plot(Tm, -1.8 * Tm_plink)
+#abline(a = 0, b =1 , col = "red")
+```
+
+```{r}
+# plink_loadings <- fread("../data/projection_example/S1_PC.eigenvec.var")[,5:203]
+# plink_loadings <- apply(plink_loadings, 2, as.numeric)
+# W <- scale(M) %*% plink_loadings 
+# betas <- t(plink_vecs) %*% Tvec
+# Tm_man <- W %*% betas[1:199] / (L)
+# 
+# plot(Tm_plink, Tm_man)
+# abline(a = 0, b =1 , col = "red")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{bash}
+#~/Desktop/plink2 --pfile ../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common \
+#       --score ../data/projection_example/S1_PC.eigenvec.allele 2 5 header-read no-mean-imputation \
+#               variance-standardize \
+#       --score-col-nums 6-204 \
+#       --out ../data/projection_example/S1_projection_test
+```
+
+```{r}
+# plink_vecs <- fread("../data/projection_example/S1_PC.eigenvec")[,3:201]
+# plink_vecs <- apply(plink_vecs, 2, as.numeric)
+# 
+# betas <- t(plink_vecs) %*% Tvec
+# 
+# proj_vecs_plink <- fread("../data/projection_example/S1_projection_test.sscore")[,5:203]
+# proj_vecs_plink <- apply(proj_vecs_plink, 2, as.numeric)
+# plink_vals <- fread("../data/projection_example/S1_PC.eigenval")
+# tst <- proj_vecs_plink %*%  diag(1/sqrt(plink_vals$V1))
+# 
+# Tm_plink_t <- tst %*% betas[1:199] 
+# 
+# plot(-2 *Tm_plink_t, Tvec)
+# abline(a = 0, b =1 , col = "red")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{bash}
+# Make GRM
+#~/Desktop/gcta64 --bfile ../data/projection_example/genos-test_common --make-grm --out ../data/projection_example/GRM_S1
+
+# Do PCA
+#~/Desktop/gcta64 --grm ../data/projection_example/GRM_S1 --pca 199 --out ../data/projection_example/GRM_S1
+
+# Get Loadings for n-1 PCs in test panel  
+#~/Desktop/gcta64 --bfile ../data/projection_example/genos-test_common --pc-loading ../data/projection_example/GRM_S1 --out ../data/projection_example/GCTA_loadings
+```
+
+```{bash}
+# Project n-1 PCs into GWAS panel
+#~/Desktop/gcta64 --bfile ../data/projection_example/genos-test_common --project-loading  #../data/projection_example/GCTA_loadings 199 --out ../data/projection_example/projection_gcta
+```
+
+```{r}
+# gcta_vecs <- fread("../data/projection_example/GRM_S1.eigenvec")[,3:201]
+# gcta_vecs <- apply(gcta_vecs, 2, as.numeric)
+# 
+# betas <- t(gcta_vecs) %*% Tvec
+# 
+# proj_vecs <- fread("../data/projection_example/projection_gcta.proj.eigenvec")[,3:201]
+# proj_vecs <- apply(proj_vecs, 2, as.numeric)
+# 
+# Tm_gcta <- proj_vecs %*% betas 
+# 
+# plot(Tvec, Tm_gcta)
+# abline(a = 0, b =1 , col = "red")
+```
+
+```{r}
+# plot(Tm, -2 * Tm_plink)
+# abline(a = 0, b =1 , col = "red")
+```
+
+```{r}
+# allele <- fread("../data/projection_example/S2_PC.eigenvec.allele")
+# allele_random <- allele %>% group_by(ID) %>% slice(1) %>%ungroup
+# allele_random <- allele_random[,6:204]
+# allele_random <- apply(allele_random, 2, as.numeric)
+# 
+# tmp <- X %*% allele_random %*% diag(1/sqrt(plink_vals[1:199]))
+# Tm_plink <- tmp %*% betas_plink[1:199] 
+# 
+# plot(Tvec, Tm_plink)
+# abline(a = 0, b =1 , col = "red")
+```
