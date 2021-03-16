@@ -23,7 +23,7 @@ test_pops <- unique(pop$V3)
 pop <- pop %>% mutate(tvec = case_when(V3 == test_pops[1] ~ 1, V3 == test_pops[2] ~ 0))
 tvec <- pop$tvec
 ctvec <- (tvec-mean(tvec))
-Tvec <- ctvec/sqrt(sum(ctvec^2))
+Tvec <- ctvec/sqrt(sum(ctvec^2)/length(ctvec))
 
 # Write to file
 write.table(Tvec, output_file,row.names=F,quote=F,sep="\t", col.names = F)

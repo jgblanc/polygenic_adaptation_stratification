@@ -44,6 +44,7 @@ This is the method I started with, I know this method is "correct" because when 
 ```{r}
 # Covariance Matrix 
 test.cov <- X %*% t(X) / L
+#tc <- tcrossprod(X) / L
 
 # Eigen decomposition
 eig <- eigen(test.cov)
@@ -101,7 +102,7 @@ vals_stan <- eig_stan$values
 n <- length(vals_stan)
 
 # Calculate Tm using standardized X and M matrices 
-K_stan = (M_stan %*% t(X_stan)) / L
+K_stan = (M %*% t(X_stan)) / L
 Tm_stan = K_stan%*% vecs_stan[,1:(n-1)] %*% diag(1/vals_stan[1:(n-1)]) %*% t(vecs_stan[,1:(n-1)]) %*% Tvec
 
 # T and Tm are the same
@@ -231,7 +232,7 @@ abline(a = 0, b =1 , col = "red")
 
 I wanted to see if I could calculate $\lambda_T$ (amount of variation explained by test vector) and use that as the eigenvalue to do the projection. It seems to "work pretty well".  
 
-$$\lambda_T = TU \Lambda U^T T$$
+$$\lambda_T = T^ TU \Lambda U^T T$$
 
 ```{r}
 # Caclulate lamba T using eigenvecs calculated in plink 
@@ -244,7 +245,7 @@ write.table(T_lambda, "../data/projection_example/test_vec.eigenval", quote = F,
 ~/Desktop/gcta64 --bfile ../data/projection_example/genos --pc-loading  ../data/projection_example/test_vec --out ../data/projection_example/test_vec_loadings 
 
 # Project into test matrix
-~/Desktop/gcta64 --bfile ../data/projection_example/genos --project-loading ../data/projection_example/test_vec_loadings 1 --out ../data/projection_example/projection
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --project-loading  ../data/projection_example/test_vec_loadings 1 --out ../data/projection_example/projection 
 ```
 
 ```{r}
@@ -257,3 +258,72 @@ abline(a = 0, b =1 , col = "red")
 ```
 
 I need to figure out exactly what this projection step is doing to figure out why we can't recreate T perfectly. 
+
+## Projection using weighted eigenvectors in GCTA
+
+```{bash}
+# Make GRM
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --make-grm --out ../data/projection_example/GRM
+
+# Do PCA
+~/Desktop/gcta64 --grm ../data/projection_example/GRM --pca 99 --out ../data/projection_example/GRM
+
+# Get Loadings for n-1 PCs in test panel  
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --pc-loading ../data/projection_example/GRM --out ../data/projection_example/PC99_loadings
+```
+
+```{bash}
+# Project n-1 PCs into GWAS panel 
+~/Desktop/gcta64 --bfile ../data/projection_example/genos --project-loading  ../data/projection_example/PC99_loadings 99 --out ../data/projection_example/projection_99
+```
+
+
+```{r}
+gcta_vecs <- fread("../data/projection_example/GRM.eigenvec")[,3:101]
+gcta_vecs <- apply(gcta_vecs, 2, as.numeric)
+
+betas <- t(gcta_vecs) %*% Tvec
+
+proj_vecs <- fread("../data/projection_example/projection_99.proj.eigenvec")[,3:101]
+proj_vecs <- apply(proj_vecs, 2, as.numeric)
+
+Tm <- proj_vecs %*% betas 
+
+plot(Tvec, Tm)
+abline(a = 0, b =1 , col = "red")
+```
+
+## Projection using weighted eigenvectors in Plink2
+
+```{bash}
+~/Desktop/plink2 --pfile ../data/projection_example/genos \
+       --freq counts \
+       --pca allele-wts 99 \
+       --out ../data/projection_example/ref_pcs
+```
+
+```{bash}
+~/Desktop/plink2 --pfile ../data/projection_example/genos \
+       --read-freq ../data/projection_example/ref_pcs.acount \
+       --score ../data/projection_example/ref_pcs.eigenvec.allele 2 5 header-read no-mean-imputation \
+               variance-standardize \
+       --score-col-nums 6-104 \
+       --out ../data/projection_example/new_projection
+```
+
+```{r}
+plink_vecs <- fread("../data/projection_example/ref_pcs.eigenvec")[,3:101]
+plink_vecs <- apply(plink_vecs, 2, as.numeric)
+
+betas <- t(plink_vecs) %*% Tvec
+
+proj_vecs_plink <- fread("../data/projection_example/new_projection.sscore")[,5:103]
+proj_vecs_plink <- apply(proj_vecs_plink, 2, as.numeric)
+plink_vals <- fread("../data/projection_example/ref_pcs.eigenval")
+tst <- proj_vecs_plink %*%  diag(1/sqrt(plink_vals$V1))
+
+Tm_plink <- tst %*% betas[1:99] 
+
+plot(Tvec, -2 * Tm_plink)
+abline(a = 0, b =1 , col = "red")
+```
