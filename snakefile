@@ -1,10 +1,10 @@
-#CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
-CHR=["0", "1"]
-CONFIG=["C1","C2"]
+CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
+#CHR=["0", "1"]
+CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
 #REP=["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"]
-REP=["S2"]
-SIZE="50"
+REP=["B1"]
+
 
 rule all:
     input:
@@ -20,12 +20,12 @@ rule simulate_genotypes_4popsplit:
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
 	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
-	       --chr 2 \
+	       --chr 20 \
 	       --Nanc 40000 \
-	       -a 200 \
-	       -b 200 \
-	       -c 200 \
-	       -d 200"
+	       -a 10000 \
+	       -b 10000 \
+	       -c 10000 \
+	       -d 10000"
 
 rule format_VCF:
     input:
@@ -113,11 +113,13 @@ rule downsample_test:
     output:
       "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam",
       "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar",
-      "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen"
+      "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen",
+      "output/Simulate_Genotypes/{model}/{rep}/{config}/downsample.id"
     params:
-      size = 200
+      size = 2000
     shell:
         """
+	set +o pipefail;
         awk 'NR > 1' {input.psam} | cut -f 1,2 | sort -R | head -n {params.size} > output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/downsample.id
 
         plink2 \
@@ -125,11 +127,6 @@ rule downsample_test:
         --keep output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/downsample.id \
         --make-pgen \
         --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test
-
-        rm {input.psam}
-        rm {input.pgen}
-        rm {input.pvar}
-        rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/downsample.id
         """
 
 
@@ -223,7 +220,11 @@ rule aggregate_genotypes:
 	test_psam=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam", model=MODEL, rep=REP, config=CONFIG),
 	pgen=expand("output/Simulate_Genotypes/{model}/{rep}/genos.pgen", model=MODEL, rep=REP, config=CONFIG),
 	pvar=expand("output/Simulate_Genotypes/{model}/{rep}/genos.pvar", model=MODEL, rep=REP, config=CONFIG),
-	psam=expand("output/Simulate_Genotypes/{model}/{rep}/genos.psam", model=MODEL, rep=REP, config=CONFIG)
+	psam=expand("output/Simulate_Genotypes/{model}/{rep}/genos.psam", model=MODEL, rep=REP, config=CONFIG),
+	big_psam=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.psam", model=MODEL, rep=REP, config=CONFIG),
+	big_pvar=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.pvar", model=MODEL, rep=REP, config=CONFIG),
+	big_pgen=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.pgen", model=MODEL, rep=REP, config=CONFIG),
+        id=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/downsample.id", model=MODEL, rep=REP, config=CONFIG)
     output:
         expand("output/Simulate_Genotypes/{model}/{rep}/ff.txt", model=MODEL, rep=REP)
     shell:
@@ -244,6 +245,10 @@ rule aggregate_genotypes:
 	rm {input.pgen}
 	rm {input.pvar}
 	rm {input.psam}
+	rm {input.big_psam}
+	rm {input.big_pvar}
+	rm {input.big_pgen}
+	rm {input.id}
 	"""
 
 # Simluate Phenotypes
@@ -315,7 +320,7 @@ rule gwas_no_correction:
         "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
-        --glm \
+        --glm allow-no-covars \
         --pheno {input.pheno} \
         --pheno-name pheno_random,pheno_strat \
         --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common"
@@ -460,9 +465,9 @@ rule proj_T:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
         "output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt"
     params:
-        n_minus_1 = 199,
+        n_minus_1 = 1999,
         col_start = 6,
-        col_end = 204
+        col_end = 2004
     output:
         "output/Calculate_Tm/{model}/{rep}/{config}/pca.eigenvec",
         "output/Calculate_Tm/{model}/{rep}/{config}/pca.eigenval",
@@ -470,12 +475,12 @@ rule proj_T:
         "output/Calculate_Tm/{model}/{rep}/{config}/projection.sscore"
     shell:
         """
-        ~/Desktop/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
        --pca allele-wts {params.n_minus_1} \
        --out output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/pca
 
-        ~/Desktop/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
        --score output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
        --score-col-nums {params.col_start}-{params.col_end} \

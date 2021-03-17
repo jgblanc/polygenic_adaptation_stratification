@@ -1,7 +1,7 @@
 {
     "__default__" :
     {
-        "mem" : "40G",
+        "mem" : "16G",
 	"partition" : "broadwl",
         "ntasks" : 1,
 	"tasks": 1,
