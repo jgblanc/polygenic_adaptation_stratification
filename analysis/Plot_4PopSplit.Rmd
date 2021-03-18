@@ -32,7 +32,7 @@ agg_data <- function(rep, file_path, file_name) {
   return(gvalue)
 }
 #reps <- list("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9")
-reps <- list("S1")
+reps <- list("B1")
 cols_gwas <- c("red2", "mediumblue")
 df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/genos-gwas_common.gvalue.sscore')
 
@@ -93,7 +93,7 @@ agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
   colnames(gwas.pop) <- c("#IID", "FID", "POP")
   
   df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
-  df <- suppressMessages(full_join(df, gwas.pop))
+  df <- suppressMessages(left_join(df, gwas.pop))
   df$REP <- rep
   
   mprs.adj = df%>%
@@ -140,8 +140,8 @@ kable(mprs.sum)
 
 Covariance between Test Vector and PGS (including Tm)
 ```{r}
-Test_vec <- c(rep(1, 100), rep(0, 100))
-std.vec <- scale(Test_vec)
+Test_vec <- fread("../output/Calculate_Tm/4PopSplit/B1/C1/Tvec.txt")
+std.vec <- Test_vec$V1
 
 cov.prs = prs%>%
   group_by(REP)%>%
@@ -164,7 +164,7 @@ agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
   colnames(gwas.pop) <- c("#IID", "FID", "POP")
   
   df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
-  df <- suppressMessages(full_join(df, gwas.pop))
+  df <- suppressMessages(left_join(df, gwas.pop))
   df$REP <- rep
   
   mprs.adj = df%>%
@@ -211,8 +211,8 @@ kable(mprs.sum)
 
 Covariance between Test Vector and PGS (including Tm)
 ```{r}
-Test_vec <- c(rep(1, 100), rep(0, 100))
-std.vec <- scale(Test_vec)
+Test_vec <- fread("../output/Calculate_Tm/4PopSplit/B1/C1/Tvec.txt")
+std.vec <- Test_vec$V1
 
 cov.prs = prs%>%
   group_by(REP)%>%
@@ -318,7 +318,7 @@ agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
   colnames(gwas.pop) <- c("#IID", "FID", "POP")
   
   df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
-  df <- suppressMessages(full_join(df, gwas.pop))
+  df <- suppressMessages(left_join(df, gwas.pop))
   df$REP <- rep
   
   mprs.adj = df%>%
