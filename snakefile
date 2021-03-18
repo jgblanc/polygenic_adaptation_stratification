@@ -1,15 +1,16 @@
-CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
-#CHR=["0", "1"]
+#CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
+CHR =["0", "1"]
 CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
-#REP=["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"]
 REP=["B1"]
+SIZE=2000
 
 
 rule all:
     input:
         expand("output/PRS/{model}/{rep}/{config}/genos-test_common-Tm.c.sscore", model=MODEL, rep=REP, config=CONFIG),
-        expand("output/PRS/{model}/{rep}/{config}/genos-test_common.c.sscore", model=MODEL, rep=REP, config=CONFIG)
+        expand("output/PRS/{model}/{rep}/{config}/genos-test_common.c.sscore", model=MODEL, rep=REP, config=CONFIG),
+	expand("output/PRS/{model}/{rep}/{config}/genos-test_common.true.sscore", model=MODEL, rep=REP, config=CONFIG)
 
 # Simluate Genotypes
 
@@ -20,12 +21,12 @@ rule simulate_genotypes_4popsplit:
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
 	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
-	       --chr 20 \
+	       --chr 2 \
 	       --Nanc 40000 \
-	       -a 10000 \
-	       -b 10000 \
-	       -c 10000 \
-	       -d 10000"
+	       -a 100 \
+	       -b 100 \
+	       -c 100 \
+	       -d 100"
 
 rule format_VCF:
     input:
@@ -116,7 +117,7 @@ rule downsample_test:
       "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen",
       "output/Simulate_Genotypes/{model}/{rep}/{config}/downsample.id"
     params:
-      size = 2000
+      size = SIZE
     shell:
         """
 	set +o pipefail;
@@ -465,9 +466,9 @@ rule proj_T:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
         "output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt"
     params:
-        n_minus_1 = 1999,
+        n_minus_1 = int(SIZE)-1,
         col_start = 6,
-        col_end = 2004
+        col_end = int(SIZE) + 4
     output:
         "output/Calculate_Tm/{model}/{rep}/{config}/pca.eigenvec",
         "output/Calculate_Tm/{model}/{rep}/{config}/pca.eigenval",
