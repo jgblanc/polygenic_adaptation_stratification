@@ -13,8 +13,12 @@ suppressWarnings(suppressMessages({
 gvalue_file = args[1] #genetic values
 popfile = args[2] # pop file from msprime simulation
 output_file = args[3] #name of output file
-h2 = args[4]
-set.seed(args[5])
+h2 = as.numeric(args[4])
+env=as.numeric(args[5])
+set.seed(args[6])
+
+print(as.numeric(env))
+print(as.numeric(h2))
 
 prs=fread(gvalue_file)
 colnames(prs)<-c("IID","dosage","prs")
@@ -32,7 +36,7 @@ prs=merge(prs, pop, by="IID", sort=F)
 ##### simulate environmental effects
 #no 'environmental' effect
 #NOTE: SIGMA_G SET AT h2
-prs$grandom = rnorm(sample_size,0, sqrt(1 - 0.8))
+prs$grandom = rnorm(sample_size,0, sqrt(1 - h2))
 
 # effect on the "first" population (A)
 pops <- unique(prs$pop)
@@ -40,16 +44,16 @@ prs$env = sapply(prs$pop,
                  function(x){
                    if(x == pops[1]){
                      rnorm(n = 1,
-                           mean = 2,
-                           sd = sqrt(1 - 0.8)) }else{
+                           mean = env,
+                           sd = sqrt(1 - h2)) }else{
                              rnorm(n = 1,
                                    mean = 0,
-                                   sd = sqrt(1 - 0.8))
+                                   sd = sqrt(1 - h2))
                            }})
 
-#scale each so that their variances are 0.2 - to adjust heritability to 0.8
-prs$grandom = scale( prs$grandom, scale = T) * sqrt( 1 - 0.8)
-prs$env = scale(prs$env, scale = T) * sqrt(1 - 0.8)
+#scale each so that their variances are 0.2 - to adjust heritability to h2
+prs$grandom = scale( prs$grandom, scale = T) * sqrt( 1 - h2)
+prs$env = scale(prs$env, scale = T) * sqrt(1 - h2)
 
 #add prs to each of the environmental effects
 prs = prs %>%

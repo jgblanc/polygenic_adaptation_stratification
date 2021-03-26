@@ -24,8 +24,10 @@ output/Simulate_Genotypes/*/*/*/*.afreq
 output/Simulate_Genotypes/*/*/*/*.txt
 output/Simulate_Phenotypes/*/*/*/*.log
 output/Run_GWAS/*
-output/Calculate_Tm/*
+output/Calculate_Tm/*/*/*/p*
+output/Calculate_Tm/*/*/*/Tm*
 output/PRS/*/*/*/*.log
+output/PRS/*/*/*/*.betas
 plink2
 logs/*
 .snakemake/*

@@ -18,19 +18,19 @@ $$T_m = \frac{M X^T (XX^T)^{-1}T}{L^2}$$
 
 ```{r}
 # Read GWAS Matrix 
-pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-gwas_common.pvar")
-d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-gwas_common.pgen")
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.pgen")
 M <- ReadList(d1,seq(1,96278), meanimpute=F)
 M <- scale(M)
 
 # Read in Test Matrix 
-pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.pvar")
-d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.pgen")
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pgen")
 X <- ReadList(d1,seq(1,96278), meanimpute=F)
 X <- scale(X)
 
 # Read in Test Vector 
-Tvec <- fread("../output/Calculate_Tm/4PopSplit/S2/C1/Tvec.txt")$V1
+Tvec <- fread("../output/Calculate_Tm/4PopSplit/S1/C1/Tvec.txt")$V1
 L <- ncol(X)
 
 #tvec <- runif(200)
@@ -76,6 +76,56 @@ Tm_weighted_v <- tmp %*% betas[1:(n-1)]
 plot(Tm, Tm_weighted_v)
 abline(a = 0, b =1 , col = "red")
 ```
+
+
+```{r}
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pgen")
+X <- ReadList(d1,seq(1,96278), meanimpute=F)
+XA <- M[1:100,]
+XB <- M[101:200,]
+freq_diff <- (colSums(XA)/(2*100)) - (colSums(XB)/(2*100))
+
+s <- svd(scale(X, scale = F))
+u <- s$u
+d <- s$d
+v <- s$v
+plot(t(X) %*% u[,1] %*% (1/d[1]), v[,1])
+
+scale_loadings <- v[,1] * d[1]
+plot(v[,1], freq_diff)
+
+plot(colSums(XA)/(2*100), colSums(XB)/(2*100) )
+```
+
+```{r}
+pop1 <- c(rep(2, 500), rep(1, 500))
+pop1 <- matrix(rep(pop1,each=200),nrow=200)
+
+pop2 <- c(rep(0, 500), rep(1, 500))
+pop2 <- matrix(rep(pop2,each=200),nrow=200)
+
+X <- rbind(pop1, pop2)
+
+s <- svd(scale(X, scale = F))
+u <- s$u
+d <- s$d
+v <- s$v
+plot(t(sX) %*% u[,1] %*% (1/d[1]), v[,1])
+abline(a=0, b=1)
+
+freq_diff <- (colSums(pop2)/(2*200)) - (colSums(pop1)/(2*200))
+plot(freq_diff * 0.5, v[,1]^2)
+abline(a=0, b=1)
+
+# FST 
+((((colSums(pop2)/(2*200)) - 0.5)^2 / 0.25) + (((colSums(pop1)/(2*200)) - 0.5)^2 / 0.25)) / 2
+# Freq diff
+freq_diff <- (colSums(pop2)/(2*200)) - (colSums(pop1)/(2*200))
+
+```
+
+
 
 Do PCA in plink (including loadings)
 ```{bash}
