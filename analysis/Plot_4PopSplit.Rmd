@@ -33,7 +33,7 @@ agg_data <- function(rep, file_path, file_name) {
 }
 
 #reps <- list("B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20" )
-reps <- list("S1", "S2" )
+reps <- list("B1", "B2", "B3", "B4")
 cols_gwas <- c("red2", "mediumblue")
 df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/genos-gwas_common.gvalue.sscore')
 
@@ -43,7 +43,7 @@ ggplot(data = df, aes(x= SCORE1_SUM, fill = POP)) + geom_histogram(data = subset
 
 Random Phenotypes (no stratification)
 ```{r}
-df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-0/genos-gwas_common.phenos.txt")
+df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-2/genos-gwas_common.phenos.txt")
 
 # Histogram 
 ggplot(data = df, aes(x=pheno_random, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "C"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("Random Phenotype") + scale_fill_manual(values = cols_gwas)
@@ -91,7 +91,7 @@ table(diff > 0)
 Random Phenotype - True Genetic Value  $E = Y - X\beta$  
 ```{r}
 genos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/genos-gwas_common.gvalue.sscore')
-phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-0/genos-gwas_common.phenos.txt")
+phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-2/genos-gwas_common.phenos.txt")
 
 E <- phenos$pheno_rand - genos$SCORE1_SUM 
 df <- as.data.frame(cbind(genos$POP, genos$REP, E))
@@ -104,7 +104,7 @@ ggplot(data = df, aes(x=E, fill =V1)) + geom_histogram(data = subset(df, V1 == "
 Stratified Phenotype - True Genetic Value  $E = Y - X\beta$  (Pop A should have positive environment)
 ```{r}
 genos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/genos-gwas_common.gvalue.sscore')
-phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-0/genos-gwas_common.phenos.txt")
+phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-2/genos-gwas_common.phenos.txt")
 
 E <- phenos$pheno_strat - genos$SCORE1_SUM 
 df <- as.data.frame(cbind(genos$POP, genos$REP, E))
@@ -143,7 +143,7 @@ agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
   return(mprs.adj)
 }
 
-prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C1/h2-0/env-5/genos-test_common.nc.sscore', file_name_gv='/C1/h2-0/genos-test_common.true.sscore')
+prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C1/h2-0/env-0/genos-test_common.c.sscore', file_name_gv='/C1/h2-0/genos-test_common.true.sscore')
 
 cols_test <- c("darkgoldenrod1", "darkorchid1")
 
@@ -193,6 +193,9 @@ for (i in 1:length(cov_strat_C1)) {
 
 mean(cov_strat_C1)
 mean(cov_random_C1)
+
+mod <- lm(t(test_vecs[1,]) ~ subset(prs, prs$REP == "B1")$random.adjusted)
+summary(mod)
 ```
 
 Polygenic Score in Test Population (clumping) - Random Phenotype including Tm as a Covariate
@@ -224,7 +227,7 @@ agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
   return(mprs.adj)
 }
 
-prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C1/genos-test_common-Tm.nc.sscore', file_name_gv='/C1/genos-test_common.true.sscore')
+prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C1/h2-0/env-0/genos-test_common-Tm.nc.sscore', file_name_gv='/C1/genos-test_common.true.sscore')
 
 cols_test <- c("darkgoldenrod1", "darkorchid1")
 
@@ -475,6 +478,7 @@ mean(cov_random_C2_Tm)
 Write function to gather all datasets and plot in one plot  
 
 ```{r}
+reps <- list("B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20" )
 agg_all_data <- function(rep, dir_path, case, type) {
   
   prs <- fread(paste0(dir_path, rep,"/", case, "/", 'genos-test_common', type))
@@ -539,6 +543,7 @@ ggplot(cc_df, aes(x = POP, y = TYPE)) + geom_tile(aes(fill = MEAN)) + facet_wrap
 
 ```{r}
 agg_all_cov <- function(rep, dir_path, case, type) {
+  #print(paste0(rep, case, type))
   
   prs <- fread(paste0(dir_path, rep,"/", case, "/", 'genos-test_common', type))
   colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
@@ -568,13 +573,27 @@ agg_all_cov <- function(rep, dir_path, case, type) {
   mprs.sum = mprs.adj %>% 
     summarise(COV_STRAT = cov(std.tvec, strat.adjusted), COV_RANDOM = cov(std.tvec, random.adjusted))
   
-  std.tvec[std.tvec < 0] <- 0
-  std.tvec[std.tvec > 0] <- 1
-  mod <- glm(std.tvec ~ mprs.adj$strat.adjusted, family = "binomial")
-  mprs.sum$p_strat <- summary(mod)$coefficients[2,4] 
+  #std.tvec[std.tvec < 0] <- 0
+  #std.tvec[std.tvec > 0] <- 1
+  #mod <- logistf(as.factor(std.tvec) ~ mprs.adj$strat.adjusted)
+  #mprs.sum$p_strat <- summary(mod)$coefficients[2,4]
   
-  mod <- glm(std.tvec ~ mprs.adj$random.adjusted, family = "binomial")
-  mprs.sum$p_random <- summary(mod)$coefficients[2,4] 
+  B <- subset(mprs.adj, mprs.adj$POP == mprs.adj$POP[1])
+  B <- B$STRAT
+  D <- subset(mprs.adj, mprs.adj$POP == "D")
+  D <- D$STRAT
+  t.out <- t.test(B,D)
+  mprs.sum$p_strat <- t.out$p.value
+  
+  #mod <- glm(std.tvec ~ mprs.adj$random.adjusted, family = "binomial")
+  #mprs.sum$p_random <- summary(mod)$coefficients[2,4] 
+  
+  B <- subset(mprs.adj, mprs.adj$POP == mprs.adj$POP[1])
+  B <- B$RANDOM
+  D <- subset(mprs.adj, mprs.adj$POP == "D")
+  D <- D$RANDOM
+  t.out <- t.test(B,D)
+  mprs.sum$p_random <- t.out$p.value
   
   mprs.sum$TYPE <- paste0(case, type)
   mprs.sum$REP <- rep
@@ -592,11 +611,11 @@ cases <- c("C1", "C2")
 
 dat <- expand.grid(all_prs_types, cases)
 colnames(dat) <- c("type_prs", "cases")
-df <- plyr::mdply(dat, concat_prs)
+df_sum <- plyr::mdply(dat, concat_prs)
 ```
 
 ```{r}
-plot_cov <- df %>% group_by(TYPE) %>% summarise(STRAT = mean(COV_STRAT), RANDOM = mean(COV_RANDOM)) %>% gather(PHENO, PRS, -TYPE)
+plot_cov <- df_sum %>% group_by(TYPE) %>% summarise(STRAT = mean(COV_STRAT), RANDOM = mean(COV_RANDOM)) %>% gather(PHENO, PRS, -TYPE)
 
 ggplot(plot_cov, aes(x = PHENO, y = TYPE)) + geom_tile(aes(fill = PRS)) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.y = element_blank()) + xlab("") + scale_fill_gradient2(low = "#91bfdb", mid = "#ffffbf",high = "#fc8d59", limits = c(-0.35, 0.65), breaks = c(-0.6, -0.3, 0, 0.3, 0.6), name = "Avg Cov.")
 ```

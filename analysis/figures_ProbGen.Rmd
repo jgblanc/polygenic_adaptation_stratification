@@ -1,0 +1,195 @@
+---
+title: "Figures_ProbGen"
+author: "Jennifer Blanc"
+date: "3/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list =ls())
+```
+
+```{r}
+library(data.table)
+library(ggplot2)
+```
+
+heritability = 0, env = 0
+```{r}
+freqA <- fread("~/scratch/popA.afreq")
+freqC <- fread("~/scratch/popC.afreq")
+diff <- as.data.frame(cbind(freqA$ID,freqA$ALT_FREQS, freqC$ALT_FREQS))
+diff$diff <- as.numeric(as.character(diff$V2)) - as.numeric(as.character(diff$V3))
+
+est_beta <- fread("~/scratch/genos-gwas_common-Tm.c.betas")
+est_beta <- subset(est_beta, est_beta$BETA_Strat != 0)
+
+diff_snps <- filter(diff, V1 %in% est_beta$ID)
+
+plot(diff_snps$diff, est_beta$BETA_Strat, xlab = "freqA - freqC", ylab = "Beta Hat")
+```
+
+heritability = 0, env = 2
+```{r}
+est_beta <- fread("~/scratch/env-2/genos-gwas_common-Tm.c.betas")
+est_beta <- subset(est_beta, est_beta$BETA_Strat != 0)
+
+diff_snps <- filter(diff, V1 %in% est_beta$ID)
+
+plot(diff_snps$diff, est_beta$BETA_Strat,  xlab = "freqA - freqC", ylab = "Beta Hat")
+```
+
+h2 = 0, env = 0 
+```{r}
+freqB <- fread("~/scratch/popB.afreq")
+freqD <- fread("~/scratch/popD.afreq")
+diff.test <- as.data.frame(cbind(freqB$ID,freqB$ALT_FREQS, freqD$ALT_FREQS))
+diff.test$diff <- as.numeric(as.character(diff.test$V2)) - as.numeric(as.character(diff.test$V3))
+colnames(diff.test) <- c("ID", "freq.B", "freq.D", "diff")
+
+est_beta <- fread("~/scratch/genos-gwas_common.c.betas")
+est_beta <- subset(est_beta, est_beta$BETA_Strat != 0)
+
+diff_snps <- filter(diff.test, ID %in% est_beta$ID)
+diff_snps$BETA_Strat <- est_beta$BETA_Strat
+
+plot(diff_snps$diff, est_beta$BETA_Strat,  xlab = "freqB - freqD", ylab = "Beta Hat")
+
+common_B <- subset(diff_snps, diff_snps$diff >0)
+mean(common_B$BETA_Strat)
+
+common_D <- subset(diff_snps, diff_snps$diff <0)
+mean(common_D$BETA_Strat)
+```
+
+
+h2 = 0, env = 2 
+```{r}
+est_beta <- fread("~/scratch/env-2/genos-gwas_common.c.betas")
+est_beta <- subset(est_beta, est_beta$BETA_Strat != 0)
+
+diff_snps <- filter(diff.test, ID %in% est_beta$ID)
+diff_snps$BETA_Strat <- est_beta$BETA_Strat
+
+plot(diff_snps$diff, est_beta$BETA_Strat, xlab = "freqB - freqD", ylab = "Beta Hat")
+
+common_B <- subset(diff_snps, diff_snps$diff >0)
+mean(common_B$BETA_Strat)
+
+common_D <- subset(diff_snps, diff_snps$diff <0)
+mean(common_D$BETA_Strat)
+```
+
+
+```{r}
+agg_all_cov <- function(rep, dir_path, case, type, env) {
+  
+  prs <- fread(paste0(dir_path, rep,"/", case, "/", "h2-0/", env, "/", 'genos-test_common', type))
+  colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
+  
+  gvalue <- fread(paste0(dir_path, rep,"/", case, "/" ,"h2-0/", 'genos-test_common.true.sscore'))
+  colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
+  
+  gwas.pop <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/", case, "/" , "ids.test"), header = F)
+  colnames(gwas.pop) <- c("#IID", "FID", "POP")
+  
+  df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
+  df <- suppressMessages(left_join(df, gwas.pop))
+  df$REP <- rep
+  
+  mprs.adj = df%>%
+  group_by(REP)%>%
+    mutate(random.adjusted = RANDOM-GV,
+           random.adjusted = (random.adjusted - mean(random.adjusted))/sd(random.adjusted),
+           strat.adjusted = STRAT-GV,
+           strat.adjusted = (strat.adjusted - mean(strat.adjusted))/sd(strat.adjusted)
+           )%>%
+    ungroup() 
+  
+  Tvec <- fread(paste0("../output/Calculate_Tm/4PopSplit/", rep, "/", case, "/", "Tvec.txt"))
+  std.tvec <- Tvec$V1
+  
+  mprs.sum = mprs.adj %>% 
+    summarise(COV_STRAT = cov(std.tvec, strat.adjusted), COV_RANDOM = cov(std.tvec, random.adjusted))
+  
+  mprs.sum$TYPE <- paste0(case, type)
+  mprs.sum$REP <- rep
+  
+  return(mprs.sum)
+}
+
+concat_prs <- function(type_prs, cases, envs) {
+  prs <- plyr::ldply(reps, agg_all_cov, dir_path='../output/PRS/4PopSplit/',case = cases, type=type_prs, env=envs)
+  return(prs)
+}
+
+reps <- list("B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20" )
+all_prs_types <- c(".c.sscore", ".c.p.sscore", ".nc.sscore", "-Tm.c.p.sscore", "-Tm.c.sscore", "-Tm.nc.sscore")
+cases <- c("C1", "C2")
+envs <- c("env-0", "env-1", "env-2", "env-3")
+
+dat <- expand.grid(all_prs_types, cases, envs)
+colnames(dat) <- c("type_prs", "cases", "envs")
+df_sum <- plyr::mdply(dat, concat_prs)
+
+plot_cov <- df_sum %>% group_by(type_prs, cases, envs) %>% summarise(STRAT = mean(COV_STRAT), RANDOM = mean(COV_RANDOM))
+
+#%>% gather(PHENO, PRS, -TYPE)
+```
+
+
+```{r}
+dir_path = '../output/PRS/4PopSplit/'
+case = "C1"
+env = "env-0"
+type = ".nc.sscore"
+rep = "S1"
+
+prs <- fread(paste0(dir_path, rep,"/", case, "/", "h2-0/", env, "/", 'genos-test_common', type))
+  colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
+  
+  gvalue <- fread(paste0(dir_path, rep,"/", case, "/" ,"h2-0/", 'genos-test_common.true.sscore'))
+  colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
+  
+  gwas.pop <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/", case, "/" , "ids.test"), header = F)
+  colnames(gwas.pop) <- c("#IID", "FID", "POP")
+  
+  df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
+  df <- suppressMessages(left_join(df, gwas.pop))
+  df$REP <- rep
+  
+  mprs.adj = df%>%
+  group_by(REP)%>%
+    mutate(random.adjusted = RANDOM-GV,
+           random.adjusted = (random.adjusted - mean(random.adjusted))/sd(random.adjusted),
+           strat.adjusted = STRAT-GV,
+           strat.adjusted = (strat.adjusted - mean(strat.adjusted))/sd(strat.adjusted)
+           )%>%
+    ungroup() 
+```
+
+
+
+```{r}
+vecs <- fread("~/polygenic_adaptation_stratification/output/Calculate_Tm/4PopSplit/S1/C1/pca.eigenvec")
+vecs <- vecs[,3:ncol(vecs)]
+vecs <- apply(vecs, 2, as.numeric)
+vals <- fread("~/polygenic_adaptation_stratification/output/Calculate_Tm/4PopSplit/S1/C1/pca.eigenval")
+
+Tvec <- fread("~/polygenic_adaptation_stratification/output/Calculate_Tm/4PopSplit/S1/C1/Tvec.txt")
+std.tvec <- Tvec$V1
+
+lambda_T <- t(std.tvec) %*% vecs %*% diag(vals$V1) %*% t(vecs) %*% std.tvec
+
+numerator <- mprs.adj$strat.adjusted %*% std.tvec
+cm <- (numerator)^2 / lambda_T
+
+cm1 <- cm
+
+1 - pnorm(cm1)
+1 - pchisq(cm1,2)
+```
+
+
+

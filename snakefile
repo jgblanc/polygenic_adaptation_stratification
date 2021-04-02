@@ -552,3 +552,17 @@ rule calc_prs_Tm:
         --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-test_common-Tm.nc \
         --score-col-nums 3,4
         """
+
+# Calculate Lambda_T
+
+rule calc_Tm:
+    input:
+        vecs="output/Calculate_Tm/{model}/{rep}/{config}/pca.eigenvec",
+        vals="output/Calculate_Tm/{model}/{rep}/{config}/pca.eigenval",
+        tvec="output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt",
+    output:
+        "output/Calculate_Tm/{model}/{rep}/{config}/Lambda_T.txt"
+    shell:
+        """
+	Rscript code/Calculate_Tm/calc_lambdaT.R {input.vecs} {input.vals} {output}
+	"""

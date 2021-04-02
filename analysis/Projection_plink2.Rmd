@@ -57,6 +57,17 @@ K = (M %*% t(X)) / (L)
 Tm = K %*% u[,1:(n-1)] %*% diag(1/svd_vals[1:(n-1)]) %*% t(u[,1:(n-1)]) %*% Tvec
 ```
 
+```{r}
+std.tvec <- scale(Tvec)
+std.Tm <- scale(Tm)
+load_T <- t(X) %*% std.tvec
+load_Tm <-  t(M) %*% std.Tm
+
+plot(load_T)
+```
+
+
+
 Calculate Tm via projecting each eigenvector individually and weighting by the Betas
 ```{r}
 betas <- t(u) %*% Tvec
