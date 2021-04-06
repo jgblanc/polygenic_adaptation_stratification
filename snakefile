@@ -1,9 +1,9 @@
-#CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
-CHR =["0", "1"]
+CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
+#CHR =["0", "1"]
 CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
-REP=["B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
-#REP = ["B1"]
+REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
+#REP = ["B2"]
 HERITABILITY = ["h2-0"]
 ENV = ["env-0", "env-1", "env-2", "env-3"]
 SIZE=2000
@@ -21,7 +21,8 @@ rule all:
     input:
         expand("output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.nc.sscore", model=MODEL, rep=REP, config=CONFIG, h2 = HERITABILITY, env = ENV),
         expand("output/PRS/{model}/{rep}/{config}/{h2}/genos-test_common.true.sscore", model=MODEL, rep=REP, config=CONFIG, h2 = HERITABILITY),
-        expand("output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.nc.sscore", model=MODEL, rep=REP, config=CONFIG, h2 = HERITABILITY, env = ENV)
+        expand("output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.nc.sscore", model=MODEL, rep=REP, config=CONFIG, h2 = HERITABILITY, env = ENV),
+	expand("output/Calculate_Tm/{model}/{rep}/{config}/Lambda_T.txt", model=MODEL, rep=REP, config=CONFIG)
 
 # Simluate Genotypes
 
@@ -555,7 +556,7 @@ rule calc_prs_Tm:
 
 # Calculate Lambda_T
 
-rule calc_Tm:
+rule calc_lambdaT:
     input:
         vecs="output/Calculate_Tm/{model}/{rep}/{config}/pca.eigenvec",
         vals="output/Calculate_Tm/{model}/{rep}/{config}/pca.eigenval",
@@ -564,5 +565,5 @@ rule calc_Tm:
         "output/Calculate_Tm/{model}/{rep}/{config}/Lambda_T.txt"
     shell:
         """
-	Rscript code/Calculate_Tm/calc_lambdaT.R {input.vecs} {input.vals} {output}
+	Rscript code/Calculate_Tm/calc_lambdaT.R {input.vecs} {input.vals} {input.tvec} {output}
 	"""

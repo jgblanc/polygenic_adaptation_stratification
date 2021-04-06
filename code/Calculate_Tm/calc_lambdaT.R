@@ -4,7 +4,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<5){stop("Rscript calc_Tm.R <eigenvecs> <eigenvals> <sscore> <Tvec> <outfile name>")}
+if(length(args)<4){stop("Rscript calc_Tm.R <eigenvecs> <eigenvals> <tvec file> <outfile name>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -14,7 +14,8 @@ suppressWarnings(suppressMessages({
 
 vecs_file = args[1] # eigenvectors
 vals_file = args[2] # eigenvalues
-out_file = args[3] # Name for Tm file
+tvec_file = args[3] # test vec file
+out_file = args[4] # Name for Tm file
 
 # Load test eigen vecs
 vecs <- fread(vecs_file)
