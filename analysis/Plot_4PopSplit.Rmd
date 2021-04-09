@@ -620,4 +620,18 @@ plot_cov <- df_sum %>% group_by(TYPE) %>% summarise(STRAT = mean(COV_STRAT), RAN
 ggplot(plot_cov, aes(x = PHENO, y = TYPE)) + geom_tile(aes(fill = PRS)) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.y = element_blank()) + xlab("") + scale_fill_gradient2(low = "#91bfdb", mid = "#ffffbf",high = "#fc8d59", limits = c(-0.35, 0.65), breaks = c(-0.6, -0.3, 0, 0.3, 0.6), name = "Avg Cov.")
 ```
 
+```{r}
+c_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common.c.sscore"
+cp_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common.c.p.sscore"
+nc_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common.nc.sscore"
+nc_Tm_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common-Tm.nc.sscore"
+c_Tm_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common-Tm.c.sscore"
+cp_Tm_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common-Tm.c.p.sscore"
+lambda_T_file = "output/Calculate_Tm/4PopSplit/B3/C2/Lambda_T.txt"
+Va_file = "output/PGA_test/4PopSplit/B3/C2/h2-0/env-2/Va.txt"
+Va_Tm_file = "output/PGA_test/4PopSplit/B3/C2/h2-0/env-2/Va-Tm.txt"
+true_file="output/PRS/4PopSplit/B3/C2/h2-0/genos-test_common.true.sscore"
+out_file = "output/Calculate_Tm/4PopSplit/B3/C2/Tvec.txt"
+tvec_file = "output/Calculate_Tm/4PopSplit/B3/C2/Tvec.txt"
+```
 

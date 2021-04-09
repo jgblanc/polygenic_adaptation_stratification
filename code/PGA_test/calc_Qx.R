@@ -44,9 +44,9 @@ stand_PGS <- function(prs_file, gv_file) {
   # Standardize
   mprs.adj = df%>%
     mutate(random.adjusted = RANDOM-GV,
-           random.adjusted = (random.adjusted - mean(random.adjusted))/sd(random.adjusted),
+           random.adjusted = (random.adjusted - mean(random.adjusted)),
            strat.adjusted = STRAT-GV,
-           strat.adjusted = (strat.adjusted - mean(strat.adjusted))/sd(strat.adjusted)
+           strat.adjusted = (strat.adjusted - mean(strat.adjusted))
     )%>%
     ungroup() %>% select("random.adjusted", "strat.adjusted")
   mprs.adj <- mprs.adj[1:(nrow(mprs.adj)-1),]
