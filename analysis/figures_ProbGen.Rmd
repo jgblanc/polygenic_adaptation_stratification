@@ -109,9 +109,10 @@ agg_all_cov <- function(rep, dir_path, case, type, env) {
   
   Tvec <- fread(paste0("../output/Calculate_Tm/4PopSplit/", rep, "/", case, "/", "Tvec.txt"))
   std.tvec <- Tvec$V1
+  std.tvec <- std.tvec / sqrt(sum(std.tvec^2))
   
   mprs.sum = mprs.adj %>% 
-    summarise(COV_STRAT = cov(std.tvec, strat.adjusted), COV_RANDOM = cov(std.tvec, random.adjusted))
+    summarise(COV_STRAT = (std.tvec %*% strat.adjusted) , COV_RANDOM = (std.tvec %*% random.adjusted), QX_STRAT = ((std.tvec %*% strat.adjusted)^2/(Lambda_T*2)), QX_RANDOM = ((std.tvec %*% random.adjusted)^2/(2*Lambda_T)), pQX_STRAT = pchisq(QX_STRAT, 1, lower.tail = F), pQX_RANDOM = pchisq(QX_RANDOM, 1, lower.tail = F) )
   
   mprs.sum$TYPE <- paste0(case, type)
   mprs.sum$REP <- rep
@@ -133,18 +134,25 @@ dat <- expand.grid(all_prs_types, cases, envs)
 colnames(dat) <- c("type_prs", "cases", "envs")
 df_sum <- plyr::mdply(dat, concat_prs)
 
-plot_cov <- df_sum %>% group_by(type_prs, cases, envs) %>% summarise(STRAT = mean(COV_STRAT), RANDOM = mean(COV_RANDOM))
+plot_cov <- df_sum %>% group_by(type_prs, cases, envs) %>% summarise(STRAT = mean(QX_STRAT), RANDOM = mean(QX_RANDOM))
+```
 
-#%>% gather(PHENO, PRS, -TYPE)
+
+```{r}
+df_0 <- df_sum %>% filter(cases == "C1",envs == "env-0", type_prs ==".nc.sscore" )
+hist(df_0$pQX_STRAT)
+
+df_3 <- df_sum %>% filter(cases == "C1",envs == "env-3", type_prs ==".nc.sscore" )
+hist(df_3$pQX_STRAT)
 ```
 
 
 ```{r}
 dir_path = '../output/PRS/4PopSplit/'
-case = "C1"
+case = "C2"
 env = "env-0"
 type = ".nc.sscore"
-rep = "S1"
+rep = "B1"
 
 prs <- fread(paste0(dir_path, rep,"/", case, "/", "h2-0/", env, "/", 'genos-test_common', type))
   colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
@@ -167,6 +175,16 @@ prs <- fread(paste0(dir_path, rep,"/", case, "/", "h2-0/", env, "/", 'genos-test
            strat.adjusted = (strat.adjusted - mean(strat.adjusted))/sd(strat.adjusted)
            )%>%
     ungroup() 
+
+  Tvec <- fread(paste0("../output/Calculate_Tm/4PopSplit/", rep, "/", case, "/", "Tvec.txt"))
+  std.tvec <- Tvec$V1
+  
+  Lambda_T <- fread(paste0("../output/Calculate_Tm/4PopSplit/", rep, "/", case, "/", "Lambda_T.txt"))
+  Lambda_T <- as.numeric(Lambda_T$V1)
+  
+  mprs.sum = mprs.adj %>% 
+    summarise(COV_STRAT = (std.tvec %*% strat.adjusted) , COV_RANDOM = (std.tvec %*% random.adjusted), QX_STRAT = ((std.tvec %*% strat.adjusted)^2/Lambda_T), QX_RANDOM = ((std.tvec %*% random.adjusted)^2/Lambda_T), pQX_STRAT = pchisq(QX_STRAT, 1, lower.tail = F), pQX_RANDOM = pchisq(QX_RANDOM, 1, lower.tail = F) )
+
 ```
 
 
@@ -191,5 +209,17 @@ cm1 <- cm
 1 - pchisq(cm1,2)
 ```
 
+```{r}
+pgs <- c(0.02, -0.01, 0.03, -0.02, -0.5)
+pops <- c("CEU", "GBR", "IBS", "TSI", "SDI")
+df <- as.data.frame(cbind(pgs, pops))
+df$pops <- factor(df$pops, levels = c("CEU", "GBR", "IBS", "TSI", "SDI"))
+df$pgs <- as.numeric(as.character(df$pgs))
+
+pl <- ggplot(df, aes(x=pops, y=pgs)) + geom_point(color = "navy", size = 8) + ylim(-0.6, 0.1) + theme_classic() + theme(axis.text.y  = element_blank(), axis.ticks = element_blank(), axis.title.x = element_blank(), axis.title.y = element_text(size = 40), axis.text.x = element_text(size = 30, color = "black")) + ylab("Polygenic score") 
+pl
+
+ggsave("~/Desktop/remake2.png", pl, height = 8, width = 6)
+```
 
 

@@ -3,9 +3,9 @@ CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "
 CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
 REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
-#REP = ["B2"]
+#REP = ["S1"]
 HERITABILITY = ["h2-0"]
-ENV = ["env-0", "env-1", "env-2", "env-3"]
+ENV = ["env-0","env-1", "env-2", "env-3"]
 SIZE=2000
 
 def get_params(x):
@@ -19,10 +19,7 @@ def get_seed(rep, h2):
 
 rule all:
     input:
-        expand("output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.nc.sscore", model=MODEL, rep=REP, config=CONFIG, h2 = HERITABILITY, env = ENV),
-        expand("output/PRS/{model}/{rep}/{config}/{h2}/genos-test_common.true.sscore", model=MODEL, rep=REP, config=CONFIG, h2 = HERITABILITY),
-        expand("output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.nc.sscore", model=MODEL, rep=REP, config=CONFIG, h2 = HERITABILITY, env = ENV),
-	expand("output/Calculate_Tm/{model}/{rep}/{config}/Lambda_T.txt", model=MODEL, rep=REP, config=CONFIG)
+        expand("output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx.txt", model=MODEL, rep=REP, config=CONFIG, h2 = HERITABILITY, env = ENV)
 
 # Simluate Genotypes
 
@@ -554,7 +551,7 @@ rule calc_prs_Tm:
         --score-col-nums 3,4
         """
 
-# Calculate Lambda_T
+# Do polygenic adaptation test
 
 rule calc_lambdaT:
     input:
@@ -567,3 +564,49 @@ rule calc_lambdaT:
         """
 	Rscript code/Calculate_Tm/calc_lambdaT.R {input.vecs} {input.vals} {input.tvec} {output}
 	"""
+
+rule calc_Va:
+    input:
+        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq",
+        c="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.betas",
+        cp="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.p.betas",
+        nc="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.nc.betas"
+    output:
+        "output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va.txt"
+    shell:
+      """
+	    Rscript code/PGA_test/calc_Va.R {input.freq} {input.c} {input.cp} {input.nc} {output}
+	    """
+
+rule calc_Va_Tm:
+    input:
+        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq",
+        c="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.betas",
+        cp="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.p.betas",
+        nc="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.nc.betas"
+    output:
+        "output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va-Tm.txt"
+    shell:
+      """
+	    Rscript code/PGA_test/calc_Va.R {input.freq} {input.c} {input.cp} {input.nc} {output}
+	    """
+
+rule PGA_collate:
+    input:
+        c="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.c.sscore",
+        cp="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.c.p.sscore",
+        nc="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.nc.sscore",
+        c_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.c.sscore",
+        cp_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.c.p.sscore",
+        nc_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.nc.sscore",
+        lambda_T="output/Calculate_Tm/{model}/{rep}/{config}/Lambda_T.txt",
+        Va="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va.txt",
+        Va_Tm="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va-Tm.txt",
+        true="output/PRS/{model}/{rep}/{config}/{h2}/genos-test_common.true.sscore",
+        Tvec="output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt"
+    output:
+        "output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx.txt"
+    shell:
+      """
+	    Rscript code/PGA_test/calc_Qx.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {output}
+	    """

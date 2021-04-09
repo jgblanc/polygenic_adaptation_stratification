@@ -63,7 +63,7 @@ std.Tm <- scale(Tm)
 load_T <- t(X) %*% std.tvec
 load_Tm <-  t(M) %*% std.Tm
 
-plot(load_T)
+plot(load_T, load_Tm)
 ```
 
 

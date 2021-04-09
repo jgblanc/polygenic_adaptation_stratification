@@ -1,6 +1,6 @@
-## This script calculates Tm fromm plink output
+## This script calculates lambda_T
 
-## Requires: .eigenvec, .eigenval, .sscore, Tvec.txt
+## Requires: .eigenvec .eigenval .tvec
 
 args=commandArgs(TRUE)
 
