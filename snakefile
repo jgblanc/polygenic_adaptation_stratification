@@ -4,8 +4,8 @@ CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
 #REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
 REP = ["B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
-HERITABILITY = ["h2-0"]
-ENV = ["env-0","env-1", "env-2", "env-3"]
+HERITABILITY = ["h2-0.8"]
+ENV = ["env-0","env-2"]
 SIZE=2000
 
 def get_params(x):
