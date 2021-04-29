@@ -26,7 +26,6 @@ Va_Tm_file = args[9]
 true_file = args[10] # True genetic value
 tvec_file =args[11]
 out_file = args[12] # outfile prefix
-snps_file=args[13]
 
 # Function to standardize PGS
 stand_PGS <- function(prs_file, gv_file) {
@@ -81,10 +80,6 @@ calc_Qx <- function(mprs, tvec_file, Va, lambda_T, num_snps) {
 # Load Lambda_T
 lambda_T <- fread(lambda_T_file)
 lambda_T <- as.numeric(as.character(lambda_T[1,1]))
-
-#Load number of SNPs
-num_snps <- fread(snps_file)
-num_snps <- as.numeric(as.character(num_snps[1,1]))
 
 # Calculate Qx for standard GWAS
 Va <- as.matrix(fread(Va_file), rownames=1)
