@@ -58,6 +58,18 @@ Tm = K %*% u[,1:(n-1)] %*% diag(1/svd_vals[1:(n-1)]) %*% t(u[,1:(n-1)]) %*% Tvec
 ```
 
 ```{r}
+t <- t(u) %*% u[,1]
+
+plot(t(X) %*% u[,1] %*% (1/d[1]), v[,1])
+
+plot(t(X) %*% u %*% diag(1/d) %*% t(u) %*% u[,1], v[,1])
+
+plot(M %*% v[,1:199] %*% diag(1/d[1:199]) %*% t(u[,1:199]) %*% std.tvec, Tm)
+abline(a = 0, b= 1)
+```
+
+
+```{r}
 std.tvec <- scale(Tvec)
 std.Tm <- scale(Tm)
 load_T <- t(X) %*% std.tvec
@@ -122,7 +134,7 @@ s <- svd(scale(X, scale = F))
 u <- s$u
 d <- s$d
 v <- s$v
-plot(t(sX) %*% u[,1] %*% (1/d[1]), v[,1])
+plot(t(X) %*% u[,1] %*% (1/d[1]), v[,1])
 abline(a=0, b=1)
 
 freq_diff <- (colSums(pop2)/(2*200)) - (colSums(pop1)/(2*200))

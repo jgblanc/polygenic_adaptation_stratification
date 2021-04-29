@@ -327,3 +327,6 @@ Tm_plink <- tst %*% betas[1:99]
 plot(Tvec, -2 * Tm_plink)
 abline(a = 0, b =1 , col = "red")
 ```
+
+
+

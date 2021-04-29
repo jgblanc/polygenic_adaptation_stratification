@@ -3,9 +3,9 @@ CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "
 CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
 #REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
-REP = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10"]
-HERITABILITY = ["h2-0.8"]
-ENV = ["env-0","env-2"]
+REP = ["S1"]
+HERITABILITY = ["h2-0"]
+ENV = ["env-0"]
 SIZE=2000
 
 def get_params(x):
@@ -603,10 +603,12 @@ rule PGA_collate:
         Va="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va.txt",
         Va_Tm="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va-Tm.txt",
         true="output/PRS/{model}/{rep}/{config}/{h2}/genos-test_common.true.sscore",
-        Tvec="output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt"
+        Tvec="output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt",
+        snps="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.pvar"
     output:
         "output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx.txt"
     shell:
       """
-	    Rscript code/PGA_test/calc_Qx.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {output}
+      wc -l {input.snps} > "output/PGA_test/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/num_snp.txt"
+	    Rscript code/PGA_test/calc_Qx.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {output} "output/PGA_test/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/num_snp.txt"
 	    """

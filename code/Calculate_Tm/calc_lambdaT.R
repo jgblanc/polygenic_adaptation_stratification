@@ -26,12 +26,16 @@ vecs <- apply(vecs, 2, as.numeric)
 std.tvec <- fread(tvec_file)
 std.tvec <- std.tvec$V1
 
+n1 <- table(std.tvec)[1]
+n2 <- table(std.tvec)[2]
+Tvec <- c(rep(1,(n1))/(n1), rep(-1,(n2))/(n2)) * (1/2)
+
 # Load Eigenvalues
 vals <- fread(vals_file)
 vals <- vals$V1
 
 # Calculate Lambda T
-lambda_T <- t(std.tvec) %*% vecs %*% diag(vals) %*% t(vecs) %*% std.tvec
+lambda_T <- t(Tvec) %*% vecs %*% diag(vals) %*% t(vecs) %*% Tvec * (0.5)
 
 # Save Lambda T
 fwrite(lambda_T, out_file,row.names=F,quote=F,sep="\t", col.names = T)
