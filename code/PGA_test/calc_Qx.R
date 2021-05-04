@@ -51,7 +51,7 @@ stand_PGS <- function(prs_file, gv_file) {
 }
 
 # Function to calculate Qx
-calc_Qx <- function(mprs, tvec_file, Va, lambda_T, num_snps) {
+calc_Qx <- function(mprs, tvec_file, Va, lambda_T) {
   #num_snps=200
 
   # Load Test vector
@@ -62,11 +62,11 @@ calc_Qx <- function(mprs, tvec_file, Va, lambda_T, num_snps) {
 
   # Compute Qx Random
   Ztest <- t(std.tvec) %*% mprs$random.adjusted
-  Qx_random <- (t(Ztest) %*% Ztest) / (2*Va[1]*lambda_T)
+  Qx_random <- (t(Ztest) %*% Ztest) / (Va[1]*lambda_T)
 
   # Compute Qx Strat
   Ztest <- t(std.tvec) %*% mprs$strat.adjusted
-  Qx_strat <- (t(Ztest) %*% Ztest) / (2*Va[2]*lambda_T)
+  Qx_strat <- (t(Ztest) %*% Ztest) / (Va[2]*lambda_T)
 
   # Calc p-values for chi-square df=1
   p_random <- pchisq(Qx_random, df=1, lower.tail=FALSE)
@@ -86,18 +86,18 @@ Va <- as.matrix(fread(Va_file), rownames=1)
 Qx_mat <- matrix(NA, ncol = 4, nrow = 3)
 colnames(Qx_mat) <- c("Qx_random", "Qx_strat", "p_random", "p_strat")
 row.names(Qx_mat) <- rownames(Va)
-Qx_mat[1,] <- calc_Qx(stand_PGS(c_file, true_file), tvec_file, Va[1,],lambda_T, num_snps)
-Qx_mat[2,] <- calc_Qx(stand_PGS(cp_file, true_file), tvec_file, Va[2,],lambda_T, num_snps)
-Qx_mat[3,] <- calc_Qx(stand_PGS(nc_file, true_file), tvec_file, Va[3,],lambda_T, num_snps)
+Qx_mat[1,] <- calc_Qx(stand_PGS(c_file, true_file), tvec_file, Va[1,],lambda_T)
+Qx_mat[2,] <- calc_Qx(stand_PGS(cp_file, true_file), tvec_file, Va[2,],lambda_T)
+Qx_mat[3,] <- calc_Qx(stand_PGS(nc_file, true_file), tvec_file, Va[3,],lambda_T)
 
 # Calculate Qx for Tm GWAS
 Va <- as.matrix(fread(Va_Tm_file), rownames=1)
 Qx_mat_Tm <- matrix(NA, ncol = 4, nrow = 3)
 colnames(Qx_mat_Tm) <- c("Qx_random", "Qx_strat", "p_random", "p_strat")
 row.names(Qx_mat_Tm) <- c("Tm-c", "Tm-c.p", "Tm-nc")
-Qx_mat_Tm[1,] <- calc_Qx(stand_PGS(c_Tm_file, true_file), tvec_file, Va[1,],lambda_T, num_snps)
-Qx_mat_Tm[2,] <- calc_Qx(stand_PGS(cp_Tm_file, true_file), tvec_file, Va[2,],lambda_T, num_snps)
-Qx_mat_Tm[3,] <- calc_Qx(stand_PGS(nc_Tm_file, true_file), tvec_file, Va[3,],lambda_T, num_snps)
+Qx_mat_Tm[1,] <- calc_Qx(stand_PGS(c_Tm_file, true_file), tvec_file, Va[1,],lambda_T)
+Qx_mat_Tm[2,] <- calc_Qx(stand_PGS(cp_Tm_file, true_file), tvec_file, Va[2,],lambda_T)
+Qx_mat_Tm[3,] <- calc_Qx(stand_PGS(nc_Tm_file, true_file), tvec_file, Va[3,],lambda_T)
 
 # Concat output
 df <- as.data.frame(rbind(Qx_mat, Qx_mat_Tm))

@@ -28,6 +28,8 @@ output/Calculate_Tm/*/*/*/p*
 output/Calculate_Tm/*/*/*/Tm*
 output/PRS/*/*/*/*.log
 output/PRS/*/*/*/*.betas
+output/PRS/*/*/*/*/*/*.betas
+output/PRS/*/*/*/*/*/*.log 
 plink2
 logs/*
 .snakemake/*
