@@ -910,3 +910,110 @@ print(paste0("Qx for non-causal random is ", (t(Ztest.nc_strat) %*% solve(Fmat) 
 
 They match, but why are they so big? Is it just because this is a single chromosome so too much LD? 
 
+
+## Checking large-scale simulation output 
+
+Now that we feel more comfortable with the actual process of calculating $Q_x$, we ran the whole pipeline on full scale data. Let's look at the output. 
+
+First let's look at the situation where stratification shouldn't matter (test populations are sister).
+```{r}
+agg_all_data <- function(rep, dir_path, case, type, h2, env) {
+  
+  Qx <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", env, "/", "Qx.txt"))
+  colnames(Qx) <- c("type", "Qx_random", "Qx_strat", "p_random", "p_strat")
+  Qx$Rep <- rep
+  
+  return(Qx)
+}
+
+reps <- list("B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20" )
+cases <- c("C1", "C2")
+h2 <- c("h2-0", "h2-0.8")
+envs <- c("env-0", "env-2")
+
+dat <- expand.grid(reps, cases, h2, envs)
+colnames(dat) <- c("rep", "case", "h2", "env")
+df <- plyr::mdply(dat, agg_all_data, dir_path = '../output/PGA_test/4PopSplit/' )
+```
+
+$h^2 = 0.8$ , env=0, casual sites
+```{r}
+d1 <- df %>% filter(case == "C2" & h2 == "h2-0.8" & env == "env-0", type == "c")
+hist(d1$p_random)
+mean(d1$Qx_random)
+hist(d1$p_strat)
+mean(d1$Qx_strat)
+```
+
+This all looks well behaved to me given that there are only 20 replicates.
+
+$h^2 = 0.8$ , env=0, non-casual sites
+```{r}
+d2 <- df %>% filter(case == "C2" & h2 == "h2-0.8" & env == "env-0", type == "nc")
+hist(d2$p_random)
+mean(d2$Qx_random)
+hist(d2$p_strat)
+mean(d2$Qx_strat)
+```
+
+Hard to tell with only 20 reps but still looks reasonable-is to me.  
+
+$h^2 = 0.8$ , env=2, casual sites
+```{r}
+d1 <- df %>% filter(case == "C2" & h2 == "h2-0.8" & env == "env-2", type == "c")
+hist(d1$p_random)
+mean(d1$Qx_random)
+hist(d1$p_strat)
+mean(d1$Qx_strat)
+```
+
+$h^2 = 0.8$ , env=2, non-casual sites
+```{r}
+d1 <- df %>% filter(case == "C2" & h2 == "h2-0.8" & env == "env-2", type == "nc")
+hist(d1$p_random)
+mean(d1$Qx_random)
+hist(d1$p_strat)
+mean(d1$Qx_strat)
+```
+
+Its a little suspicious to me that when env=2 the average $Q_x$ is less than the average $Q_x$ for random. Hard to tell how suspicious but I need to go double check the draw phenotype step. 
+
+Conclusion, its hard to tell with so few reps but it just by inspection all the $C2$ reps seem sort of reasonable (at least not something outlandish).  
+
+Now let's look at the case where stratification should matter (i.e the test populations are more diverged).   
+
+$h^2 = 0.8$ , env=0, casual sites
+```{r}
+d1 <- df %>% filter(case == "C1" & h2 == "h2-0.8" & env == "env-0", type == "c")
+hist(d1$p_random)
+mean(d1$Qx_random)
+hist(d1$p_strat)
+mean(d1$Qx_strat)
+```
+
+**Problem!!** Why are they so big???? There is no stratification in the above example, there's no reason either the random or the stratified phenotype should have such a large $Q_x$ value.
+
+$h^2 = 0.8$ , env=2, casual sites
+```{r}
+d1 <- df %>% filter(case == "C1" & h2 == "h2-0.8" & env == "env-2", type == "c")
+hist(d1$p_random)
+mean(d1$Qx_random)
+hist(d1$p_strat)
+mean(d1$Qx_strat)
+```
+
+When there is stratification the $Q_x$ values are larger which we expect but still so big!
+
+What does including $T_m$ do?  
+$h^2 = 0.8$ , env=2, casual sites, include $T_m$
+```{r}
+d1 <- df %>% filter(case == "C1" & h2 == "h2-0.8" & env == "env-2", type == "Tm-c")
+hist(d1$p_random)
+mean(d1$Qx_random)
+hist(d1$p_strat)
+mean(d1$Qx_strat)
+```
+
+Including $T_m$ returns $Q_x$ to a normal range. 
+
+
