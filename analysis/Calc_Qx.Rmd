@@ -7,6 +7,9 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(dplyr)
+Sys.setenv('R_MAX_VSIZE'=32000000000)
 ```
 
 # Notation
@@ -20,7 +23,7 @@ $n_k$ = number of individuals in subpopulation k
 
 As described by Berg and Coop 2014: 
 
-$$Q_x = \frac{\vec{Z}'^TF^{-1}\vec{Z}}{2V_a}$$
+$$Q_x = \frac{\vec{Z_{pop}}'^TF_{pop}^{-1}\vec{Z_{pop}'}}{2V_a}$$
 
 To compute F:
 
@@ -109,9 +112,9 @@ mean(vecQx)
 hist(pvals)
 ```
 
-## Population Qx using individual information
+## Population Qx using individual information 
 
-Exact same procedure as above but first generate individuals and re-estimate allele frequencies from genotype matrix  
+Exact same procedure as above but first generate individuals and re-estimate allele frequencies from genotype matrix. (Just to make sure I can make genotype matrices)  
 
 ```{r}
 make_genotype_matrix <- function(p, n, L) {
@@ -155,28 +158,23 @@ calc_Qx1 <- function(ms, k, n, L, L_gwas) {
   i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
   
   # Neutral Gentotype Matrix 
-  G <- rbind(i1N, i2N)/2
-  if (length(which(colSums(G) == 0)) > 0 | length(which(colSums(G) == nrow(G))) > 0 ){
-    if (length(which(colSums(G) == 0)) > 0) { G <- G[, -which(colSums(G) == 0)]}
-    if (length(which(colSums(G) == nrow(G))) > 0) {G <- G[, -which(colSums(G) == nrow(G))]}
+  X <- rbind(i1N, i2N)
+  if (length(which(colSums(X) == 0)) > 0 | length(which(colSums(X) == nrow(X))) > 0 ){
+    if (length(which(colSums(X) == 0)) > 0) { X <- X[, -which(colSums(X) == 0)]}
+    if (length(which(colSums(X) == nrow(X))) > 0) {X <- X[, -which(colSums(X) == nrow(X))]}
   }
-  G_ns <- G
-  G <- scale(G, scale = F)
   
-  # GWAS Gentotype Matrix 
-  G_gwas <- rbind(i1GWAS, i2GWAS)/2
-  if (length(which(colSums(G_gwas) == 0)) > 0 | length(which(colSums(G_gwas) == nrow(G_gwas))) > 0 ){
-    if (length(which(colSums(G_gwas) == 0)) > 0) { G_gwas <- G_gwas[, -which(colSums(G_gwas) == 0)]}
-    if (length(which(colSums(G_gwas) == nrow(G_gwas))) > 0) {G_gwas <- G_gwas[, -which(colSums(G_gwas) == nrow(G_gwas))]}
+  # GWAS Xentotype Matrix 
+  X_gwas <- rbind(i1GWAS, i2GWAS)
+  if (length(which(colSums(X_gwas) == 0)) > 0 | length(which(colSums(X_gwas) == nrow(X_gwas))) > 0 ){
+    if (length(which(colSums(X_gwas) == 0)) > 0) { X_gwas <- X_gwas[, -which(colSums(X_gwas) == 0)]}
+    if (length(which(colSums(X_gwas) == nrow(X_gwas))) > 0) {X_gwas <- X_gwas[, -which(colSums(X_gwas) == nrow(X_gwas))]}
   }
-  G_gwas_ns <- G_gwas
-  G_gwas <- scale(G_gwas, scale = F)
-  
-  # Calc allele frequencies  
-  p1GWAS <- colMeans(G_gwas_ns[1:(n/2), ])
-  p2GWAS <- colMeans(G_gwas_ns[(n/2):n, ])
-  p1N <- colMeans(G_ns[1:(n/2), ])
-  p2N <- colMeans(G_ns[(n/2):n, ])
+
+  p1GWAS <- colMeans(X_gwas[1:(n/2), ])/2
+  p2GWAS <- colMeans(X_gwas[((n/2)+1):n, ])/2
+  p1N <- colMeans(X[1:(n/2), ])/2
+  p2N <- colMeans(X[((n/2)+1):n, ])/2
   
    # Compute mean PGS 
   Z1 <- 2 * sum(p1GWAS)
@@ -207,10 +205,10 @@ calc_Qx1 <- function(ms, k, n, L, L_gwas) {
 
 Neutral 
 ```{r}
-vecQx <- matrix(rep(0, 10000))
-pvals <- rep(0, 10000)
-for(i in 1:10000) {
-  vecQx[i] <- calc_Qx1(0, 2, 100, 100, 500)
+vecQx <- matrix(rep(0, 1000))
+pvals <- rep(0, 1000)
+for(i in 1:1000) {
+  vecQx[i] <- calc_Qx1(0, 2, 100, 100, 100)
   pvals[i] <- pchisq(vecQx[i], 1, lower.tail = F)
 }
 
@@ -218,79 +216,33 @@ mean(vecQx)
 hist(pvals)
 ```
 
-
-## Population Qx using individual information
-
-According to Josephs et al 2019:
-
-$$Q_x = \frac{Z_{pop}^T K_{pop}^{-1}Z_{pop}}{2Va}$$
-
-
-Where, 
-
-$$K_{pop} = H^TKH$$ 
-
-and, 
-
-$$K = cov(\frac{TG}{\sqrt{\bar{p}(1-\bar{p})}})$$
-
-The eigen vectors of $K$ are the same as doing svd of the mean centered genotype matrix.  
-
-Doing math for the two population case we can figure out that, 
-
-$$K_{pop} = \frac{1}{\sqrt{\overline{p(1-p)}}} \frac{1}{n_1^2} \sum_{i=1}^{n_k}  \sum_{j=1}^{n_k} \sum_{l=1}^L (X_{il} - 2\bar{p_l})(X_{jl} -2\bar{p_l})$$
-
-
+Selection 
 ```{r}
-make_genotype_matrix <- function(p, n, L) {
-  G <- matrix(NA, nrow = n, ncol = L)
-  for (i in 1:length(p)) {
-    G[,i] <- rbinom(n,2,p[i])
-  }
-  return(G)
+vecQx <- matrix(rep(0, 1000))
+pvals <- rep(0, 1000)
+for(i in 1:1000) {
+  vecQx[i] <- calc_Qx1(0.005, 2, 100, 100, 100)
+  pvals[i] <- pchisq(vecQx[i], 1, lower.tail = F)
 }
-G <- make_genotype_matrix(rbeta(1000, 1, 3), 100, 1000)
 
-# Compute K 
-mean_het <- mean((colMeans(G)/2) * (1 - (colMeans(G)/2)))
-Tmat <- matrix(-1/100, nrow = 100-1, ncol = 100)
-diag(Tmat) <- (100-1)/100
-K = (1/sqrt(mean_het)) * ((Tmat %*% G) %*% t((Tmat %*% G)))
-
-# Compute Kpop
-H <- matrix(0, nrow = (100-1), ncol = 1)
-H[1:(100/2), 1] <- 1/(100/2)
-Kpop <-(t(H) %*% K %*% H)
-
-# Check that the eigen vectors of K are the same as eigen vectors from SVD of G
-SVD_c <- svd(scale(G, scale=F)[1:99,])
-u_svd <- SVD_c$u
-myE <- eigen(K) 
-u_E <- myE$vectors
-
-# Check alternate definition of Kpop - not quite the same? 
-v <- c()
-for (i in 1:50){
-  for (j in 1:50) {
-    v <- c(v, sum((G[i,] - colMeans(G)) * ((G[j,] - colMeans(G))))) 
-  }
-}
-Kpop2 <- (1/sqrt(het)) * (1/(50^2))* sum(v) 
+mean(vecQx)
+hist(pvals)
 ```
 
+## Qx for two populations using a Test Vector 
+
+Now we want to do that exact same test as above but instead of estimating population allele frequencies directly from the genotype matrix we want to reformulate the $Q_x$ statistic to detect selection along a specific test vector. In this case the test vect just indicated population membership. See handwritten notes to see the derivation of $Q_{x,test}$:
+
+$$Q_{x,test} = \frac{\vec{Z}_{test}^2}{V_aF_{test}}$$
+
+Here note that:  
+
+$$F_{test} = \frac{1}{L-1}T_{vec}XHX^TT_{vec}^T$$
 
 ```{r}
-make_genotype_matrix <- function(p, n, L) {
-  G <- matrix(NA, nrow = n, ncol = L)
-  for (i in 1:length(p)) {
-    G[,i] <- rbinom(n,2,p[i])
-  }
-  return(G)
-}
-
 calc_Qx2 <- function(ms, k, n, L, L_gwas) {
   
- # Draw alleles from Beta
+  # Draw alleles from Beta
   p_start <- rbeta(L, 1,3)
   p_start_gwas <- rbeta(L_gwas, 1,3)
   
@@ -321,73 +273,640 @@ calc_Qx2 <- function(ms, k, n, L, L_gwas) {
   i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
   
   # Neutral Gentotype Matrix 
-  G <- rbind(i1N, i2N)/2
-  if (length(which(colSums(G) == 0)) > 0 | length(which(colSums(G) == nrow(G))) > 0 ){
-    if (length(which(colSums(G) == 0)) > 0) { G <- G[, -which(colSums(G) == 0)]}
-    if (length(which(colSums(G) == (2*nrow(G)))) > 0) {G <- G[, -which(colSums(G) == nrow(G))]}
+  X <- rbind(i1N, i2N)
+  if (length(which(colSums(X) == 0)) > 0 | length(which(colSums(X) == nrow(X))) > 0 ){
+    if (length(which(colSums(X) == 0)) > 0) { X <- X[, -which(colSums(X) == 0)]}
+    if (length(which(colSums(X) == nrow(X))) > 0) {X <- X[, -which(colSums(X) == nrow(X))]}
   }
-  G_ns <- G
-  G <- scale(G, scale = F)
   
-  # GWAS Gentotype Matrix 
-  G_gwas <- rbind(i1GWAS, i2GWAS)/2
-  if (length(which(colSums(G_gwas) == 0)) > 0 | length(which(colSums(G_gwas) == nrow(G_gwas))) > 0 ){
-    if (length(which(colSums(G_gwas) == 0)) > 0) { G_gwas <- G_gwas[, -which(colSums(G_gwas) == 0)]}
-    if (length(which(colSums(G_gwas) == (nrow(G_gwas)*2))) > 0) {G_gwas <- G_gwas[, -which(colSums(G_gwas) == nrow(G_gwas))]}
+  # GWAS Xentotype Matrix 
+  X_gwas <- rbind(i1GWAS, i2GWAS)
+  if (length(which(colSums(X_gwas) == 0)) > 0 | length(which(colSums(X_gwas) == nrow(X_gwas))) > 0 ){
+    if (length(which(colSums(X_gwas) == 0)) > 0) { X_gwas <- X_gwas[, -which(colSums(X_gwas) == 0)]}
+    if (length(which(colSums(X_gwas) == nrow(X_gwas))) > 0) {X_gwas <- X_gwas[, -which(colSums(X_gwas) == nrow(X_gwas))]}
   }
-  G_gwas_ns <- G_gwas
-  G_gwas <- scale(G_gwas, scale = F)
+
+  # Compute Individual PGS 
+  Z <- rowSums(X_gwas)
   
-  # Compute individual PGS, mean center and drop last value
-  Z <- c(rowSums(G_gwas_ns))
-  Zp <- scale(Z, scale = F)[1:(n-1)]
+  # Make test vector and compute Ztest
+  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Ztest <- Z %*% Tvec 
   
-  # Mean centering matrix 
-  Tmat <- matrix(-1/n, nrow = n-1, ncol = n)
-  diag(Tmat) <- (n-1)/n
-  
-  # Compute K
-  het <- mean((colMeans(G_ns) * (1 - colMeans(G_ns))))
-  TG <- Tmat %*% (G_ns)
-  TG_s <- (1/sqrt(het)) *  (TG)
-  K <- TG_s %*% t(TG_s)
-  #K <- (1/(ncol(G)-1)) * G[1:99,] %*% t(G[1:99,])
-  
-  #S <- matrix(0, ncol(G), ncol(G))
-  #diag(S) <- (colMeans(G_ns) * (1 - colMeans(G_ns)))
-  #K <- (1/(ncol(G)-1)) * Tmat %*% (G_ns) %*% S %*% t(G_ns) %*% t(Tmat)
-  
-  # Compute Kpop
-  H <- matrix(0, nrow = (n-1), ncol = 1)
-  H[1:(n/2), 1] <- 1/(n/2)
-  Kpop <-(t(H) %*% K %*% H)
-  
-  #v <- c()
-  #for (i in 1:50){
-  #  for (j in 1:50) {
-  #    v <- c(v, sum((G_ns[i,] - colMeans(G_ns)) * (G_ns[j,] - colMeans(G_ns)))) 
-  #  }
-  #}
-  #Kpop2 <- (1/het) * (1/(50^2))* sum(v) 
-  
-  # Compute Zpop
-  Zpop <- t(H) %*% Zp
+  # Compute Ftest matrix 
+  H <- matrix(0, ncol(X),ncol(X))
+  diag(H) <- 1 / (2 * colMeans(X/2) * (1 - colMeans(X/2)))
+  Fmat <- (1/(ncol(X)-1)) * (Tvec %*% X %*% H %*% t(X) %*% Tvec)
   
   # Compute Va 
-  Va <- sum(2* ((colMeans(G_gwas_ns)) * (1 - (colMeans(G_gwas_ns)))))
+  Va <- 2*sum((colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
   
   # Compute Qx
-  Qx <- (t(Zpop) %*% solve(Kpop) %*% Zpop) / (2*Va)
+  Qx <- (t(Ztest) %*% solve(Fmat) %*% Ztest) / (Va)
   return(Qx[1,1])
 }
+```
 
-vecQx <- matrix(rep(0, 500))
-pvals <- rep(0, 500)
-for(i in 1:500) {
+Neutral 
+```{r}
+vecQx <- matrix(rep(0, 1000))
+pvals <- rep(0, 1000)
+for(i in 1:1000) {
   vecQx[i] <- calc_Qx2(0, 2, 100, 100, 100)
-  pvals[i] <- pchisq(vecQx[i],1, lower.tail = F)
+  pvals[i] <- pchisq(vecQx[i], 1, lower.tail = F)
 }
 
 mean(vecQx)
 hist(pvals)
 ```
+
+Selection 
+```{r}
+vecQx <- matrix(rep(0, 1000))
+pvals <- rep(0, 1000)
+for(i in 1:1000) {
+  vecQx[i] <- calc_Qx2(0.005, 2, 100, 100, 100)
+  pvals[i] <- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)
+hist(pvals)
+```
+
+
+## Qx for two populations using a Test Vector by calculating GRM 
+
+Same as the example above except when computing $F_{test}$, first mean center the genotype matrix. I am doing this so $TXHX^TT^T$ is the definiation of the GRM used GCTA/Plink. Each entry of the GRM is: 
+
+$$K_{ij} = \sum\limits_{l=1}^L \frac{(x_{i,l} - 2f_l)(x_{j,l} -f_l)}{2f_l (1-f_l)}$$
+
+$F_{test}$ is the same (mean centering X does not change anything), we are just including the mean centering to match plink:  
+
+$$F_{test} = \frac{1}{L-1}T_{vec}TXHX^TT^TT_{vec}^T$$
+
+
+```{r}
+calc_Qx3 <- function(ms, k, n, L, L_gwas) {
+  
+  # Draw alleles from Beta
+  p_start <- rbeta(L, 1,3)
+  p_start_gwas <- rbeta(L_gwas, 1,3)
+  
+  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
+  p1GWAS <- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2GWAS <- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
+  rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
+  if (length(rm) > 0) {
+    p1GWAS <- p1GWAS[-rm]
+    p2GWAS <- p2GWAS[-rm]    
+  }
+  
+  # Evolve neautral alleles vias drift
+  p1N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
+  if (length(rm) > 0) {
+    p1N <- p1N[-rm]
+    p2N <- p2N[-rm]
+  }
+  
+  # Make Genotype matrix for GWAS alleles by drawing from population 
+  i1GWAS <- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
+  i2GWAS <- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
+  
+  # Make Genotype matrix for neautral alleles by drawing from population 
+  i1N <- make_genotype_matrix(p1N, n/2, length(p1N))
+  i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
+  
+  # Neutral Gentotype Matrix 
+  X <- rbind(i1N, i2N)
+  if (length(which(colSums(X) == 0)) > 0 | length(which(colSums(X) == nrow(X))) > 0 ){
+    if (length(which(colSums(X) == 0)) > 0) { X <- X[, -which(colSums(X) == 0)]}
+    if (length(which(colSums(X) == nrow(X))) > 0) {X <- X[, -which(colSums(X) == nrow(X))]}
+  }
+  
+  # GWAS Xentotype Matrix 
+  X_gwas <- rbind(i1GWAS, i2GWAS)
+  if (length(which(colSums(X_gwas) == 0)) > 0 | length(which(colSums(X_gwas) == nrow(X_gwas))) > 0 ){
+    if (length(which(colSums(X_gwas) == 0)) > 0) { X_gwas <- X_gwas[, -which(colSums(X_gwas) == 0)]}
+    if (length(which(colSums(X_gwas) == nrow(X_gwas))) > 0) {X_gwas <- X_gwas[, -which(colSums(X_gwas) == nrow(X_gwas))]}
+  }
+
+  # Compute Individual PGS 
+  Z <- rowSums(X_gwas)
+  
+  # Make test vector and compute Ztest
+  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Ztest <- Z %*% Tvec 
+  
+  # Compute Ftest matrix 
+  H <- matrix(0, ncol(X),ncol(X))
+  diag(H) <- 1 / (2 * colMeans(X/2) * (1 - colMeans(X/2)))
+  Tmat <- matrix(-1/n, ncol = n, nrow = n)
+  diag(Tmat) <- (n-1)/n
+  cov_mat <- (1/(ncol(X)-1)) * Tmat %*% X %*% H %*% t(X) %*% t(Tmat) 
+  Fmat <-  (Tvec %*% cov_mat %*% Tvec)
+  
+  # Compute Va 
+  Va <- 2*sum((colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+  
+  # Compute Qx
+  Qx <- (t(Ztest) %*% solve(Fmat) %*% Ztest) / (Va)
+  return(Qx[1,1])
+}
+```
+
+Neutral 
+```{r}
+vecQx <- matrix(rep(0, 100))
+pvals <- rep(0, 100)
+for(i in 1:100) {
+  out <- calc_Qx3(0, 2, 100, 1000, 100)
+  vecQx[i] <- out[[1]]
+  pvals[i] <- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)
+hist(pvals)
+```
+
+Selection
+```{r}
+vecQx <- matrix(rep(0, 100))
+pvals <- rep(0, 100)
+for(i in 1:100) {
+  out <- calc_Qx3(0.005, 2, 100, 100, 100)
+  vecQx[i] <- out[[1]]
+  pvals[i] <- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)
+hist(pvals)
+```
+
+## Qx for two populations using a Test Vector by calculating GRM and then remaking it via Eigen decompostion
+
+Since we don't want to do this large matrix multiplication $$TXHX^TT^T$$ we can rewrite $F_{test}$ as 
+
+$$F_{test} = \frac{1}{L-1}T_{vec}U\Delta UT_{vec}^T$$
+
+Here $U$ and $\Delta$ are the eigenvectors and eigenvalues from doing eigen decomposition on the GRM. In the simulation below we make the GRM, do eigen decomposition and then remake it.   
+
+```{r}
+calc_Qx4 <- function(ms, k, n, L, L_gwas) {
+  
+  # Draw alleles from Beta
+  p_start <- rbeta(L, 1,3)
+  p_start_gwas <- rbeta(L_gwas, 1,3)
+  
+  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
+  p1GWAS <- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2GWAS <- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
+  rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
+  if (length(rm) > 0) {
+    p1GWAS <- p1GWAS[-rm]
+    p2GWAS <- p2GWAS[-rm]    
+  }
+  
+  # Evolve neautral alleles vias drift
+  p1N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
+  if (length(rm) > 0) {
+    p1N <- p1N[-rm]
+    p2N <- p2N[-rm]
+  }
+  
+  # Make Genotype matrix for GWAS alleles by drawing from population 
+  i1GWAS <- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
+  i2GWAS <- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
+  
+  # Make Genotype matrix for neautral alleles by drawing from population 
+  i1N <- make_genotype_matrix(p1N, n/2, length(p1N))
+  i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
+  
+  # Neutral Gentotype Matrix 
+  X <- rbind(i1N, i2N)
+  if (length(which(colSums(X) == 0)) > 0 | length(which(colSums(X) == nrow(X))) > 0 ){
+    if (length(which(colSums(X) == 0)) > 0) { X <- X[, -which(colSums(X) == 0)]}
+    if (length(which(colSums(X) == nrow(X))) > 0) {X <- X[, -which(colSums(X) == nrow(X))]}
+  }
+  
+  # GWAS Xentotype Matrix 
+  X_gwas <- rbind(i1GWAS, i2GWAS)
+  if (length(which(colSums(X_gwas) == 0)) > 0 | length(which(colSums(X_gwas) == nrow(X_gwas))) > 0 ){
+    if (length(which(colSums(X_gwas) == 0)) > 0) { X_gwas <- X_gwas[, -which(colSums(X_gwas) == 0)]}
+    if (length(which(colSums(X_gwas) == nrow(X_gwas))) > 0) {X_gwas <- X_gwas[, -which(colSums(X_gwas) == nrow(X_gwas))]}
+  }
+
+  # Compute Individual PGS 
+  Z <- rowSums(X_gwas)
+  
+  # Make test vector and compute Ztest
+  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Ztest <- Z %*% Tvec 
+  
+  # Compute GRM  
+  het <- 1 / (2 * colMeans(X/2) * (1 - colMeans(X/2)))
+  Tmat <- matrix(-1/n, ncol = n, nrow = n)
+  diag(Tmat) <- (n-1)/n
+  cov_mat <- (1/(ncol(X)-1)) * Tmat %*% t(t(X) * het) %*% t(X) %*% t(Tmat) 
+  
+  # Do Eigen decomposition and calculate Ftest
+  myE <- eigen(cov_mat)
+  K <- myE$vectors %*% diag(myE$values) %*% t(myE$vectors)
+  Fmat <-  (Tvec %*% K %*% Tvec)
+  
+  # Compute Va 
+  Va <- 2*sum((colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+  
+  # Compute Qx
+  Qx <- (t(Ztest) %*% solve(Fmat) %*% Ztest) / (Va)
+  return(Qx[1,1])
+}
+```
+
+Neutral 
+```{r}
+vecQx <- matrix(rep(0, 500))
+pvals <- rep(0, 500)
+for(i in 1:500) {
+  out <- calc_Qx4(0, 2, 100, 100, 100)
+  vecQx[i] <- out[[1]]
+  pvals[i] <- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)
+hist(pvals)
+```
+
+Selection  
+```{r}
+vecQx <- matrix(rep(0, 100))
+pvals <- rep(0, 100)
+for(i in 1:100) {
+  out <- calc_Qx4(0.005, 2, 100, 100, 100)
+  vecQx[i] <- out[[1]]
+  pvals[i] <- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)
+hist(pvals)
+```
+
+## Adding simulated Effect sizes 
+
+The only thing that changes here is that were are going to draw $\hat{B}$'s randomly and then include them in our calculation of $\vec{Z}$ and $V_a$.   
+
+```{r}
+calc_Qx5 <- function(ms, k, n, L, L_gwas) {
+  
+  # Draw alleles from Beta
+  p_start <- rbeta(L, 1,3)
+  p_start_gwas <- rbeta(L_gwas, 1,3)
+  
+  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
+  p1GWAS <- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2GWAS <- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
+  rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
+  if (length(rm) > 0) {
+    p1GWAS <- p1GWAS[-rm]
+    p2GWAS <- p2GWAS[-rm]    
+  }
+  
+  # Evolve neautral alleles vias drift
+  p1N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
+  if (length(rm) > 0) {
+    p1N <- p1N[-rm]
+    p2N <- p2N[-rm]
+  }
+  
+  # Make Genotype matrix for GWAS alleles by drawing from population 
+  i1GWAS <- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
+  i2GWAS <- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
+  
+  # Make Genotype matrix for neautral alleles by drawing from population 
+  i1N <- make_genotype_matrix(p1N, n/2, length(p1N))
+  i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
+  
+  # Neutral Gentotype Matrix 
+  X <- rbind(i1N, i2N)
+  if (length(which(colSums(X) == 0)) > 0 | length(which(colSums(X) == nrow(X))) > 0 ){
+    if (length(which(colSums(X) == 0)) > 0) { X <- X[, -which(colSums(X) == 0)]}
+    if (length(which(colSums(X) == nrow(X))) > 0) {X <- X[, -which(colSums(X) == nrow(X))]}
+  }
+  
+  # GWAS Xentotype Matrix 
+  X_gwas <- rbind(i1GWAS, i2GWAS)
+  if (length(which(colSums(X_gwas) == 0)) > 0 | length(which(colSums(X_gwas) == nrow(X_gwas))) > 0 ){
+    if (length(which(colSums(X_gwas) == 0)) > 0) { X_gwas <- X_gwas[, -which(colSums(X_gwas) == 0)]}
+    if (length(which(colSums(X_gwas) == nrow(X_gwas))) > 0) {X_gwas <- X_gwas[, -which(colSums(X_gwas) == nrow(X_gwas))]}
+  }
+  
+  # Simulate Beta Hats
+  Bhat <- rnorm(ncol(X_gwas), 0,1)
+
+  # Compute Individual PGS 
+  Z <- rowSums(X_gwas %*% diag(Bhat))
+  
+  # Make test vector and compute Ztest
+  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Ztest <- Z %*% Tvec 
+  
+  # Compute GRM  
+  H <- matrix(0, ncol(X),ncol(X))
+  diag(H) <- 1 / (2 * colMeans(X/2) * (1 - colMeans(X/2)))
+  Tmat <- matrix(-1/n, ncol = n, nrow = n)
+  diag(Tmat) <- (n-1)/n
+  cov_mat <- (1/(ncol(X)-1)) * Tmat %*% X %*% H %*% t(X) %*% t(Tmat) 
+  
+  # Do Eigen decomposition and calculate Ftest
+  myE <- eigen(cov_mat)
+  K <- myE$vectors %*% diag(myE$values) %*% t(myE$vectors)
+  Fmat <-  (Tvec %*% K %*% Tvec)
+  
+  # Compute Va 
+  Va <- 2*sum(Bhat^2 * (colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+  
+  # Compute Qx
+  Qx <- (t(Ztest) %*% solve(Fmat) %*% Ztest) / (Va)
+  return(Qx[1,1])
+}
+```
+
+Neutral 
+```{r}
+vecQx <- matrix(rep(0, 500))
+pvals <- rep(0, 500)
+for(i in 1:500) {
+  out <- calc_Qx5(0, 2, 100, 100, 100)
+  vecQx[i] <- out[[1]]
+  pvals[i] <- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)
+hist(pvals)
+```
+
+Selection  
+```{r}
+vecQx <- matrix(rep(0, 100))
+pvals <- rep(0, 100)
+for(i in 1:100) {
+  out <- calc_Qx4(0.005, 2, 100, 100, 100)
+  vecQx[i] <- out[[1]]
+  pvals[i] <- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)
+hist(pvals)
+```
+
+
+## Looking at Real Simulated Data 
+
+So far we have checked that we were doing things correctly by running the simulations many times and looking at the distribution of the output. Its going to be too hard to run 10,000 evolutionary simulations so I am going to do one small evolutionary replicate using only 1 chromozome using my snakemake pipeline and then check each part of the $Q_x$ calculation ($Va$, $F$, $Z_{test}$), comparing the code above to make sure each part matches.  
+
+### Check F
+
+Read in Genotype matrix 
+```{r}
+library(pgenlibr)
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/E1/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/E1/C1/genos-test_common.pgen")
+X <- ReadList(d1,seq(1,48607), meanimpute=F)
+```
+
+Calculate $F_{test} = \frac{1}{L-1}T_{vec}TXHX^TT^TT_{vec}^T$
+```{r}
+# Read in and format Test Vector 
+Tvec <- fread("../output/Calculate_Tm/4PopSplit/E1/C1/Tvec.txt")
+Tvec <- Tvec$V1
+n1 <- table(Tvec)[1]
+n2 <- table(Tvec)[2]
+Tvec <- c(rep(1,(n1))/(n1), rep(-1,(n2))/(n2)) * (1/2)
+
+# Compute GRM  
+n <- nrow(X)
+het <- 1 / (2 * colMeans(X/2) * (1 - colMeans(X/2)))
+Tmat <- matrix(-1/n, ncol = n, nrow = n)
+diag(Tmat) <- (n-1)/n
+cov_mat <- (1/(ncol(X)-1)) * Tmat %*% t(t(X) * het) %*% t(X) %*% t(Tmat) 
+
+# Calculate F 
+Fmat <-  (Tvec %*% cov_mat %*% Tvec)
+print(paste0("F is ", Fmat))
+```
+
+Calculate $F_{test} = \frac{1}{L-1}T_{vec}U\Delta UT_{vec}^T$ doing eigen decomposition in R
+```{r}
+myE <- eigen(cov_mat)
+K <- myE$vectors %*% diag(myE$values) %*% t(myE$vectors)
+Fmat <-  (Tvec %*% K %*% Tvec)
+print(paste0("F is ", Fmat))
+```
+
+Now calculate $F_t{test}$ using the eigenvectors/values as computed by plink. 
+```{r}
+plink_vecs <- fread("../output/Calculate_Tm/4PopSplit/E1/C1/pca.eigenvec")[,3:201]
+plink_vecs <- apply(plink_vecs, 2, as.numeric)
+plink_vals <- fread("../output/Calculate_Tm/4PopSplit/E1/C1/pca.eigenval")
+plink_vals <- as.numeric(plink_vals$V1)
+
+K <- plink_vecs %*% diag(plink_vals) %*% t(plink_vecs)
+Fmat <-  (Tvec %*% K %*% Tvec)
+print(paste0("F is ", Fmat))
+```
+
+Finally let's check the output of the snakemake pipeline to make sure it matches 
+```{r}
+lambdaT <- fread("../output/Calculate_Tm/4PopSplit/E1/C1/Lambda_T.txt")
+print(paste0("F is ", lambdaT$V1))
+```
+
+Yay!!
+
+### Check Z
+
+Now we need to chech that $Z_{test}$ matches the output of the snakemake pipeline. We will do this for 2 sets of the effect sizes, the "causal" effect sizes (this trait has $h^2 = 0$ so the sites aren't  causal just randomly picked to include in the PGS) and the clumped sites. 
+
+Function to read in PGS and substract true genetic values   
+```{r}
+stand_PGS <- function(prs_file, gv_file) {
+
+  # Load PRS
+  prs <- fread(prs_file)
+  colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
+
+  # Load True GV
+  gvalue <- fread(gv_file)
+  colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
+
+  # Join dataframes by IID
+  df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
+
+  # Standardize
+  mprs.adj = df%>%
+    mutate(random.adjusted = RANDOM-GV,
+           strat.adjusted = STRAT-GV) %>%
+    ungroup() %>% select("random.adjusted", "strat.adjusted")
+
+  return(mprs.adj)
+}
+
+pgs.c <- stand_PGS("../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-test_common.c.sscore", "../output/PRS/4PopSplit/E1/C1/h2-0/genos-test_common.true.sscore")
+pgs.nc <- stand_PGS("../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-test_common.nc.sscore", "../output/PRS/4PopSplit/E1/C1/h2-0/genos-test_common.true.sscore")
+```
+
+Calculate $Z_{test}$ as done in pipeline
+```{r}
+# Load Test vector
+Tvec <- fread("../output/Calculate_Tm/4PopSplit/E1/C1/Tvec.txt")
+n1 <- table(Tvec)[1]
+n2 <- table(Tvec)[2]
+Tvec <- c(rep(1,(n1))/(n1), rep(-1,(n2))/(n2)) * (1/2)
+
+# Compute Ztest for causal
+Ztest.c_random <- t(Tvec) %*% pgs.c$random.adjusted
+Ztest.c_strat <- t(Tvec) %*% pgs.c$strat.adjusted
+
+# Compute Ztest for non causal
+Ztest.nc_random <- t(Tvec) %*% pgs.nc$random.adjusted
+Ztest.nc_strat <- t(Tvec) %*% pgs.nc$strat.adjusted # Its strange that this is larger than random given that there is no stratification?? Come back and check 
+
+print(paste0("Ztest for causal random is ", Ztest.c_random))
+print(paste0("Ztest for causal strat is ", Ztest.c_strat))
+print(paste0("Ztest for non-causal random is ", Ztest.nc_random))
+print(paste0("Ztest for non-causal random is ", Ztest.nc_strat))
+```
+
+These are the values of $Z_{test}$ as calculated via the pipeline. Now we need to calculate it by hand using the code that we know works, starting with the genotype and estimated effect sizes. 
+
+```{r}
+# Name columns of genotype matrix as variant IDs 
+IDs <- fread("../output/Simulate_Genotypes/4PopSplit/E1/C1/genos-gwas_common.afreq")
+colnames(X) <- IDs$ID
+
+# Subset X to include only GWAS sites 
+c_betas <- fread("../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.c.betas")
+X_gwas <- X[, c_betas$ID]
+
+# Use estimated effect sizes
+Bhat <- c_betas$BETA_Random
+
+# Compute Individual PGS 
+Z <- rowSums(X_gwas %*% diag(Bhat))
+  
+# Compute Ztest
+Ztest.c_random <- Z %*% Tvec 
+
+print(paste0("Ztest for causal random is ", Ztest.c_random))
+```
+
+Repeat for other types of PGS 
+```{r}
+# Causal Strat
+Bhat <- c_betas$BETA_Strat
+Z <- rowSums(X_gwas %*% diag(Bhat))
+Ztest.c_strat <- Z %*% Tvec 
+print(paste0("Ztest for causal strat is ", Ztest.c_strat))
+
+# Non-causal Random 
+nc_betas <- fread("../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.nc.betas")
+X_gwas <- X[,nc_betas$V1]
+Bhat <- nc_betas$V3
+Z <- rowSums(X_gwas %*% diag(Bhat))
+Ztest.nc_random <- Z %*% Tvec 
+print(paste0("Ztest for non-causal random is ", Ztest.nc_random))
+
+# Non-causal Strat 
+Bhat <- nc_betas$V4
+Z <- rowSums(X_gwas %*% diag(Bhat))
+Ztest.nc_strat <- Z %*% Tvec 
+print(paste0("Ztest for non-causal strat is ", Ztest.nc_strat))
+```
+
+Yay, they match! 
+
+### Check Va 
+
+Now let's check that our estimates of $V_a$ match the output of the pipeline. 
+
+Here are the $V_a$ estimates as output by the pipeline
+```{r}
+Va <- fread("../output/PGA_test/4PopSplit/E1/C1/h2-0/env-0/Va.txt")
+
+print(paste0("Va for causal random is ", Va[1,2]))
+print(paste0("Va for causal strat is ", Va[1,3]))
+print(paste0("Va for non-causal random is ", Va[3,2]))
+print(paste0("Va for non-causal random is ", Va[3,3]))
+```
+
+Now let's check the answers doing it by hand
+```{r}
+# Subset X to include only GWAS sites 
+c_betas <- fread("../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.c.betas")
+X_gwas <- X[, c_betas$ID]
+
+# Use estimated effect sizes
+Bhat <- c_betas$BETA_Random
+
+Va.c_random <- 2*sum(Bhat^2 * (colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+print(paste0("Va for causal random is ", Va.c_random))
+```
+
+```{r}
+# Causal strat 
+c_betas <- fread("../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.c.betas")
+X_gwas <- X[, c_betas$ID]
+Bhat <- c_betas$BETA_Strat
+Va.c_strat <- 2*sum(Bhat^2 * (colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+print(paste0("Va for causal strat is ", Va.c_strat))
+
+# Non-causal random 
+nc_betas <- fread("../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.nc.betas")
+X_gwas <- X[, nc_betas$V1]
+Bhat <- nc_betas$V3
+Va.nc_random <- 2*sum(Bhat^2 * (colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+print(paste0("Va for non-causal random is ", Va.nc_random))
+
+# Non-causal strat 
+nc_betas <- fread("../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.nc.betas")
+X_gwas <- X[, nc_betas$V1]
+Bhat <- nc_betas$V4
+Va.nc_strat <- 2*sum(Bhat^2 * (colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+print(paste0("Va for non-causal strat is ", Va.nc_strat))
+```
+
+They match! 
+
+### Check Qx
+
+Finally, let's check the final $Q_x$ statistic! 
+
+As output by the pipeline 
+```{r}
+Qx <- fread("../output/PGA_test/4PopSplit/E1/C1/h2-0/env-0/Qx.txt")
+
+print(paste0("Qx for causal random is ", Qx$Qx_random[1]))
+print(paste0("Qx for causal strat is ", Qx$Qx_strat[1]))
+print(paste0("Qx for non-causal random is ", Qx$Qx_random[3]))
+print(paste0("Qx for non-causal random is ", Qx$Qx_strat[3]))
+```
+
+These seem too big!  
+
+Let's check doing it by hand
+```{r}
+Qx.c_random <- (t(Ztest.c_random) %*% solve(Fmat) %*% Ztest.c_random) / (Va.c_random)
+
+print(paste0("Qx for causal random is ", (t(Ztest.c_random) %*% solve(Fmat) %*% Ztest.c_random) / (Va.c_random)))
+print(paste0("Qx for causal strat is ", (t(Ztest.c_strat) %*% solve(Fmat) %*% Ztest.c_strat) / (Va.c_strat)))
+print(paste0("Qx for non-causal random is ", (t(Ztest.nc_random) %*% solve(Fmat) %*% Ztest.nc_random) / (Va.nc_random)))
+print(paste0("Qx for non-causal random is ", (t(Ztest.nc_strat) %*% solve(Fmat) %*% Ztest.nc_strat) / (Va.nc_strat)))
+```
+
+They match, but why are they so big? Is it just because this is a single chromosome so too much LD? 
+
