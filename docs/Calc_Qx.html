@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Jennifer Blanc" />
+
+
+<title>Qx_calculation</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-sm-12 col-md-4 col-lg-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-sm-12 col-md-8 col-lg-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">polygenic_adaptation_stratification</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jgblanc/polygenic_adaptation_stratification">
+    <span class="fas fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Qx_calculation</h1>
+<h4 class="author">Jennifer Blanc</h4>
+<h4 class="date">4/26/2021</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2021-05-04
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>polygenic_adaptation_stratification/analysis/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.6.2). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20201015code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20201015)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20201015code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20201015)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreea83c1a34853e12d7ade74b2c6114286de9af4cf9targetblanka83c1a3a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/a83c1a34853e12d7ade74b2c6114286de9af4cf9" target="_blank">a83c1a3</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreea83c1a34853e12d7ade74b2c6114286de9af4cf9targetblanka83c1a3a" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/a83c1a34853e12d7ade74b2c6114286de9af4cf9" target="_blank">a83c1a3</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    .snakemake/
+    Ignored:    code/.DS_Store
+    Ignored:    data/.DS_Store
+    Ignored:    data/projection_example/
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/Tm.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/Tm_covars.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/pca.eigenval
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/pca.eigenvec
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/pca.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/projection.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/projection.sscore
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/Tm.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/Tm_covars.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/pca.eigenval
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/pca.eigenvec
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/pca.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/projection.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/projection.sscore
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/Tm.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/Tm_covars.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/pca.eigenval
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/pca.eigenvec
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/pca.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/projection.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/projection.sscore
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/Tm.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/Tm_covars.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/pca.eigenval
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/pca.eigenvec
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/pca.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/projection.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/projection.sscore
+    Ignored:    output/PGA_test/4PopSplit/S2/
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common.nc.log
+    Ignored:    output/Run_GWAS/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/common_snp_ids.txt
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.afreq
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.pgen
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.psam
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.pvar
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test-big.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.afreq
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pgen
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.psam
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pvar
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/common_snp_ids.txt
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-gwas.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-gwas_common.afreq
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-gwas_common.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-gwas_common.pgen
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-gwas_common.psam
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-gwas_common.pvar
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-test-big.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-test.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-test_common.afreq
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-test_common.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-test_common.pgen
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-test_common.psam
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C2/genos-test_common.pvar
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/ff.txt
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S1/genos.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/common_snp_ids.txt
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-gwas.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-gwas_common.afreq
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-gwas_common.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-gwas_common.pgen
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-gwas_common.psam
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-gwas_common.pvar
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test-big.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.afreq
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.pgen
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.psam
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.pvar
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/common_snp_ids.txt
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-gwas.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-gwas_common.afreq
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-gwas_common.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-gwas_common.pgen
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-gwas_common.psam
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-gwas_common.pvar
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-test-big.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-test.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-test_common.afreq
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-test_common.log
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-test_common.pgen
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-test_common.psam
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-test_common.pvar
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/ff.txt
+    Ignored:    output/Simulate_Genotypes/4PopSplit/S2/genos.log
+
+Untracked files:
+    Untracked:  output/Calculate_Tm/4PopSplit/E1/
+    Untracked:  output/PGA_test/4PopSplit/E1/
+    Untracked:  output/PRS/4PopSplit/E1/
+    Untracked:  output/Simulate_Genotypes/4PopSplit/E1/
+    Untracked:  output/Simulate_Phenotypes/4PopSplit/E1/
+
+Unstaged changes:
+    Modified:   analysis/Plot_4PopSplit.Rmd
+    Modified:   code/Calculate_Tm/calc_lambdaT.R
+    Modified:   code/PGA_test/calc_Qx.R
+    Modified:   snakefile
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/Calc_Qx.Rmd</code>) and HTML (<code>docs/Calc_Qx.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/a83c1a34853e12d7ade74b2c6114286de9af4cf9/analysis/Calc_Qx.Rmd" target="_blank">a83c1a3</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-05-04
+</td>
+<td>
+calc qx page
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/842cd1195c1955589f2916c2dce5abbe360fdf81/analysis/Calc_Qx.Rmd" target="_blank">842cd11</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-04-29
+</td>
+<td>
+figuring out qx
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="notation" class="section level1">
+<h1>Notation</h1>
+<p>L = number of sites<br />
+n = number of total inidividuals<br />
+k = number of populations<br />
+<span class="math inline">\(n_k\)</span> = number of individuals in subpopulation k</p>
+<div id="population-qx-using-only-population-infomation" class="section level2">
+<h2>Population Qx using only population infomation</h2>
+<p>As described by Berg and Coop 2014:</p>
+<p><span class="math display">\[Q_x = \frac{\vec{Z_{pop}}&#39;^TF_{pop}^{-1}\vec{Z_{pop}&#39;}}{2V_a}\]</span></p>
+<p>To compute F:</p>
+<p><span class="math display">\[F = \frac{1}{L-1} TGSG^TT^T\]</span></p>
+<p>In the two population case:</p>
+<p><span class="math display">\[F = \frac{1}{4*(L-1)} \sum_{l=1}^L \frac{(f_{1,l} - f_{2,l})^2}{\bar{f_l} (1-\bar{f})}\]</span></p>
+<pre class="r"><code>calc_Qx &lt;- function(ms, k, L, L_gwas) {
+  
+  # Draw alleles from Beta
+  #p_start &lt;- rep(0.5, L)
+  p_start &lt;- rbeta(L, 1,3)
+  p_start_gwas &lt;- rbeta(L_gwas, 1,3)
+  
+  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
+  p1GWAS &lt;- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2GWAS &lt;- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
+  rm &lt;- which(p1GWAS &lt; 0 | p1GWAS &gt; 1 | p2GWAS &lt; 0 | p2GWAS &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1GWAS &lt;- p1GWAS[-rm]
+    p2GWAS &lt;- p2GWAS[-rm]    
+  }
+  
+  # Evolve neautral alleles vias drift
+  p1N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  rm &lt;- which(p1N &lt; 0 | p1N &gt; 1 | p2N &lt; 0 | p2N &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1N &lt;- p1N[-rm]
+    p2N &lt;- p2N[-rm]
+  }
+  
+  # Compute mean PGS in each population 
+  Z1 &lt;- 2 * sum(p1GWAS)
+  Z2 &lt;- 2 * sum(p2GWAS)
+  
+  # Mean centering matrix 
+  Tmat &lt;- matrix(-1/k, nrow = 1, ncol = 2)
+  diag(Tmat) &lt;- (k-1)/k
+  
+  # Mean center PGS
+  Zp &lt;- Tmat %*% c(Z1, Z2)
+  
+  # Compute F matrix 
+  G &lt;- rbind(p1N, p2N)
+  S &lt;- matrix(0, ncol(G),ncol(G))
+  diag(S) &lt;- 1 / (colMeans(G) * (1 - colMeans(G)))
+  Fmat &lt;- (1/(ncol(G)-1)) * (Tmat %*% G %*% S %*% t(G) %*% t(Tmat))
+  
+  # Compute Va 
+  G_gwas &lt;- rbind(p1GWAS, p2GWAS)
+  Va &lt;- sum(2* (colMeans(G_gwas) * (1 - colMeans(G_gwas))))
+  
+  # Compute Qx
+  Qx &lt;- (t(Zp) %*% solve(Fmat) %*% Zp) / (2*Va)
+  return(Qx[1,1])
+}</code></pre>
+<p>Neutral Case</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 10000))
+pvals &lt;- rep(0, 10000)
+for(i in 1:10000) {
+  vecQx[i] &lt;- calc_Qx(0, 2, 100, 100)
+  pvals[i] &lt;- pchisq(vecQx[i],1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] 0.9866459</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Selection Case</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 10000))
+pvals &lt;- rep(0, 10000)
+for(i in 1:10000) {
+  vecQx[i] &lt;- calc_Qx(0.005, 2, 100, 100)
+  pvals[i] &lt;- pchisq(vecQx[i],1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] 3.860192</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="population-qx-using-individual-information" class="section level2">
+<h2>Population Qx using individual information</h2>
+<p>Exact same procedure as above but first generate individuals and re-estimate allele frequencies from genotype matrix. (Just to make sure I can make genotype matrices)</p>
+<pre class="r"><code>make_genotype_matrix &lt;- function(p, n, L) {
+  G &lt;- matrix(NA, nrow = n, ncol = L)
+  for (i in 1:length(p)) {
+    G[,i] &lt;- rbinom(n,2,p[i])
+  }
+  return(G)
+}
+
+calc_Qx1 &lt;- function(ms, k, n, L, L_gwas) {
+  
+  # Draw alleles from Beta
+  p_start &lt;- rbeta(L, 1,3)
+  p_start_gwas &lt;- rbeta(L_gwas, 1,3)
+  
+  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
+  p1GWAS &lt;- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2GWAS &lt;- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
+  rm &lt;- which(p1GWAS &lt; 0 | p1GWAS &gt; 1 | p2GWAS &lt; 0 | p2GWAS &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1GWAS &lt;- p1GWAS[-rm]
+    p2GWAS &lt;- p2GWAS[-rm]    
+  }
+  
+  # Evolve neautral alleles vias drift
+  p1N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  rm &lt;- which(p1N &lt; 0 | p1N &gt; 1 | p2N &lt; 0 | p2N &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1N &lt;- p1N[-rm]
+    p2N &lt;- p2N[-rm]
+  }
+  
+  # Make Genotype matrix for GWAS alleles by drawing from population 
+  i1GWAS &lt;- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
+  i2GWAS &lt;- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
+  
+  # Make Genotype matrix for neautral alleles by drawing from population 
+  i1N &lt;- make_genotype_matrix(p1N, n/2, length(p1N))
+  i2N &lt;- make_genotype_matrix(p2N, n/2, length(p2N))
+  
+  # Neutral Gentotype Matrix 
+  X &lt;- rbind(i1N, i2N)
+  if (length(which(colSums(X) == 0)) &gt; 0 | length(which(colSums(X) == nrow(X))) &gt; 0 ){
+    if (length(which(colSums(X) == 0)) &gt; 0) { X &lt;- X[, -which(colSums(X) == 0)]}
+    if (length(which(colSums(X) == nrow(X))) &gt; 0) {X &lt;- X[, -which(colSums(X) == nrow(X))]}
+  }
+  
+  # GWAS Xentotype Matrix 
+  X_gwas &lt;- rbind(i1GWAS, i2GWAS)
+  if (length(which(colSums(X_gwas) == 0)) &gt; 0 | length(which(colSums(X_gwas) == nrow(X_gwas))) &gt; 0 ){
+    if (length(which(colSums(X_gwas) == 0)) &gt; 0) { X_gwas &lt;- X_gwas[, -which(colSums(X_gwas) == 0)]}
+    if (length(which(colSums(X_gwas) == nrow(X_gwas))) &gt; 0) {X_gwas &lt;- X_gwas[, -which(colSums(X_gwas) == nrow(X_gwas))]}
+  }
+
+  p1GWAS &lt;- colMeans(X_gwas[1:(n/2), ])/2
+  p2GWAS &lt;- colMeans(X_gwas[((n/2)+1):n, ])/2
+  p1N &lt;- colMeans(X[1:(n/2), ])/2
+  p2N &lt;- colMeans(X[((n/2)+1):n, ])/2
+  
+   # Compute mean PGS 
+  Z1 &lt;- 2 * sum(p1GWAS)
+  Z2 &lt;- 2 * sum(p2GWAS)
+  
+  # Mean centering matrix 
+  Tmat &lt;- matrix(-1/k, nrow = 1, ncol = 2)
+  diag(Tmat) &lt;- (k-1)/k
+  
+  # Mean center PGS
+  Zp &lt;- Tmat %*% c(Z1, Z2)
+  
+  # Compute F matrix 
+  G &lt;- rbind(p1N, p2N)
+  S &lt;- matrix(0, ncol(G),ncol(G))
+  diag(S) &lt;- 1 / (colMeans(G) * (1 - colMeans(G)))
+  Fmat &lt;- (1/(ncol(G)-1)) * (Tmat %*% G %*% S %*% t(G) %*% t(Tmat))
+  
+  # Compute Va 
+  G_gwas &lt;- rbind(p1GWAS, p2GWAS)
+  Va &lt;- sum(2* (colMeans(G_gwas) * (1 - colMeans(G_gwas))))
+  
+  # Compute Qx
+  Qx &lt;- (t(Zp) %*% solve(Fmat) %*% Zp) / (2*Va)
+  return(Qx[1,1])
+}</code></pre>
+<p>Neutral</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 1000))
+pvals &lt;- rep(0, 1000)
+for(i in 1:1000) {
+  vecQx[i] &lt;- calc_Qx1(0, 2, 100, 100, 100)
+  pvals[i] &lt;- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] 0.9985191</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Selection</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 1000))
+pvals &lt;- rep(0, 1000)
+for(i in 1:1000) {
+  vecQx[i] &lt;- calc_Qx1(0.005, 2, 100, 100, 100)
+  pvals[i] &lt;- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] 2.517753</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="qx-for-two-populations-using-a-test-vector" class="section level2">
+<h2>Qx for two populations using a Test Vector</h2>
+<p>Now we want to do that exact same test as above but instead of estimating population allele frequencies directly from the genotype matrix we want to reformulate the <span class="math inline">\(Q_x\)</span> statistic to detect selection along a specific test vector. In this case the test vect just indicated population membership. See handwritten notes to see the derivation of <span class="math inline">\(Q_{x,test}\)</span>:</p>
+<p><span class="math display">\[Q_{x,test} = \frac{\vec{Z}_{test}^2}{V_aF_{test}}\]</span></p>
+<p>Here note that:</p>
+<p><span class="math display">\[F_{test} = \frac{1}{L-1}T_{vec}XHX^TT_{vec}^T\]</span></p>
+<pre class="r"><code>calc_Qx2 &lt;- function(ms, k, n, L, L_gwas) {
+  
+  # Draw alleles from Beta
+  p_start &lt;- rbeta(L, 1,3)
+  p_start_gwas &lt;- rbeta(L_gwas, 1,3)
+  
+  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
+  p1GWAS &lt;- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2GWAS &lt;- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
+  rm &lt;- which(p1GWAS &lt; 0 | p1GWAS &gt; 1 | p2GWAS &lt; 0 | p2GWAS &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1GWAS &lt;- p1GWAS[-rm]
+    p2GWAS &lt;- p2GWAS[-rm]    
+  }
+  
+  # Evolve neautral alleles vias drift
+  p1N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  rm &lt;- which(p1N &lt; 0 | p1N &gt; 1 | p2N &lt; 0 | p2N &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1N &lt;- p1N[-rm]
+    p2N &lt;- p2N[-rm]
+  }
+  
+  # Make Genotype matrix for GWAS alleles by drawing from population 
+  i1GWAS &lt;- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
+  i2GWAS &lt;- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
+  
+  # Make Genotype matrix for neautral alleles by drawing from population 
+  i1N &lt;- make_genotype_matrix(p1N, n/2, length(p1N))
+  i2N &lt;- make_genotype_matrix(p2N, n/2, length(p2N))
+  
+  # Neutral Gentotype Matrix 
+  X &lt;- rbind(i1N, i2N)
+  if (length(which(colSums(X) == 0)) &gt; 0 | length(which(colSums(X) == nrow(X))) &gt; 0 ){
+    if (length(which(colSums(X) == 0)) &gt; 0) { X &lt;- X[, -which(colSums(X) == 0)]}
+    if (length(which(colSums(X) == nrow(X))) &gt; 0) {X &lt;- X[, -which(colSums(X) == nrow(X))]}
+  }
+  
+  # GWAS Xentotype Matrix 
+  X_gwas &lt;- rbind(i1GWAS, i2GWAS)
+  if (length(which(colSums(X_gwas) == 0)) &gt; 0 | length(which(colSums(X_gwas) == nrow(X_gwas))) &gt; 0 ){
+    if (length(which(colSums(X_gwas) == 0)) &gt; 0) { X_gwas &lt;- X_gwas[, -which(colSums(X_gwas) == 0)]}
+    if (length(which(colSums(X_gwas) == nrow(X_gwas))) &gt; 0) {X_gwas &lt;- X_gwas[, -which(colSums(X_gwas) == nrow(X_gwas))]}
+  }
+
+  # Compute Individual PGS 
+  Z &lt;- rowSums(X_gwas)
+  
+  # Make test vector and compute Ztest
+  Tvec &lt;- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Ztest &lt;- Z %*% Tvec 
+  
+  # Compute Ftest matrix 
+  H &lt;- matrix(0, ncol(X),ncol(X))
+  diag(H) &lt;- 1 / (2 * colMeans(X/2) * (1 - colMeans(X/2)))
+  Fmat &lt;- (1/(ncol(X)-1)) * (Tvec %*% X %*% H %*% t(X) %*% Tvec)
+  
+  # Compute Va 
+  Va &lt;- 2*sum((colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+  
+  # Compute Qx
+  Qx &lt;- (t(Ztest) %*% solve(Fmat) %*% Ztest) / (Va)
+  return(Qx[1,1])
+}</code></pre>
+<p>Neutral</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 1000))
+pvals &lt;- rep(0, 1000)
+for(i in 1:1000) {
+  vecQx[i] &lt;- calc_Qx2(0, 2, 100, 100, 100)
+  pvals[i] &lt;- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] 1.00656</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Selection</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 1000))
+pvals &lt;- rep(0, 1000)
+for(i in 1:1000) {
+  vecQx[i] &lt;- calc_Qx2(0.005, 2, 100, 100, 100)
+  pvals[i] &lt;- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] 2.461135</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="qx-for-two-populations-using-a-test-vector-by-calculating-grm" class="section level2">
+<h2>Qx for two populations using a Test Vector by calculating GRM</h2>
+<p>Same as the example above except when computing <span class="math inline">\(F_{test}\)</span>, first mean center the genotype matrix. I am doing this so <span class="math inline">\(TXHX^TT^T\)</span> is the definiation of the GRM used GCTA/Plink. Each entry of the GRM is:</p>
+<p><span class="math display">\[K_{ij} = \sum\limits_{l=1}^L \frac{(x_{i,l} - 2f_l)(x_{j,l} -f_l)}{2f_l (1-f_l)}\]</span></p>
+<p><span class="math inline">\(F_{test}\)</span> is the same (mean centering X does not change anything), we are just including the mean centering to match plink:</p>
+<p><span class="math display">\[F_{test} = \frac{1}{L-1}T_{vec}TXHX^TT^TT_{vec}^T\]</span></p>
+<pre class="r"><code>calc_Qx3 &lt;- function(ms, k, n, L, L_gwas) {
+  
+  # Draw alleles from Beta
+  p_start &lt;- rbeta(L, 1,3)
+  p_start_gwas &lt;- rbeta(L_gwas, 1,3)
+  
+  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
+  p1GWAS &lt;- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2GWAS &lt;- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
+  rm &lt;- which(p1GWAS &lt; 0 | p1GWAS &gt; 1 | p2GWAS &lt; 0 | p2GWAS &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1GWAS &lt;- p1GWAS[-rm]
+    p2GWAS &lt;- p2GWAS[-rm]    
+  }
+  
+  # Evolve neautral alleles vias drift
+  p1N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  rm &lt;- which(p1N &lt; 0 | p1N &gt; 1 | p2N &lt; 0 | p2N &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1N &lt;- p1N[-rm]
+    p2N &lt;- p2N[-rm]
+  }
+  
+  # Make Genotype matrix for GWAS alleles by drawing from population 
+  i1GWAS &lt;- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
+  i2GWAS &lt;- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
+  
+  # Make Genotype matrix for neautral alleles by drawing from population 
+  i1N &lt;- make_genotype_matrix(p1N, n/2, length(p1N))
+  i2N &lt;- make_genotype_matrix(p2N, n/2, length(p2N))
+  
+  # Neutral Gentotype Matrix 
+  X &lt;- rbind(i1N, i2N)
+  if (length(which(colSums(X) == 0)) &gt; 0 | length(which(colSums(X) == nrow(X))) &gt; 0 ){
+    if (length(which(colSums(X) == 0)) &gt; 0) { X &lt;- X[, -which(colSums(X) == 0)]}
+    if (length(which(colSums(X) == nrow(X))) &gt; 0) {X &lt;- X[, -which(colSums(X) == nrow(X))]}
+  }
+  
+  # GWAS Xentotype Matrix 
+  X_gwas &lt;- rbind(i1GWAS, i2GWAS)
+  if (length(which(colSums(X_gwas) == 0)) &gt; 0 | length(which(colSums(X_gwas) == nrow(X_gwas))) &gt; 0 ){
+    if (length(which(colSums(X_gwas) == 0)) &gt; 0) { X_gwas &lt;- X_gwas[, -which(colSums(X_gwas) == 0)]}
+    if (length(which(colSums(X_gwas) == nrow(X_gwas))) &gt; 0) {X_gwas &lt;- X_gwas[, -which(colSums(X_gwas) == nrow(X_gwas))]}
+  }
+
+  # Compute Individual PGS 
+  Z &lt;- rowSums(X_gwas)
+  
+  # Make test vector and compute Ztest
+  Tvec &lt;- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Ztest &lt;- Z %*% Tvec 
+  
+  # Compute Ftest matrix 
+  H &lt;- matrix(0, ncol(X),ncol(X))
+  diag(H) &lt;- 1 / (2 * colMeans(X/2) * (1 - colMeans(X/2)))
+  Tmat &lt;- matrix(-1/n, ncol = n, nrow = n)
+  diag(Tmat) &lt;- (n-1)/n
+  cov_mat &lt;- (1/(ncol(X)-1)) * Tmat %*% X %*% H %*% t(X) %*% t(Tmat) 
+  Fmat &lt;-  (Tvec %*% cov_mat %*% Tvec)
+  
+  # Compute Va 
+  Va &lt;- 2*sum((colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+  
+  # Compute Qx
+  Qx &lt;- (t(Ztest) %*% solve(Fmat) %*% Ztest) / (Va)
+  return(Qx[1,1])
+}</code></pre>
+<p>Neutral</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 100))
+pvals &lt;- rep(0, 100)
+for(i in 1:100) {
+  out &lt;- calc_Qx3(0, 2, 100, 1000, 100)
+  vecQx[i] &lt;- out[[1]]
+  pvals[i] &lt;- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] NaN</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Selection</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 100))
+pvals &lt;- rep(0, 100)
+for(i in 1:100) {
+  out &lt;- calc_Qx3(0.005, 2, 100, 100, 100)
+  vecQx[i] &lt;- out[[1]]
+  pvals[i] &lt;- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] 2.250307</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="qx-for-two-populations-using-a-test-vector-by-calculating-grm-and-then-remaking-it-via-eigen-decompostion" class="section level2">
+<h2>Qx for two populations using a Test Vector by calculating GRM and then remaking it via Eigen decompostion</h2>
+<p>Since we don’t want to do this large matrix multiplication <span class="math display">\[TXHX^TT^T\]</span> we can rewrite <span class="math inline">\(F_{test}\)</span> as</p>
+<p><span class="math display">\[F_{test} = \frac{1}{L-1}T_{vec}U\Delta UT_{vec}^T\]</span></p>
+<p>Here <span class="math inline">\(U\)</span> and <span class="math inline">\(\Delta\)</span> are the eigenvectors and eigenvalues from doing eigen decomposition on the GRM. In the simulation below we make the GRM, do eigen decomposition and then remake it.</p>
+<pre class="r"><code>calc_Qx4 &lt;- function(ms, k, n, L, L_gwas) {
+  
+  # Draw alleles from Beta
+  p_start &lt;- rbeta(L, 1,3)
+  p_start_gwas &lt;- rbeta(L_gwas, 1,3)
+  
+  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
+  p1GWAS &lt;- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2GWAS &lt;- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
+  rm &lt;- which(p1GWAS &lt; 0 | p1GWAS &gt; 1 | p2GWAS &lt; 0 | p2GWAS &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1GWAS &lt;- p1GWAS[-rm]
+    p2GWAS &lt;- p2GWAS[-rm]    
+  }
+  
+  # Evolve neautral alleles vias drift
+  p1N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  rm &lt;- which(p1N &lt; 0 | p1N &gt; 1 | p2N &lt; 0 | p2N &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1N &lt;- p1N[-rm]
+    p2N &lt;- p2N[-rm]
+  }
+  
+  # Make Genotype matrix for GWAS alleles by drawing from population 
+  i1GWAS &lt;- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
+  i2GWAS &lt;- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
+  
+  # Make Genotype matrix for neautral alleles by drawing from population 
+  i1N &lt;- make_genotype_matrix(p1N, n/2, length(p1N))
+  i2N &lt;- make_genotype_matrix(p2N, n/2, length(p2N))
+  
+  # Neutral Gentotype Matrix 
+  X &lt;- rbind(i1N, i2N)
+  if (length(which(colSums(X) == 0)) &gt; 0 | length(which(colSums(X) == nrow(X))) &gt; 0 ){
+    if (length(which(colSums(X) == 0)) &gt; 0) { X &lt;- X[, -which(colSums(X) == 0)]}
+    if (length(which(colSums(X) == nrow(X))) &gt; 0) {X &lt;- X[, -which(colSums(X) == nrow(X))]}
+  }
+  
+  # GWAS Xentotype Matrix 
+  X_gwas &lt;- rbind(i1GWAS, i2GWAS)
+  if (length(which(colSums(X_gwas) == 0)) &gt; 0 | length(which(colSums(X_gwas) == nrow(X_gwas))) &gt; 0 ){
+    if (length(which(colSums(X_gwas) == 0)) &gt; 0) { X_gwas &lt;- X_gwas[, -which(colSums(X_gwas) == 0)]}
+    if (length(which(colSums(X_gwas) == nrow(X_gwas))) &gt; 0) {X_gwas &lt;- X_gwas[, -which(colSums(X_gwas) == nrow(X_gwas))]}
+  }
+
+  # Compute Individual PGS 
+  Z &lt;- rowSums(X_gwas)
+  
+  # Make test vector and compute Ztest
+  Tvec &lt;- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Ztest &lt;- Z %*% Tvec 
+  
+  # Compute GRM  
+  het &lt;- 1 / (2 * colMeans(X/2) * (1 - colMeans(X/2)))
+  Tmat &lt;- matrix(-1/n, ncol = n, nrow = n)
+  diag(Tmat) &lt;- (n-1)/n
+  cov_mat &lt;- (1/(ncol(X)-1)) * Tmat %*% t(t(X) * het) %*% t(X) %*% t(Tmat) 
+  
+  # Do Eigen decomposition and calculate Ftest
+  myE &lt;- eigen(cov_mat)
+  K &lt;- myE$vectors %*% diag(myE$values) %*% t(myE$vectors)
+  Fmat &lt;-  (Tvec %*% K %*% Tvec)
+  
+  # Compute Va 
+  Va &lt;- 2*sum((colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+  
+  # Compute Qx
+  Qx &lt;- (t(Ztest) %*% solve(Fmat) %*% Ztest) / (Va)
+  return(Qx[1,1])
+}</code></pre>
+<p>Neutral</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 500))
+pvals &lt;- rep(0, 500)
+for(i in 1:500) {
+  out &lt;- calc_Qx4(0, 2, 100, 100, 100)
+  vecQx[i] &lt;- out[[1]]
+  pvals[i] &lt;- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] 1.057855</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Selection</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 100))
+pvals &lt;- rep(0, 100)
+for(i in 1:100) {
+  out &lt;- calc_Qx4(0.005, 2, 100, 100, 100)
+  vecQx[i] &lt;- out[[1]]
+  pvals[i] &lt;- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] 2.806704</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="adding-simulated-effect-sizes" class="section level2">
+<h2>Adding simulated Effect sizes</h2>
+<p>The only thing that changes here is that were are going to draw <span class="math inline">\(\hat{B}\)</span>’s randomly and then include them in our calculation of <span class="math inline">\(\vec{Z}\)</span> and <span class="math inline">\(V_a\)</span>.</p>
+<pre class="r"><code>calc_Qx5 &lt;- function(ms, k, n, L, L_gwas) {
+  
+  # Draw alleles from Beta
+  p_start &lt;- rbeta(L, 1,3)
+  p_start_gwas &lt;- rbeta(L_gwas, 1,3)
+  
+  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
+  p1GWAS &lt;- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2GWAS &lt;- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
+  rm &lt;- which(p1GWAS &lt; 0 | p1GWAS &gt; 1 | p2GWAS &lt; 0 | p2GWAS &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1GWAS &lt;- p1GWAS[-rm]
+    p2GWAS &lt;- p2GWAS[-rm]    
+  }
+  
+  # Evolve neautral alleles vias drift
+  p1N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  p2N &lt;- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
+  rm &lt;- which(p1N &lt; 0 | p1N &gt; 1 | p2N &lt; 0 | p2N &gt; 1)
+  if (length(rm) &gt; 0) {
+    p1N &lt;- p1N[-rm]
+    p2N &lt;- p2N[-rm]
+  }
+  
+  # Make Genotype matrix for GWAS alleles by drawing from population 
+  i1GWAS &lt;- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
+  i2GWAS &lt;- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
+  
+  # Make Genotype matrix for neautral alleles by drawing from population 
+  i1N &lt;- make_genotype_matrix(p1N, n/2, length(p1N))
+  i2N &lt;- make_genotype_matrix(p2N, n/2, length(p2N))
+  
+  # Neutral Gentotype Matrix 
+  X &lt;- rbind(i1N, i2N)
+  if (length(which(colSums(X) == 0)) &gt; 0 | length(which(colSums(X) == nrow(X))) &gt; 0 ){
+    if (length(which(colSums(X) == 0)) &gt; 0) { X &lt;- X[, -which(colSums(X) == 0)]}
+    if (length(which(colSums(X) == nrow(X))) &gt; 0) {X &lt;- X[, -which(colSums(X) == nrow(X))]}
+  }
+  
+  # GWAS Xentotype Matrix 
+  X_gwas &lt;- rbind(i1GWAS, i2GWAS)
+  if (length(which(colSums(X_gwas) == 0)) &gt; 0 | length(which(colSums(X_gwas) == nrow(X_gwas))) &gt; 0 ){
+    if (length(which(colSums(X_gwas) == 0)) &gt; 0) { X_gwas &lt;- X_gwas[, -which(colSums(X_gwas) == 0)]}
+    if (length(which(colSums(X_gwas) == nrow(X_gwas))) &gt; 0) {X_gwas &lt;- X_gwas[, -which(colSums(X_gwas) == nrow(X_gwas))]}
+  }
+  
+  # Simulate Beta Hats
+  Bhat &lt;- rnorm(ncol(X_gwas), 0,1)
+
+  # Compute Individual PGS 
+  Z &lt;- rowSums(X_gwas %*% diag(Bhat))
+  
+  # Make test vector and compute Ztest
+  Tvec &lt;- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Ztest &lt;- Z %*% Tvec 
+  
+  # Compute GRM  
+  H &lt;- matrix(0, ncol(X),ncol(X))
+  diag(H) &lt;- 1 / (2 * colMeans(X/2) * (1 - colMeans(X/2)))
+  Tmat &lt;- matrix(-1/n, ncol = n, nrow = n)
+  diag(Tmat) &lt;- (n-1)/n
+  cov_mat &lt;- (1/(ncol(X)-1)) * Tmat %*% X %*% H %*% t(X) %*% t(Tmat) 
+  
+  # Do Eigen decomposition and calculate Ftest
+  myE &lt;- eigen(cov_mat)
+  K &lt;- myE$vectors %*% diag(myE$values) %*% t(myE$vectors)
+  Fmat &lt;-  (Tvec %*% K %*% Tvec)
+  
+  # Compute Va 
+  Va &lt;- 2*sum(Bhat^2 * (colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+  
+  # Compute Qx
+  Qx &lt;- (t(Ztest) %*% solve(Fmat) %*% Ztest) / (Va)
+  return(Qx[1,1])
+}</code></pre>
+<p>Neutral</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 500))
+pvals &lt;- rep(0, 500)
+for(i in 1:500) {
+  out &lt;- calc_Qx5(0, 2, 100, 100, 100)
+  vecQx[i] &lt;- out[[1]]
+  pvals[i] &lt;- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] 1.115457</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Selection</p>
+<pre class="r"><code>vecQx &lt;- matrix(rep(0, 100))
+pvals &lt;- rep(0, 100)
+for(i in 1:100) {
+  out &lt;- calc_Qx4(0.005, 2, 100, 100, 100)
+  vecQx[i] &lt;- out[[1]]
+  pvals[i] &lt;- pchisq(vecQx[i], 1, lower.tail = F)
+}
+
+mean(vecQx)</code></pre>
+<pre><code>[1] 2.207044</code></pre>
+<pre class="r"><code>hist(pvals)</code></pre>
+<p><img src="figure/Calc_Qx.Rmd/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="looking-at-real-simulated-data" class="section level2">
+<h2>Looking at Real Simulated Data</h2>
+<p>So far we have checked that we were doing things correctly by running the simulations many times and looking at the distribution of the output. Its going to be too hard to run 10,000 evolutionary simulations so I am going to do one small evolutionary replicate using only 1 chromozome using my snakemake pipeline and then check each part of the <span class="math inline">\(Q_x\)</span> calculation (<span class="math inline">\(Va\)</span>, <span class="math inline">\(F\)</span>, <span class="math inline">\(Z_{test}\)</span>), comparing the code above to make sure each part matches.</p>
+<div id="check-f" class="section level3">
+<h3>Check F</h3>
+<p>Read in Genotype matrix</p>
+<pre class="r"><code>library(pgenlibr)
+pvar &lt;- NewPvar(&quot;../output/Simulate_Genotypes/4PopSplit/E1/C1/genos-test_common.pvar&quot;)
+d1 &lt;- NewPgen(&quot;../output/Simulate_Genotypes/4PopSplit/E1/C1/genos-test_common.pgen&quot;)
+X &lt;- ReadList(d1,seq(1,48607), meanimpute=F)</code></pre>
+<p>Calculate <span class="math inline">\(F_{test} = \frac{1}{L-1}T_{vec}TXHX^TT^TT_{vec}^T\)</span></p>
+<pre class="r"><code># Read in and format Test Vector 
+Tvec &lt;- fread(&quot;../output/Calculate_Tm/4PopSplit/E1/C1/Tvec.txt&quot;)
+Tvec &lt;- Tvec$V1
+n1 &lt;- table(Tvec)[1]
+n2 &lt;- table(Tvec)[2]
+Tvec &lt;- c(rep(1,(n1))/(n1), rep(-1,(n2))/(n2)) * (1/2)
+
+# Compute GRM  
+n &lt;- nrow(X)
+het &lt;- 1 / (2 * colMeans(X/2) * (1 - colMeans(X/2)))
+Tmat &lt;- matrix(-1/n, ncol = n, nrow = n)
+diag(Tmat) &lt;- (n-1)/n
+cov_mat &lt;- (1/(ncol(X)-1)) * Tmat %*% t(t(X) * het) %*% t(X) %*% t(Tmat) 
+
+# Calculate F 
+Fmat &lt;-  (Tvec %*% cov_mat %*% Tvec)
+print(paste0(&quot;F is &quot;, Fmat))</code></pre>
+<pre><code>[1] &quot;F is 0.217570451036332&quot;</code></pre>
+<p>Calculate <span class="math inline">\(F_{test} = \frac{1}{L-1}T_{vec}U\Delta UT_{vec}^T\)</span> doing eigen decomposition in R</p>
+<pre class="r"><code>myE &lt;- eigen(cov_mat)
+K &lt;- myE$vectors %*% diag(myE$values) %*% t(myE$vectors)
+Fmat &lt;-  (Tvec %*% K %*% Tvec)
+print(paste0(&quot;F is &quot;, Fmat))</code></pre>
+<pre><code>[1] &quot;F is 0.217570451036332&quot;</code></pre>
+<p>Now calculate <span class="math inline">\(F_t{test}\)</span> using the eigenvectors/values as computed by plink.</p>
+<pre class="r"><code>plink_vecs &lt;- fread(&quot;../output/Calculate_Tm/4PopSplit/E1/C1/pca.eigenvec&quot;)[,3:201]
+plink_vecs &lt;- apply(plink_vecs, 2, as.numeric)
+plink_vals &lt;- fread(&quot;../output/Calculate_Tm/4PopSplit/E1/C1/pca.eigenval&quot;)
+plink_vals &lt;- as.numeric(plink_vals$V1)
+
+K &lt;- plink_vecs %*% diag(plink_vals) %*% t(plink_vecs)
+Fmat &lt;-  (Tvec %*% K %*% Tvec)
+print(paste0(&quot;F is &quot;, Fmat))</code></pre>
+<pre><code>[1] &quot;F is 0.217566022811625&quot;</code></pre>
+<p>Finally let’s check the output of the snakemake pipeline to make sure it matches</p>
+<pre class="r"><code>lambdaT &lt;- fread(&quot;../output/Calculate_Tm/4PopSplit/E1/C1/Lambda_T.txt&quot;)
+print(paste0(&quot;F is &quot;, lambdaT$V1))</code></pre>
+<pre><code>[1] &quot;F is 0.217566022811625&quot;</code></pre>
+<p>Yay!!</p>
+</div>
+<div id="check-z" class="section level3">
+<h3>Check Z</h3>
+<p>Now we need to chech that <span class="math inline">\(Z_{test}\)</span> matches the output of the snakemake pipeline. We will do this for 2 sets of the effect sizes, the “causal” effect sizes (this trait has <span class="math inline">\(h^2 = 0\)</span> so the sites aren’t causal just randomly picked to include in the PGS) and the clumped sites.</p>
+<p>Function to read in PGS and substract true genetic values</p>
+<pre class="r"><code>stand_PGS &lt;- function(prs_file, gv_file) {
+
+  # Load PRS
+  prs &lt;- fread(prs_file)
+  colnames(prs) &lt;- c(&quot;#IID&quot;, &quot;NAMED_ALLELE_DOSAGE_SUM&quot;, &quot;RANDOM&quot;, &quot;STRAT&quot;)
+
+  # Load True GV
+  gvalue &lt;- fread(gv_file)
+  colnames(gvalue) &lt;- c(&quot;#IID&quot;, &quot;NAMED_ALLELE_DOSAGE_SUM&quot;, &quot;GV&quot;)
+
+  # Join dataframes by IID
+  df &lt;- suppressMessages(full_join(prs,gvalue, by =&quot;#IID&quot;)) %&gt;% select(&quot;#IID&quot;, &quot;RANDOM&quot;, &quot;STRAT&quot;, &quot;GV&quot;)
+
+  # Standardize
+  mprs.adj = df%&gt;%
+    mutate(random.adjusted = RANDOM-GV,
+           strat.adjusted = STRAT-GV) %&gt;%
+    ungroup() %&gt;% select(&quot;random.adjusted&quot;, &quot;strat.adjusted&quot;)
+
+  return(mprs.adj)
+}
+
+pgs.c &lt;- stand_PGS(&quot;../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-test_common.c.sscore&quot;, &quot;../output/PRS/4PopSplit/E1/C1/h2-0/genos-test_common.true.sscore&quot;)
+pgs.nc &lt;- stand_PGS(&quot;../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-test_common.nc.sscore&quot;, &quot;../output/PRS/4PopSplit/E1/C1/h2-0/genos-test_common.true.sscore&quot;)</code></pre>
+<p>Calculate <span class="math inline">\(Z_{test}\)</span> as done in pipeline</p>
+<pre class="r"><code># Load Test vector
+Tvec &lt;- fread(&quot;../output/Calculate_Tm/4PopSplit/E1/C1/Tvec.txt&quot;)
+n1 &lt;- table(Tvec)[1]
+n2 &lt;- table(Tvec)[2]
+Tvec &lt;- c(rep(1,(n1))/(n1), rep(-1,(n2))/(n2)) * (1/2)
+
+# Compute Ztest for causal
+Ztest.c_random &lt;- t(Tvec) %*% pgs.c$random.adjusted
+Ztest.c_strat &lt;- t(Tvec) %*% pgs.c$strat.adjusted
+
+# Compute Ztest for non causal
+Ztest.nc_random &lt;- t(Tvec) %*% pgs.nc$random.adjusted
+Ztest.nc_strat &lt;- t(Tvec) %*% pgs.nc$strat.adjusted # Its strange that this is larger than random given that there is no stratification?? Come back and check 
+
+print(paste0(&quot;Ztest for causal random is &quot;, Ztest.c_random))</code></pre>
+<pre><code>[1] &quot;Ztest for causal random is -1.1582494674&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Ztest for causal strat is &quot;, Ztest.c_strat))</code></pre>
+<pre><code>[1] &quot;Ztest for causal strat is -1.248883504&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Ztest for non-causal random is &quot;, Ztest.nc_random))</code></pre>
+<pre><code>[1] &quot;Ztest for non-causal random is -1.48584151&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Ztest for non-causal random is &quot;, Ztest.nc_strat))</code></pre>
+<pre><code>[1] &quot;Ztest for non-causal random is -5.727520825&quot;</code></pre>
+<p>These are the values of <span class="math inline">\(Z_{test}\)</span> as calculated via the pipeline. Now we need to calculate it by hand using the code that we know works, starting with the genotype and estimated effect sizes.</p>
+<pre class="r"><code># Name columns of genotype matrix as variant IDs 
+IDs &lt;- fread(&quot;../output/Simulate_Genotypes/4PopSplit/E1/C1/genos-gwas_common.afreq&quot;)
+colnames(X) &lt;- IDs$ID
+
+# Subset X to include only GWAS sites 
+c_betas &lt;- fread(&quot;../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.c.betas&quot;)
+X_gwas &lt;- X[, c_betas$ID]
+
+# Use estimated effect sizes
+Bhat &lt;- c_betas$BETA_Random
+
+# Compute Individual PGS 
+Z &lt;- rowSums(X_gwas %*% diag(Bhat))
+  
+# Compute Ztest
+Ztest.c_random &lt;- Z %*% Tvec 
+
+print(paste0(&quot;Ztest for causal random is &quot;, Ztest.c_random))</code></pre>
+<pre><code>[1] &quot;Ztest for causal random is -1.15824944115&quot;</code></pre>
+<p>Repeat for other types of PGS</p>
+<pre class="r"><code># Causal Strat
+Bhat &lt;- c_betas$BETA_Strat
+Z &lt;- rowSums(X_gwas %*% diag(Bhat))
+Ztest.c_strat &lt;- Z %*% Tvec 
+print(paste0(&quot;Ztest for causal strat is &quot;, Ztest.c_strat))</code></pre>
+<pre><code>[1] &quot;Ztest for causal strat is -1.248883519025&quot;</code></pre>
+<pre class="r"><code># Non-causal Random 
+nc_betas &lt;- fread(&quot;../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.nc.betas&quot;)
+X_gwas &lt;- X[,nc_betas$V1]
+Bhat &lt;- nc_betas$V3
+Z &lt;- rowSums(X_gwas %*% diag(Bhat))
+Ztest.nc_random &lt;- Z %*% Tvec 
+print(paste0(&quot;Ztest for non-causal random is &quot;, Ztest.nc_random))</code></pre>
+<pre><code>[1] &quot;Ztest for non-causal random is -1.485841745&quot;</code></pre>
+<pre class="r"><code># Non-causal Strat 
+Bhat &lt;- nc_betas$V4
+Z &lt;- rowSums(X_gwas %*% diag(Bhat))
+Ztest.nc_strat &lt;- Z %*% Tvec 
+print(paste0(&quot;Ztest for non-causal strat is &quot;, Ztest.nc_strat))</code></pre>
+<pre><code>[1] &quot;Ztest for non-causal strat is -5.72752219&quot;</code></pre>
+<p>Yay, they match!</p>
+</div>
+<div id="check-va" class="section level3">
+<h3>Check Va</h3>
+<p>Now let’s check that our estimates of <span class="math inline">\(V_a\)</span> match the output of the pipeline.</p>
+<p>Here are the <span class="math inline">\(V_a\)</span> estimates as output by the pipeline</p>
+<pre class="r"><code>Va &lt;- fread(&quot;../output/PGA_test/4PopSplit/E1/C1/h2-0/env-0/Va.txt&quot;)
+
+print(paste0(&quot;Va for causal random is &quot;, Va[1,2]))</code></pre>
+<pre><code>[1] &quot;Va for causal random is 0.691560402341172&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Va for causal strat is &quot;, Va[1,3]))</code></pre>
+<pre><code>[1] &quot;Va for causal strat is 0.819447619271392&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Va for non-causal random is &quot;, Va[3,2]))</code></pre>
+<pre><code>[1] &quot;Va for non-causal random is 5.21510142813972&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Va for non-causal random is &quot;, Va[3,3]))</code></pre>
+<pre><code>[1] &quot;Va for non-causal random is 7.29842030416283&quot;</code></pre>
+<p>Now let’s check the answers doing it by hand</p>
+<pre class="r"><code># Subset X to include only GWAS sites 
+c_betas &lt;- fread(&quot;../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.c.betas&quot;)
+X_gwas &lt;- X[, c_betas$ID]
+
+# Use estimated effect sizes
+Bhat &lt;- c_betas$BETA_Random
+
+Va.c_random &lt;- 2*sum(Bhat^2 * (colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+print(paste0(&quot;Va for causal random is &quot;, Va.c_random))</code></pre>
+<pre><code>[1] &quot;Va for causal random is 0.691560402341172&quot;</code></pre>
+<pre class="r"><code># Causal strat 
+c_betas &lt;- fread(&quot;../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.c.betas&quot;)
+X_gwas &lt;- X[, c_betas$ID]
+Bhat &lt;- c_betas$BETA_Strat
+Va.c_strat &lt;- 2*sum(Bhat^2 * (colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+print(paste0(&quot;Va for causal strat is &quot;, Va.c_strat))</code></pre>
+<pre><code>[1] &quot;Va for causal strat is 0.819447619271392&quot;</code></pre>
+<pre class="r"><code># Non-causal random 
+nc_betas &lt;- fread(&quot;../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.nc.betas&quot;)
+X_gwas &lt;- X[, nc_betas$V1]
+Bhat &lt;- nc_betas$V3
+Va.nc_random &lt;- 2*sum(Bhat^2 * (colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+print(paste0(&quot;Va for non-causal random is &quot;, Va.nc_random))</code></pre>
+<pre><code>[1] &quot;Va for non-causal random is 5.21510142813972&quot;</code></pre>
+<pre class="r"><code># Non-causal strat 
+nc_betas &lt;- fread(&quot;../output/PRS/4PopSplit/E1/C1/h2-0/env-0/genos-gwas_common.nc.betas&quot;)
+X_gwas &lt;- X[, nc_betas$V1]
+Bhat &lt;- nc_betas$V4
+Va.nc_strat &lt;- 2*sum(Bhat^2 * (colMeans(X_gwas/2) * (1 - colMeans(X_gwas/2))))
+print(paste0(&quot;Va for non-causal strat is &quot;, Va.nc_strat))</code></pre>
+<pre><code>[1] &quot;Va for non-causal strat is 7.29842030416283&quot;</code></pre>
+<p>They match!</p>
+</div>
+<div id="check-qx" class="section level3">
+<h3>Check Qx</h3>
+<p>Finally, let’s check the final <span class="math inline">\(Q_x\)</span> statistic!</p>
+<p>As output by the pipeline</p>
+<pre class="r"><code>Qx &lt;- fread(&quot;../output/PGA_test/4PopSplit/E1/C1/h2-0/env-0/Qx.txt&quot;)
+
+print(paste0(&quot;Qx for causal random is &quot;, Qx$Qx_random[1]))</code></pre>
+<pre><code>[1] &quot;Qx for causal random is 8.91626622467418&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Qx for causal strat is &quot;, Qx$Qx_strat[1]))</code></pre>
+<pre><code>[1] &quot;Qx for causal strat is 8.7484595449489&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Qx for non-causal random is &quot;, Qx$Qx_random[3]))</code></pre>
+<pre><code>[1] &quot;Qx for non-causal random is 1.94576838206176&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Qx for non-causal random is &quot;, Qx$Qx_strat[3]))</code></pre>
+<pre><code>[1] &quot;Qx for non-causal random is 20.6591957679714&quot;</code></pre>
+<p>These seem too big!</p>
+<p>Let’s check doing it by hand</p>
+<pre class="r"><code>Qx.c_random &lt;- (t(Ztest.c_random) %*% solve(Fmat) %*% Ztest.c_random) / (Va.c_random)
+
+print(paste0(&quot;Qx for causal random is &quot;, (t(Ztest.c_random) %*% solve(Fmat) %*% Ztest.c_random) / (Va.c_random)))</code></pre>
+<pre><code>[1] &quot;Qx for causal random is 8.91626582052637&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Qx for causal strat is &quot;, (t(Ztest.c_strat) %*% solve(Fmat) %*% Ztest.c_strat) / (Va.c_strat)))</code></pre>
+<pre><code>[1] &quot;Qx for causal strat is 8.74845975544986&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Qx for non-causal random is &quot;, (t(Ztest.nc_random) %*% solve(Fmat) %*% Ztest.nc_random) / (Va.nc_random)))</code></pre>
+<pre><code>[1] &quot;Qx for non-causal random is 1.94576899754545&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Qx for non-causal random is &quot;, (t(Ztest.nc_strat) %*% solve(Fmat) %*% Ztest.nc_strat) / (Va.nc_strat)))</code></pre>
+<pre><code>[1] &quot;Qx for non-causal random is 20.6592056150959&quot;</code></pre>
+<p>They match, but why are they so big? Is it just because this is a single chromosome so too much LD?</p>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.6.2 (2019-12-12)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.6
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] pgenlibr_0.3.1    dplyr_1.0.4       data.table_1.14.0 workflowr_1.6.2  
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_1.0.6        highr_0.8         pillar_1.5.0      compiler_3.6.2   
+ [5] later_1.1.0.1     git2r_0.28.0      tools_3.6.2       digest_0.6.27    
+ [9] evaluate_0.14     lifecycle_1.0.0   tibble_3.1.0      pkgconfig_2.0.3  
+[13] rlang_0.4.10      DBI_1.1.1         yaml_2.2.1        xfun_0.21        
+[17] stringr_1.4.0     knitr_1.31        generics_0.1.0    fs_1.5.0         
+[21] vctrs_0.3.6       rprojroot_2.0.2   tidyselect_1.1.0  glue_1.4.2       
+[25] R6_2.5.0          fansi_0.4.2       rmarkdown_2.7     purrr_0.3.4      
+[29] magrittr_2.0.1    whisker_0.4       promises_1.2.0.1  ellipsis_0.3.1   
+[33] htmltools_0.5.1.1 assertthat_0.2.1  httpuv_1.5.5      utf8_1.1.4       
+[37] stringi_1.5.3     crayon_1.4.1     </code></pre>
+</div>
+</div>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

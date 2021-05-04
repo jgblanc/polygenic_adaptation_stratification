@@ -302,7 +302,7 @@ $(document).ready(function () {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-03-15
+<strong>Last updated:</strong> 2021-05-04
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -333,16 +333,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreeb2c89c77e94c6c91507be6d9de05607707dfd766targetblankb2c89c7a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/b2c89c77e94c6c91507be6d9de05607707dfd766" target="_blank">b2c89c7</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreea83c1a34853e12d7ade74b2c6114286de9af4cf9targetblanka83c1a3a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/a83c1a34853e12d7ade74b2c6114286de9af4cf9" target="_blank">a83c1a3</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreeb2c89c77e94c6c91507be6d9de05607707dfd766targetblankb2c89c7a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreea83c1a34853e12d7ade74b2c6114286de9af4cf9targetblanka83c1a3a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/b2c89c77e94c6c91507be6d9de05607707dfd766" target="_blank">b2c89c7</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/a83c1a34853e12d7ade74b2c6114286de9af4cf9" target="_blank">a83c1a3</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -353,31 +353,134 @@ Ignored files:
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    .snakemake/
-    Ignored:    analysis/.DS_Store
-    Ignored:    analysis/figure/
     Ignored:    code/.DS_Store
-    Ignored:    code/Calculate_Tm/.ipynb_checkpoints/
+    Ignored:    data/.DS_Store
     Ignored:    data/projection_example/
-    Ignored:    output/Calculate_Tm/
-    Ignored:    output/PRS/4PopSplit/S1/C1/genos-test_common.c.log
-    Ignored:    output/PRS/4PopSplit/S1/C1/genos-test_common.c.p.log
-    Ignored:    output/PRS/4PopSplit/S1/C1/genos-test_common.nc.log
-    Ignored:    output/PRS/4PopSplit/S1/C2/genos-test_common.c.log
-    Ignored:    output/PRS/4PopSplit/S1/C2/genos-test_common.c.p.log
-    Ignored:    output/PRS/4PopSplit/S1/C2/genos-test_common.nc.log
-    Ignored:    output/PRS/4PopSplit/S2/C1/genos-test_common.c.log
-    Ignored:    output/PRS/4PopSplit/S2/C1/genos-test_common.c.p.log
-    Ignored:    output/PRS/4PopSplit/S2/C1/genos-test_common.nc.log
-    Ignored:    output/PRS/4PopSplit/S2/C2/genos-test_common.c.log
-    Ignored:    output/PRS/4PopSplit/S2/C2/genos-test_common.c.p.log
-    Ignored:    output/PRS/4PopSplit/S2/C2/genos-test_common.nc.log
-    Ignored:    output/PRS/4PopSplit/S3/
-    Ignored:    output/PRS/4PopSplit/S4/
-    Ignored:    output/PRS/4PopSplit/S5/
-    Ignored:    output/PRS/4PopSplit/S6/
-    Ignored:    output/PRS/4PopSplit/S7/
-    Ignored:    output/PRS/4PopSplit/S8/
-    Ignored:    output/PRS/4PopSplit/S9/
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/Tm.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/Tm_covars.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/pca.eigenval
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/pca.eigenvec
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/pca.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/projection.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C1/projection.sscore
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/Tm.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/Tm_covars.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/pca.eigenval
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/pca.eigenvec
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/pca.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/projection.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S1/C2/projection.sscore
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/Tm.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/Tm_covars.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/pca.eigenval
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/pca.eigenvec
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/pca.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/projection.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C1/projection.sscore
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/Tm.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/Tm_covars.txt
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/pca.eigenval
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/pca.eigenvec
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/pca.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/projection.log
+    Ignored:    output/Calculate_Tm/4PopSplit/S2/C2/projection.sscore
+    Ignored:    output/PGA_test/4PopSplit/S2/
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C1/h2-0/env-5/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-0/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S1/C2/h2-0/env-5/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-0/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C1/h2-0/env-5/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-0/genos-test_common.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common-Tm.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common-Tm.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common-Tm.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common.c.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common.c.p.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-gwas_common.nc.betas
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common-Tm.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common-Tm.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common-Tm.nc.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common.c.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common.c.p.log
+    Ignored:    output/PRS/4PopSplit/S2/C2/h2-0/env-5/genos-test_common.nc.log
     Ignored:    output/Run_GWAS/
     Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/common_snp_ids.txt
     Ignored:    output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas.log
@@ -439,77 +542,18 @@ Ignored files:
     Ignored:    output/Simulate_Genotypes/4PopSplit/S2/C2/genos-test_common.pvar
     Ignored:    output/Simulate_Genotypes/4PopSplit/S2/ff.txt
     Ignored:    output/Simulate_Genotypes/4PopSplit/S2/genos.log
-    Ignored:    output/Simulate_Genotypes/4PopSplit/S3/
-    Ignored:    output/Simulate_Genotypes/4PopSplit/S4/
-    Ignored:    output/Simulate_Genotypes/4PopSplit/S5/
-    Ignored:    output/Simulate_Genotypes/4PopSplit/S6/
-    Ignored:    output/Simulate_Genotypes/4PopSplit/S7/
-    Ignored:    output/Simulate_Genotypes/4PopSplit/S8/
-    Ignored:    output/Simulate_Genotypes/4PopSplit/S9/
-    Ignored:    output/Simulate_Phenotypes/4PopSplit/S1/C1/genos-gwas_common.gvalue.log
-    Ignored:    output/Simulate_Phenotypes/4PopSplit/S1/C2/genos-gwas_common.gvalue.log
-    Ignored:    output/Simulate_Phenotypes/4PopSplit/S2/C1/genos-gwas_common.gvalue.log
-    Ignored:    output/Simulate_Phenotypes/4PopSplit/S2/C2/genos-gwas_common.gvalue.log
-    Ignored:    output/Simulate_Phenotypes/4PopSplit/S3/
-    Ignored:    output/Simulate_Phenotypes/4PopSplit/S4/
-    Ignored:    output/Simulate_Phenotypes/4PopSplit/S5/
-    Ignored:    output/Simulate_Phenotypes/4PopSplit/S6/
-    Ignored:    output/Simulate_Phenotypes/4PopSplit/S7/
-    Ignored:    output/Simulate_Phenotypes/4PopSplit/S8/
-    Ignored:    output/Simulate_Phenotypes/4PopSplit/S9/
+
+Untracked files:
+    Untracked:  output/Calculate_Tm/4PopSplit/E1/
+    Untracked:  output/PGA_test/4PopSplit/E1/
+    Untracked:  output/PRS/4PopSplit/E1/
+    Untracked:  output/Simulate_Genotypes/4PopSplit/E1/
+    Untracked:  output/Simulate_Phenotypes/4PopSplit/E1/
 
 Unstaged changes:
-    Modified:   analysis/projection_example.Rmd
-    Deleted:    output/PRS/4PopSplit/S1/C1/genos-gwas_common-Tm.c.betas
-    Deleted:    output/PRS/4PopSplit/S1/C1/genos-gwas_common-Tm.c.p.betas
-    Deleted:    output/PRS/4PopSplit/S1/C1/genos-gwas_common-Tm.nc.betas
-    Modified:   output/PRS/4PopSplit/S1/C1/genos-gwas_common.c.betas
-    Modified:   output/PRS/4PopSplit/S1/C1/genos-gwas_common.c.p.betas
-    Modified:   output/PRS/4PopSplit/S1/C1/genos-gwas_common.nc.betas
-    Deleted:    output/PRS/4PopSplit/S1/C1/genos-test_common-Tm.c.p.sscore
-    Deleted:    output/PRS/4PopSplit/S1/C1/genos-test_common-Tm.c.sscore
-    Deleted:    output/PRS/4PopSplit/S1/C1/genos-test_common-Tm.nc.sscore
-    Modified:   output/PRS/4PopSplit/S1/C1/genos-test_common.c.p.sscore
-    Modified:   output/PRS/4PopSplit/S1/C1/genos-test_common.c.sscore
-    Modified:   output/PRS/4PopSplit/S1/C1/genos-test_common.nc.sscore
-    Deleted:    output/PRS/4PopSplit/S1/C1/genos-test_common.true.sscore
-    Deleted:    output/PRS/4PopSplit/S1/C2/genos-gwas_common-Tm.c.betas
-    Deleted:    output/PRS/4PopSplit/S1/C2/genos-gwas_common-Tm.c.p.betas
-    Deleted:    output/PRS/4PopSplit/S1/C2/genos-gwas_common-Tm.nc.betas
-    Modified:   output/PRS/4PopSplit/S1/C2/genos-gwas_common.c.betas
-    Modified:   output/PRS/4PopSplit/S1/C2/genos-gwas_common.c.p.betas
-    Modified:   output/PRS/4PopSplit/S1/C2/genos-gwas_common.nc.betas
-    Deleted:    output/PRS/4PopSplit/S1/C2/genos-test_common-Tm.c.p.sscore
-    Deleted:    output/PRS/4PopSplit/S1/C2/genos-test_common-Tm.c.sscore
-    Deleted:    output/PRS/4PopSplit/S1/C2/genos-test_common-Tm.nc.sscore
-    Modified:   output/PRS/4PopSplit/S1/C2/genos-test_common.c.p.sscore
-    Modified:   output/PRS/4PopSplit/S1/C2/genos-test_common.c.sscore
-    Modified:   output/PRS/4PopSplit/S1/C2/genos-test_common.nc.sscore
-    Deleted:    output/PRS/4PopSplit/S1/C2/genos-test_common.true.sscore
-    Modified:   output/PRS/4PopSplit/S2/C1/genos-gwas_common.c.betas
-    Modified:   output/PRS/4PopSplit/S2/C1/genos-gwas_common.c.p.betas
-    Modified:   output/PRS/4PopSplit/S2/C1/genos-gwas_common.nc.betas
-    Modified:   output/PRS/4PopSplit/S2/C1/genos-test_common.c.p.sscore
-    Modified:   output/PRS/4PopSplit/S2/C1/genos-test_common.c.sscore
-    Modified:   output/PRS/4PopSplit/S2/C1/genos-test_common.nc.sscore
-    Modified:   output/PRS/4PopSplit/S2/C2/genos-gwas_common.c.betas
-    Modified:   output/PRS/4PopSplit/S2/C2/genos-gwas_common.c.p.betas
-    Modified:   output/PRS/4PopSplit/S2/C2/genos-gwas_common.nc.betas
-    Modified:   output/PRS/4PopSplit/S2/C2/genos-test_common.c.p.sscore
-    Modified:   output/PRS/4PopSplit/S2/C2/genos-test_common.c.sscore
-    Modified:   output/PRS/4PopSplit/S2/C2/genos-test_common.nc.sscore
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S1/C1/genos-gwas_common.effects.txt
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S1/C1/genos-gwas_common.gvalue.sscore
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S1/C1/genos-gwas_common.phenos.txt
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S1/C2/genos-gwas_common.effects.txt
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S1/C2/genos-gwas_common.gvalue.sscore
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S1/C2/genos-gwas_common.phenos.txt
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S2/C1/genos-gwas_common.effects.txt
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S2/C1/genos-gwas_common.gvalue.sscore
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S2/C1/genos-gwas_common.phenos.txt
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S2/C2/genos-gwas_common.effects.txt
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S2/C2/genos-gwas_common.gvalue.sscore
-    Modified:   output/Simulate_Phenotypes/4PopSplit/S2/C2/genos-gwas_common.phenos.txt
+    Modified:   analysis/Plot_4PopSplit.Rmd
+    Modified:   code/Calculate_Tm/calc_lambdaT.R
+    Modified:   code/PGA_test/calc_Qx.R
     Modified:   snakefile
 
 </code></pre>
@@ -549,6 +593,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/a83c1a34853e12d7ade74b2c6114286de9af4cf9/analysis/index.Rmd" target="_blank">a83c1a3</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-05-04
+</td>
+<td>
+calc qx page
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/d3bef4b79b2cf08b7ed0842a998c10bf55b6aa2e/docs/index.html" target="_blank">d3bef4b</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-03-15
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -849,7 +927,7 @@ Start workflowr project.
 4popslit <a href="4Popsplit.html">link</a><br />
 scratch <a href="scratch.html">link</a><br />
 test_vec <a href="Test_vec.html">link</a> Plot_4PopSplit <a href="Plot_4PopSplit.html">link</a><br />
-projection_example <a href="projection_example.html">link</a> plink2 projection <a href="Projection_plink2.html">link</a></p>
+projection_example <a href="projection_example.html">link</a> plink2 projection <a href="Projection_plink2.html">link</a> calc Qx <a href="Calc_Qx.html">link</a></p>
 
 
 <!-- Adjust MathJax settings so that all math formulae are shown using
