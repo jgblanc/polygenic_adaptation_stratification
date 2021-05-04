@@ -35,7 +35,7 @@ vals <- fread(vals_file)
 vals <- vals$V1
 
 # Calculate Lambda T
-lambda_T <- t(Tvec) %*% vecs %*% diag(vals) %*% t(vecs) %*% Tvec * (0.5)
+lambda_T <- t(Tvec) %*% vecs %*% diag(vals) %*% t(vecs) %*% Tvec
 
 # Save Lambda T
 fwrite(lambda_T, out_file,row.names=F,quote=F,sep="\t", col.names = T)
