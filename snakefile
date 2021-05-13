@@ -1,12 +1,12 @@
-CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
-#CHR =["0"]
-CONFIG=["C1", "C2"]
+#CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
+CHR =["0", "1"]
+CONFIG=["C1"]
 MODEL=["4PopSplit"]
-REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
-#REP = ["E1"]
-HERITABILITY = ["h2-0", "h2-0.8"]
-ENV = ["env-0","env-2"]
-SIZE=2000
+#REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
+REP = ["A1"]
+HERITABILITY = ["h2-0"]
+ENV = ["env-0"]
+SIZE=200
 
 def get_params(x):
   out = x.split("-")[1]
@@ -19,7 +19,7 @@ def get_seed(rep, h2):
 
 rule all:
     input:
-        expand("output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx.txt", model=MODEL, rep=REP, config=CONFIG, h2 = HERITABILITY, env = ENV)
+        expand("output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx.txt", model=MODEL, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV)
 
 # Simluate Genotypes
 
@@ -30,12 +30,14 @@ rule simulate_genotypes_4popsplit:
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
 	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
-	              --chr 1 \
-		             --Nanc 40000 \
-			            -a 200 \
-				           -b 200 \
-					          -c 200 \
-						         -d 200"
+	              --chr 2 \
+		            --Nanc 10000 \
+			          -a 200 \
+				        -b 200 \
+					      -c 200 \
+						    -d 200 \
+						    -s1 900001 \
+						    -s2 700000"
 
 rule format_VCF:
     input:
@@ -595,17 +597,13 @@ rule PGA_collate:
         c="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.c.sscore",
         cp="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.c.p.sscore",
         nc="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.nc.sscore",
-        c_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.c.sscore",
-        cp_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.c.p.sscore",
-        nc_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.nc.sscore",
         lambda_T="output/Calculate_Tm/{model}/{rep}/{config}/Lambda_T.txt",
         Va="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va.txt",
-        Va_Tm="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va-Tm.txt",
         true="output/PRS/{model}/{rep}/{config}/{h2}/genos-test_common.true.sscore",
-        Tvec="output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt",
+        Tvec="output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt"
     output:
         "output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx.txt"
     shell:
       """
-          Rscript code/PGA_test/calc_Qx.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {output}
+          Rscript code/PGA_test/calc_Qx.R {input.c} {input.cp} {input.nc}  {input.lambda_T} {input.Va} {input.true} {input.Tvec} {output}
 	      """

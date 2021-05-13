@@ -4,8 +4,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<12){stop("Rscript calc_Tm.R <c.sscore> <c.p.sscore> <n.c.sscore> <-Tm.c.sscore>
-                        <-Tm.c.p.sscore> <-Tm.nc.sscore> <lambda_T.txt> <Va.txt> <Va-Tm.txt>
+if(length(args)<8){stop("Rscript calc_Tm.R <c.sscore> <c.p.sscore> <n.c.sscore> <lambda_T.txt> <Va.txt>
                          <true.sscore> <Tvec.txt> <outfile name> <file with number of snps>")}
 
 suppressWarnings(suppressMessages({
@@ -17,15 +16,11 @@ suppressWarnings(suppressMessages({
 c_file = args[1] # causal pgs
 cp_file = args[2] # causal p-value pgs
 nc_file = args[3] # clumped pgs
-c_Tm_file = args[4] # causal pgs (Tm)
-cp_Tm_file = args[5] # causal p-value pgs (Tm)
-nc_Tm_file = args[6] # clumped pgs (Tm)
-lambda_T_file = args[7] # lambda T
-Va_file = args[8]
-Va_Tm_file = args[9]
-true_file = args[10] # True genetic value
-tvec_file =args[11]
-out_file = args[12] # outfile prefix
+lambda_T_file = args[4] # lambda T
+Va_file = args[5]
+true_file = args[6] # True genetic value
+tvec_file =args[7]
+out_file = args[8] # outfile prefix
 
 # Function to standardize PGS
 stand_PGS <- function(prs_file, gv_file) {
@@ -90,17 +85,8 @@ Qx_mat[1,] <- calc_Qx(stand_PGS(c_file, true_file), tvec_file, Va[1,],lambda_T)
 Qx_mat[2,] <- calc_Qx(stand_PGS(cp_file, true_file), tvec_file, Va[2,],lambda_T)
 Qx_mat[3,] <- calc_Qx(stand_PGS(nc_file, true_file), tvec_file, Va[3,],lambda_T)
 
-# Calculate Qx for Tm GWAS
-Va <- as.matrix(fread(Va_Tm_file), rownames=1)
-Qx_mat_Tm <- matrix(NA, ncol = 4, nrow = 3)
-colnames(Qx_mat_Tm) <- c("Qx_random", "Qx_strat", "p_random", "p_strat")
-row.names(Qx_mat_Tm) <- c("Tm-c", "Tm-c.p", "Tm-nc")
-Qx_mat_Tm[1,] <- calc_Qx(stand_PGS(c_Tm_file, true_file), tvec_file, Va[1,],lambda_T)
-Qx_mat_Tm[2,] <- calc_Qx(stand_PGS(cp_Tm_file, true_file), tvec_file, Va[2,],lambda_T)
-Qx_mat_Tm[3,] <- calc_Qx(stand_PGS(nc_Tm_file, true_file), tvec_file, Va[3,],lambda_T)
-
 # Concat output
-df <- as.data.frame(rbind(Qx_mat, Qx_mat_Tm))
+df <- as.data.frame(Qx_mat)
 print(df)
 
 # Save Va's

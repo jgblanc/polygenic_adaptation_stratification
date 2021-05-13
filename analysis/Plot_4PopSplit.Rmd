@@ -32,9 +32,10 @@ agg_data <- function(rep, file_path, file_name) {
   return(gvalue)
 }
 
-reps <- list("B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20" )
+#reps <- list("B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20" )
+reps <- list("E5", "E6", "E7")
 cols_gwas <- c("red2", "mediumblue")
-df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0.8/genos-gwas_common.gvalue.sscore')
+df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/genos-gwas_common.gvalue.sscore')
 
 # Histogram 
 ggplot(data = df, aes(x= SCORE1_SUM, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "C"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("True PGS") + scale_fill_manual(values = cols_gwas)
@@ -42,7 +43,7 @@ ggplot(data = df, aes(x= SCORE1_SUM, fill = POP)) + geom_histogram(data = subset
 
 Random Phenotypes (no stratification)
 ```{r}
-df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0.8/env-2/genos-gwas_common.phenos.txt")
+df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-0/genos-gwas_common.phenos.txt")
 
 # Histogram 
 ggplot(data = df, aes(x=pheno_random, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "C"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("Random Phenotype") + scale_fill_manual(values = cols_gwas)
@@ -56,8 +57,8 @@ ggplot(data = df, aes(x=pheno_strat, fill = POP)) + geom_histogram(data = subset
 
 Random Phenotype - True Genetic Value  $E = Y - X\beta$  
 ```{r}
-genos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0.8/genos-gwas_common.gvalue.sscore')
-phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0.8/env-2/genos-gwas_common.phenos.txt")
+genos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/genos-gwas_common.gvalue.sscore')
+phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-0/genos-gwas_common.phenos.txt")
 
 E <- phenos$pheno_rand - genos$SCORE1_SUM 
 df <- as.data.frame(cbind(genos$POP, genos$REP, E))
@@ -69,8 +70,8 @@ ggplot(data = df, aes(x=E, fill =V1)) + geom_histogram(data = subset(df, V1 == "
 
 Stratified Phenotype - True Genetic Value  $E = Y - X\beta$  (Pop A should have positive environment)
 ```{r}
-genos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0.8/genos-gwas_common.gvalue.sscore')
-phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0.8/env-2/genos-gwas_common.phenos.txt")
+genos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/genos-gwas_common.gvalue.sscore')
+phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-0/genos-gwas_common.phenos.txt")
 
 E <- phenos$pheno_strat - genos$SCORE1_SUM 
 df <- as.data.frame(cbind(genos$POP, genos$REP, E))
@@ -109,7 +110,7 @@ agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
   return(mprs.adj)
 }
 
-prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C1/h2-0.8/env-2/genos-test_common.nc.sscore', file_name_gv='/C1/h2-0.8/genos-test_common.true.sscore')
+prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C1/h2-0/env-0/genos-test_common.nc.sscore', file_name_gv='/C1/h2-0/genos-test_common.true.sscore')
 
 cols_test <- c("darkgoldenrod1", "darkorchid1")
 
@@ -314,7 +315,7 @@ agg_data <- function(rep, file_path, file_name) {
   return(gvalue)
 }
 cols_gwas <- c("red2", "mediumblue")
-df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C2/genos-gwas_common.gvalue.sscore')
+df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C2/h2-0.8/genos-gwas_common.gvalue.sscore')
 
 # Histogram 
 ggplot(data = df, aes(x= SCORE1_SUM, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "B"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("True PGS") + scale_fill_manual(values = cols_gwas)
@@ -322,7 +323,7 @@ ggplot(data = df, aes(x= SCORE1_SUM, fill = POP)) + geom_histogram(data = subset
 
 Random Phenotypes (no stratification)
 ```{r}
-df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C2/genos-gwas_common.phenos.txt")
+df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C2/h2-0.8/env-2/genos-gwas_common.phenos.txt")
 
 # Histogram 
 ggplot(data = df, aes(x=pheno_random, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "B"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("Random Phenotype") + scale_fill_manual(values = cols_gwas)
@@ -377,17 +378,17 @@ agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
 }
 
 
-prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C2/genos-test_common.nc.sscore', file_name_gv='/C2/genos-test_common.true.sscore')
+prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C2/h2-0.8/env-2/genos-test_common.nc.sscore', file_name_gv='/C2/h2-0.8/genos-test_common.true.sscore')
 cols_test <- c("darkgoldenrod1", "darkorchid1")
 
 # Histogram 
-ggplot(data = prs, aes(x=RANDOM, fill = POP)) + geom_histogram(data = subset(prs, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
+ggplot(data = prs, aes(x=random.adjusted, fill = POP)) + geom_histogram(data = subset(prs, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
 ```
 
 Polygenic Score in Test Population - Stratified Phenotype
 ```{r}
 # Histogram 
-ggplot(data = prs, aes(x=STRAT, fill = POP)) + geom_histogram(data = subset(prs, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Strat") + scale_fill_manual(values = cols_test)
+ggplot(data = prs, aes(x=strat.adjusted, fill = POP)) + geom_histogram(data = subset(prs, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Strat") + scale_fill_manual(values = cols_test)
 ```
 
 Mean Difference Across Populations

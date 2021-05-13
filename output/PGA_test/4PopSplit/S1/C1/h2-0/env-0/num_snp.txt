@@ -1,1 +1,0 @@
-   97102 output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pvar
