@@ -4,7 +4,6 @@ library(data.table)
 args=commandArgs(TRUE)
 rep <- args[1]
 
-
 # Set parameters
 n <- 200
 L_gwas <- 500

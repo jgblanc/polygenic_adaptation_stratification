@@ -1395,11 +1395,63 @@ mean(df$Qx_random)
 ks.test(df$p_random, "punif")
 ```
 
+## Matrix Results
+
+```{r}
+reps <- list()
+for (i in 1:50) {
+  rep <- paste0("M", i)
+  reps[[i]] <- rep
+}
+```
+
+
+```{r}
+# Read in all Reps and Pick important columns 
+agg_Qx <- function(rep) {
+  Qx <- fread(paste0("../output/PGA_test/4PopSplit/", rep, "/C1/h2-0/env-0/Qx.txt"), header = T)
+  Qx <- as.data.frame(Qx[1,c(2,4)])
+  Qx$REP <- rep
+  return(Qx)
+}
+
+df <- plyr::ldply(reps, agg_Qx)
+```
+
+```{r}
+hist(df$p_random)
+mean(df$Qx_random)
+ks.test(df$p_random, "punif")
+```
 
 
 
 
+```{r}
+reps <- list()
+for (i in 1:50) {
+  rep <- paste0("M", i)
+  reps[[i]] <- rep
+}
+```
 
 
+```{r}
+# Read in all Reps and Pick important columns 
+agg_Qx <- function(rep) {
+  Qx <- fread(paste0("../output/Calculate_Tm/4PopSplit/", rep, "/C1/Lambda_T.txt"), header = T)
+  Qx <- as.data.frame(Qx)
+  Qx$REP <- rep
+  return(Qx)
+}
+
+df <- plyr::ldply(reps, agg_Qx)
+```
+
+```{r}
+hist(df$p_random)
+mean(df$Qx_random)
+ks.test(df$p_random, "punif")
+```
 
 

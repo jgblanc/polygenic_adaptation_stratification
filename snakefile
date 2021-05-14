@@ -3,9 +3,9 @@ CHR =["0", "1"]
 CONFIG=["C1"]
 MODEL=["4PopSplit"]
 #REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
-REP = ["M1"]
-#for i in range(1, 1001):
-#  REP.append("A"+str(i))
+REP = ["E8"]
+#for i in range(1, 51):
+#  REP.append("M"+str(i))
 HERITABILITY = ["h2-0"]
 ENV = ["env-0"]
 SIZE=200
@@ -38,8 +38,8 @@ rule simulate_genotypes_4popsplit:
 				        -b 200 \
 					      -c 200 \
 						    -d 200 \
-						    -s1 900001 \
-						    -s2 700000"
+						    -s1 140000 \
+						    -s2 70000"
 
 rule format_VCF:
     input:

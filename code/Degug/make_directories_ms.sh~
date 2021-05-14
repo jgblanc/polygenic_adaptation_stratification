@@ -12,7 +12,7 @@ do
 done
 
 
-a=100
+a=1
 
 while [ $a -lt 2 ]
 do
@@ -21,7 +21,7 @@ do
    a=`expr $a + 1`
 done
 
-a=100
+a=1
 
 while [ $a -lt 2 ]
 do

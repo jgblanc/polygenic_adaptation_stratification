@@ -4,17 +4,14 @@ library(pgenlibr)
 library(dplyr)
 
 args=commandArgs(TRUE)
-#rep <- args[1]
-rep <- "M1"
-#num_var <- args[2]
-num_var <- 9233
+rep <- args[1]
+#rep <- "M1"
 
 # Set parameters
 L_gwas <- 500
 
-print(getwd())
-#setwd("/Users/jenniferblanc/polygenic_adaptation_stratification/code/Degug")
-print(head(fread(paste0("../../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-gwas_common.afreq"))))
+num_f <- fread(paste0("../../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-gwas_common.afreq"))
+num_var <- nrow(num_f)
 
 # Read in test panel
 pvar <- NewPvar(paste0("../../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-test_common.pvar"))

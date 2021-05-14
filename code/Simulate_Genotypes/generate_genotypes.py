@@ -62,9 +62,9 @@ def split(N_A, N_B, N_C, N_D, split_time1, split_time2, sample_A, sample_B, samp
     
     # Use the demography debugger to print out the demographic history
     # that we have just described.
-    dd = msprime.DemographyDebugger(
-        population_configurations=population_configurations,
-        demographic_events=demographic_events)
+    #dd = msprime.DemographyDebugger(
+    #    population_configurations=population_configurations,
+    #    demographic_events=demographic_events)
     #dd.print_history()
     
     ts = msprime.simulate(population_configurations=population_configurations,
