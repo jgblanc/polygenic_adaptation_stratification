@@ -1365,6 +1365,37 @@ ggplot(data = prs, aes(x=strat.adjusted, fill = POP)) + geom_histogram(data = su
 ```
 
 
+## Normal Approximation Results
+
+```{r}
+reps <- list()
+for (i in 1:1000) {
+  rep <- paste0("A", i)
+  reps[[i]] <- rep
+}
+```
+
+
+
+```{r}
+# Read in all Reps and Pick important columns 
+agg_Qx <- function(rep) {
+  Qx <- fread(paste0("../output/PGA_test/4PopSplit/", rep, "/C1/h2-0/env-0/Qx.txt"), header = T)
+  Qx <- as.data.frame(Qx[1,c(2,4)])
+  Qx$REP <- rep
+  return(Qx)
+}
+
+df <- plyr::ldply(reps, agg_Qx)
+```
+
+```{r}
+hist(df$p_random)
+mean(df$Qx_random)
+ks.test(df$p_random, "punif")
+```
+
+
 
 
 

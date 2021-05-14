@@ -1,69 +1,37 @@
-# This Script uses the normal approximation to generate 2 sets of genotypes
+# This Script uses msprime genotype matrices to calculate Qx
 library(data.table)
+library(pgenlibr)
+library(dplyr)
 
 args=commandArgs(TRUE)
-rep <- args[1]
-
+#rep <- args[1]
+rep <- "M1"
+#num_var <- args[2]
+num_var <- 9233
 
 # Set parameters
-n <- 200
 L_gwas <- 500
-L <- 10000
-ms <- 0
 
-# Function to make Genotype matrix
-make_genotype_matrix <- function(p, n, L) {
-  G <- matrix(NA, nrow = n, ncol = L)
-  for (i in 1:length(p)) {
-    G[,i] <- rbinom(n,2,p[i])
-  }
-  return(G)
-}
+print(getwd())
+#setwd("/Users/jenniferblanc/polygenic_adaptation_stratification/code/Degug")
+print(head(fread(paste0("../../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-gwas_common.afreq"))))
 
+# Read in test panel
+pvar <- NewPvar(paste0("../../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-test_common.pvar"))
+pvar <- NewPvar(paste0("../../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-test_common.pvar"))
+d1 <- NewPgen(paste0("../../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-test_common.pgen"))
+X <- ReadList(d1,seq(1,as.numeric(num_var)), meanimpute=F)
+n <- nrow(X)
+L <- ncol(X)
 
-# Draw alleles from Beta
-p_start <- rbeta(L, 1,3)
-p_start_gwas <- rbeta(L_gwas, 1,3)
+# Read in gwas panel
+pvar <- NewPvar(paste0("../../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-gwas_common.pvar"))
+d1 <- NewPgen(paste0("../../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-gwas_common.pgen"))
+X_gwas <- ReadList(d1,seq(1,as.numeric(num_var)), meanimpute=F)
 
-# Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
-p1GWAS <- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
-p2GWAS <- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
-rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
-if (length(rm) > 0) {
-  p1GWAS <- p1GWAS[-rm]
-  p2GWAS <- p2GWAS[-rm]
-}
-
-# Evolve neautral alleles vias drift
-p1N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
-p2N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
-rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
-if (length(rm) > 0) {
-  p1N <- p1N[-rm]
-  p2N <- p2N[-rm]
-}
-
-# Make Genotype matrix for GWAS alleles by drawing from population
-i1GWAS <- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
-i2GWAS <- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
-
-# Make Genotype matrix for neautral alleles by drawing from population
-i1N <- make_genotype_matrix(p1N, n/2, length(p1N))
-i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
-
-# Neutral Gentotype Matrix
-X <- rbind(i1N, i2N)
-if (length(which(colSums(X) == 0)) > 0 | length(which(colSums(X) == nrow(X))) > 0 ){
-  if (length(which(colSums(X) == 0)) > 0) { X <- X[, -which(colSums(X) == 0)]}
-  if (length(which(colSums(X) == nrow(X))) > 0) {X <- X[, -which(colSums(X) == nrow(X))]}
-}
-
-# GWAS Xentotype Matrix
-X_gwas <- rbind(i1GWAS, i2GWAS)
-if (length(which(colSums(X_gwas) == 0)) > 0 | length(which(colSums(X_gwas) == nrow(X_gwas))) > 0 ){
-  if (length(which(colSums(X_gwas) == 0)) > 0) { X_gwas <- X_gwas[, -which(colSums(X_gwas) == 0)]}
-  if (length(which(colSums(X_gwas) == nrow(X_gwas))) > 0) {X_gwas <- X_gwas[, -which(colSums(X_gwas) == nrow(X_gwas))]}
-}
+# Sample L_gwas number of loci from GWAS population
+gwas_indx <- sample(seq(0, ncol(X_gwas)), L_gwas)
+X_gwas <- X_gwas[, gwas_indx]
 
 # Simulate Beta Hats
 Bhat <- rnorm(ncol(X_gwas), 0,1)
@@ -71,8 +39,18 @@ Bhat <- rnorm(ncol(X_gwas), 0,1)
 # Compute Individual PGS
 Z <- rowSums(X_gwas %*% diag(Bhat))
 
-# Make test vector and compute Ztest
-Tvec <- c(rep(1,(n/2)), rep(-1,(n/2)))
+# Make test vector
+
+# Read in Fam file
+fam <- fread(paste0("../../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-gwas_common.psam"))
+colnames(fam) <- c("IID", "FID", "SEX")
+
+# Make standardized test vec
+pops <- fread(paste0("../../output/Simulate_Genotypes/4PopSplit/", rep, "/genos.pop"), header = F)
+pop <- dplyr::inner_join(pops, fam, by = c("V1"= "IID")) %>% select("V2", "V3")
+test_pops <- unique(pop$V3)
+pop <- pop %>% mutate(tvec = case_when(V3 == test_pops[1] ~ 1, V3 == test_pops[2] ~ -1))
+Tvec <- pop$tvec
 
 ## Caclulate Eigenvec+Eigenval files
 
@@ -131,5 +109,3 @@ in_ID <- seq(1, n)
 true_df <- as.data.frame(cbind(in_ID, rep(0,n), rep(0,n)))
 colnames(true_df) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "SCORE1_SUM")
 fwrite(as.data.frame(true_df), paste0("../../output/PRS/4PopSplit/", rep, "/C1/h2-0/genos-test_common.true.sscore") ,row.names=F,quote=F,sep="\t", col.names = T)
-
-

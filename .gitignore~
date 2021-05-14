@@ -11,6 +11,7 @@ analysis/*_cache
 analysis/site_libs
 data/*
 output/*/*/E*
+output/*/*/A*
 output/Simulate_Genotypes/*/*/*.pgen
 output/Simulate_Genotypes/*/*/*.pvar
 output/Simulate_Genotypes/*/*/*.psam
