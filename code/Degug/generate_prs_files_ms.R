@@ -5,7 +5,7 @@ library(dplyr)
 
 args=commandArgs(TRUE)
 rep <- args[1]
-#rep <- "M1"
+rep <- "M59"
 
 # Set parameters
 L_gwas <- 500

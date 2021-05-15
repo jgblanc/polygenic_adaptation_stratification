@@ -1,6 +1,6 @@
 #!/bin/sh
 
-a=100
+a=1
 
 while [ $a -lt 1001 ]
 do
