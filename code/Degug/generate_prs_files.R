@@ -2,7 +2,8 @@
 library(data.table)
 
 args=commandArgs(TRUE)
-rep <- args[1]
+#rep <- args[1]
+rep <- "A486"
 
 # Set parameters
 n <- 200
