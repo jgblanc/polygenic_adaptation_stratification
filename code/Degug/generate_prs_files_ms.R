@@ -3,9 +3,10 @@ library(data.table)
 library(pgenlibr)
 library(dplyr)
 
+setwd("~/polygenic_adaptation_stratification/code/Degug/")
 args=commandArgs(TRUE)
 rep <- args[1]
-#rep <- "M1"
+rep <- "M10"
 
 # Set parameters
 L_gwas <- 500
