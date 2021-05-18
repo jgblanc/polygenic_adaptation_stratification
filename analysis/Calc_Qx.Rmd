@@ -1454,4 +1454,20 @@ mean(df$Qx_random)
 ks.test(df$p_random, "punif")
 ```
 
+```{r}
+phenos <- fread("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Phenotypes/4PopSplit/M1/C1/h2-0/env-0/genos-gwas_common.phenos.txt")
+pheno <- phenos$pheno_random
+
+# Read in gwas panel
+rep <- "M1"
+pvar <- NewPvar(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-gwas_common.pvar"))
+d1 <- NewPgen(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-gwas_common.pgen"))
+X_gwas <- ReadList(d1,seq(1,as.numeric(num_var)), meanimpute=F)
+
+betas <- rep(0, 10)
+for (i in 1:10) {
+  mod <- lm(pheno ~ X_gwas[,i])
+  betas[i] <- mod$coefficients[2]
+}
+```
 

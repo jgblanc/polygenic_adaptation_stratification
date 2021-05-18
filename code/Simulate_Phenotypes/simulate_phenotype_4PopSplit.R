@@ -15,6 +15,7 @@ popfile = args[2] # pop file from msprime simulation
 output_file = args[3] #name of output file
 h2 = as.numeric(args[4])
 env=as.numeric(args[5])
+print(args[6])
 set.seed(args[6])
 
 print(as.numeric(env))
@@ -37,6 +38,7 @@ prs=merge(prs, pop, by="IID", sort=F)
 #no 'environmental' effect
 #NOTE: SIGMA_G SET AT h2
 prs$grandom = rnorm(sample_size,0, sqrt(1 - h2))
+print(head(prs))
 
 # effect on the "first" population (A)
 pops <- unique(prs$pop)
@@ -59,6 +61,7 @@ prs$env = scale(prs$env, scale = T) * sqrt(1 - h2)
 prs = prs %>%
   mutate(pheno_random = prs + grandom,
         pheno_strat = prs + env)
+print(head(prs))
 
 fwrite(
   prs%>%
