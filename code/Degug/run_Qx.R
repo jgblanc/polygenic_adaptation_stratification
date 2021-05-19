@@ -1,5 +1,6 @@
 library(data.table)
 library(dplyr)
+library(ggplot2)
 
 # Note these are small msprime simulations with 200 samples per panel and only 2 chromosomes
 
@@ -13,8 +14,10 @@ L <- ncol(X_gwas) # Number of total loci (no filtering except at least one copy 
 # Draw Random Phenotype for each individual (this matches the phenotypes fed into pipeline)
 set.seed(30)
 pheno <- scale(rnorm(n,0,1), scale = T)
+df <- as.data.frame(cbind(pheno, Tvec <- c(rep(-1, 100)/100,rep(1, 100)/100) * (1/2)))
+ggplot(df, aes(x=V1, fill = as.character(V2))) + geom_histogram(position="identity")
 
-# Do GWAS by repgressing phenotype on genotype (these match plink output) (take like a minute to run)
+# Do GWAS by repgressing phenotype on genotype (these match plink output once you flip to the right allele) (take like a minute to run)
 est_betas <- rep(0, L)
 for(i in 1:L){
   mod <- lm(pheno ~ X_gwas[,i])
@@ -28,14 +31,14 @@ Bhat <- est_betas[gwas_indx]
 Bhat <- rnorm(500, 0, 0.05) #Uncomment this line to re-run with randomly drawn Beta hats
 
 
-
 ####################################
 
 # Read in Test Panel Genotypes
 X <- readRDS("~/Desktop/TEST.rds")
 
-# Compute Individual PGS - this matches pipeline sccoring function
+# Compute Individual PGS
 Z <- rowSums(X[,gwas_indx] %*% diag(Bhat))
+#Z <- X[, gwas_indx] %*% Bhat
 
 # Make Test Vector (in this example I know that there are exactly 100 indviduals in pop B and 100 in pop D)
 Tvec <- c(rep(-1, 100)/100,rep(1, 100)/100) * (1/2)
@@ -56,10 +59,12 @@ myE <- eigen(cov_mat)
 vecs <- myE$vectors
 vals <- myE$values
 
-# Compute Va
-Va <- 2*sum(Bhat^2 * (colMeans(X[,gwas_indx]/2) * (1 - colMeans(X[,gwas_indx]/2))))
 K <- myE$vectors[,1:199] %*% diag(myE$values[1:199]) %*% t(myE$vectors[,1:199]) # Recontruct GRM
 Fmat <-  (Tvec %*% K %*% Tvec) # This is 2*Fst
+
+# Compute Va
+Va <- 2*sum(Bhat^2 * (colMeans(X[,gwas_indx]/2) * (1 - colMeans(X[,gwas_indx]/2))))
+
 
 # Compute Qx
 Qx <- (t(Ztest) %*% solve(Fmat) %*% Ztest) / (Va)

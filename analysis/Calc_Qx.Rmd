@@ -1081,8 +1081,6 @@ Fst
 Qst/Fst
 ```
 
-
-
 ```{r}
 pgs.c <- stand_PGS("../output/PRS/4PopSplit/E1/C2/h2-0/env-0/genos-test_common.c.sscore", "../output/PRS/4PopSplit/E1/C2/h2-0/genos-test_common.true.sscore")
 pgs.nc <- stand_PGS("../output/PRS/4PopSplit/E1/C2/h2-0/env-0/genos-test_common.nc.sscore", "../output/PRS/4PopSplit/E1/C2/h2-0/genos-test_common.true.sscore")
@@ -1113,6 +1111,56 @@ Fst
 
 Qst/Fst
 ```
+
+## Check plink GWAS and scoring function 
+
+```{r}
+rep <- "M1"
+pvar <- NewPvar(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-gwas_common.pvar"))
+d1 <- NewPgen(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-gwas_common.pgen"))
+X_gwas <- ReadList(d1,seq(1,28070), meanimpute=F)
+
+phenos <- rnorm(200, 0, 1)
+est_betas <- rep(0,28070 )
+for(i in 1:28070 ){
+  mod <- lm(phenos ~ X_gwas[,i])
+  est_betas[i] <- mod$coefficients[2]
+}
+
+fam <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/genos-gwas_common.psam"))
+fwrite(as.data.frame(cbind(fam[,c(1,2)],phenos)), "~/polygenic_adaptation_stratification/code/Degug/phenos.txt")
+
+head(est_betas)
+```
+
+
+```{bash}
+~/Desktop/plink2 \
+        --pfile ../output/Simulate_Genotypes/4PopSplit/M1/C1/genos-gwas_common \
+        --read-freq  ../output/Simulate_Genotypes/4PopSplit/M1/C1/genos-gwas_common.afreq \
+        --glm \
+        --pheno ../code/Degug/phenos.txt \
+        --pheno-name phenos \
+        --out ../code/Degug/gwas
+```
+
+```{r}
+plink_betas <- fread("~/polygenic_adaptation_stratification/code/Degug/gwas.phenos.glm.linear")
+fwrite(as.data.frame(cbind(fam[,c(1,2)],plink_betas$BETA)), "~/polygenic_adaptation_stratification/code/Degug/plink_betas.txt")
+```
+
+```{r}
+
+```
+
+
+```{r}
+which(est_betas == 0)
+plot(est_betas, plink_betas$BETA)
+```
+
+
+
 
 
 
