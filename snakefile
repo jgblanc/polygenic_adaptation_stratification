@@ -3,11 +3,11 @@ CHR =["0", "1"]
 CONFIG=["C1"]
 MODEL=["4PopSplit"]
 #REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
-REP = ["M3"]
+REP = ["M6"]
 #for i in range(1, 501):
 #  REP.append("M"+str(i))
 HERITABILITY = ["h2-0"]
-ENV = ["env-0"]
+ENV = ["env-0.05"]
 SIZE=200
 
 def get_params(x):
@@ -38,8 +38,8 @@ rule simulate_genotypes_4popsplit:
 				        -b 200 \
 					      -c 200 \
 						    -d 200 \
-						    -s1 140000 \
-						    -s2 70000"
+						    -s1 70000 \
+						    -s2 35000"
 
 rule format_VCF:
     input:
@@ -303,7 +303,7 @@ rule simulate_phenotype_4PopSplit:
         en = lambda wildcards: get_params(wildcards.env),
         seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2)
     shell:
-        "Rscript code/Simulate_Phenotypes/simulate_phenotype_4PopSplit.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
+        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit_meanshift.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
 
 
 # Run GWAS
@@ -599,13 +599,18 @@ rule PGA_collate:
         c="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.c.sscore",
         cp="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.c.p.sscore",
         nc="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.nc.sscore",
+        c_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.c.sscore",
+        cp_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.c.p.sscore",
+        nc_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.nc.sscore",
         lambda_T="output/Calculate_Tm/{model}/{rep}/{config}/Lambda_T.txt",
         Va="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va.txt",
+        Va_Tm="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va-Tm.txt",
         true="output/PRS/{model}/{rep}/{config}/{h2}/genos-test_common.true.sscore",
         Tvec="output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt"
     output:
         "output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx.txt"
     shell:
       """
-          Rscript code/PGA_test/calc_Qx.R {input.c} {input.cp} {input.nc}  {input.lambda_T} {input.Va} {input.true} {input.Tvec} {output}
+          Rscript code/PGA_test/calc_Qx.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {output}
 	      """
+
