@@ -1457,8 +1457,8 @@ for (i in 1:499) {
 ```{r}
 # Read in all Reps and Pick important columns 
 agg_Qx <- function(rep) {
-  Qx <- fread(paste0("../../output/PGA_test/4PopSplit/", rep, "/C1/h2-0/env-0/Qx.txt"), header = T)
-  Qx <- as.data.frame(Qx[1,c(2,4)])
+  Qx <- fread(paste0("../../output/PGA_test/4PopSplit/", rep, "/C1/h2-0/env-0.05/Qx.txt"), header = T)
+  Qx <- as.data.frame(Qx)
   Qx$REP <- rep
   return(Qx)
 }
@@ -1518,4 +1518,50 @@ for (i in 1:10) {
   betas[i] <- mod$coefficients[2]
 }
 ```
+
+
+
+
+```{r}
+env_0 <- fread("../code/plot/env_0.txt")
+env_0$env <- 0
+env_0_nc <- env_0 %>% filter(V1 == "nc" | V1 == "Tm-nc")
+env_0_c <- env_0 %>% filter(V1 == "c" | V1 == "Tm-c")
+```
+
+```{r}
+env_1 <- fread("../code/plot/env_0.01.txt")
+env_1$env <- 0.01
+env_1_nc <- env_1 %>% filter(V1 == "nc" | V1 == "Tm-nc")
+env_1_c <- env_1 %>% filter(V1 == "c" | V1 == "Tm-c")
+
+hist(env_1_nc$p_strat)
+```
+
+```{r}
+env_5 <- fread("../code/plot/env_0.05.txt")
+env_5$env <- 0.05
+env_5_nc <- env_5 %>% filter(V1 == "nc" | V1 == "Tm-nc")
+env_5_c <- env_5 %>% filter(V1 == "c" | V1 == "Tm-c")
+
+hist(env_5_nc$p_strat)
+```
+
+```{r}
+df <- as.data.frame(rbind(env_0, env_1, env_5))
+c <- df %>% filter(V1 == "c"|V1 == "Tm-c") %>% group_by(env, V1) %>% summarise(fp_strat = sum(p_strat < 0.05)/ n())
+ggplot(data = c, aes(x = env, y = fp_strat, color = V1)) + geom_point(size =3) + xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate")
+```
+
+```{r}
+df <- as.data.frame(rbind(env_0, env_1, env_5))
+nc <- df %>% filter(V1 == "nc"|V1 == "Tm-nc") %>% group_by(env, V1) %>% summarise(fp_strat = sum(p_strat < 0.05)/ n())
+ggplot(data = nc, aes(x = env, y = fp_strat, color = V1)) + geom_point(size =3) + xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate")
+```
+
+``
+```
+
+
+
 
