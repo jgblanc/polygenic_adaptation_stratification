@@ -1,14 +1,14 @@
-#CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
-CHR =["0", "1"]
-CONFIG=["C1"]
+CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
+#CHR =["0", "1"]
+CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
 #REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
 REP = []
-for i in range(1, 501):
-  REP.append("M"+str(i))
+for i in range(1, 6):
+  REP.append("J"+str(i))
 HERITABILITY = ["h2-0"]
-ENV = ["env-0.0","env-0.01","env-0.02","env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.10"]
-SIZE=200
+ENV = ["env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.10"]
+SIZE=2000
 
 def get_params(x):
   out = x.split("-")[1]
@@ -32,14 +32,14 @@ rule simulate_genotypes_4popsplit:
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
 	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
-	              --chr 2 \
-		            --Nanc 10000 \
-			          -a 200 \
-				        -b 200 \
-					      -c 200 \
-						    -d 200 \
-						    -s1 70000 \
-						    -s2 35000"
+	       --chr 20 \
+       	       --Nanc 10000 \
+  	       -a 10000 \
+	       -b 10000 \
+	       -c 10000 \
+	       -d 10000 \
+               -s1 22000 \
+               -s2 11000"
 
 rule format_VCF:
     input:
