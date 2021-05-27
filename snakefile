@@ -224,52 +224,52 @@ rule common_snp_freq:
 	            --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
 		          --freq"
 
-rule aggregate_genotypes:
-    input:
-        frq=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq", model=MODEL, rep=REP, config=CONFIG),
-        genos=expand("output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.vcf", chr=CHR, rep=REP, config=CONFIG, model=MODEL),
-        gz_chr=expand("output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz", chr=CHR, model=MODEL, rep=REP),
-        frq_test=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.afreq", model=MODEL, rep=REP, config=CONFIG),
-        frq_gwas=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.afreq", model=MODEL, rep=REP, config=CONFIG),
-        gz=expand("output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz", model=MODEL, rep=REP),
-	      gwas_pgen=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pgen", model=MODEL, rep=REP, config=CONFIG),
-	      gwas_pvar=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pvar", model=MODEL, rep=REP, config=CONFIG),
-	      gwas_psam=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam", model=MODEL, rep=REP, config=CONFIG),
-	      test_pgen=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen", model=MODEL, rep=REP, config=CONFIG),
-	      test_pvar=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar", model=MODEL, rep=REP, config=CONFIG),
-	      test_psam=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam", model=MODEL, rep=REP, config=CONFIG),
-	      pgen=expand("output/Simulate_Genotypes/{model}/{rep}/genos.pgen", model=MODEL, rep=REP, config=CONFIG),
-	      pvar=expand("output/Simulate_Genotypes/{model}/{rep}/genos.pvar", model=MODEL, rep=REP, config=CONFIG),
-	      psam=expand("output/Simulate_Genotypes/{model}/{rep}/genos.psam", model=MODEL, rep=REP, config=CONFIG),
-	      big_psam=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.psam", model=MODEL, rep=REP, config=CONFIG),
-	      big_pvar=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.pvar", model=MODEL, rep=REP, config=CONFIG),
-	      big_pgen=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.pgen", model=MODEL, rep=REP, config=CONFIG),
-        id=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/downsample.id", model=MODEL, rep=REP, config=CONFIG)
-    output:
-        expand("output/Simulate_Genotypes/{model}/{rep}/ff.txt", model=MODEL, rep=REP)
-    shell:
-        """
-	 touch {output}
-	 echo {input.frq}
-	 rm {input.genos}
-	 rm {input.frq_test}
-	 rm {input.frq_gwas}
-	 rm {input.gz}
-	 rm {input.gz_chr}
-	 rm {input.gwas_pgen}
-	 rm {input.gwas_pvar}
-	 rm {input.gwas_psam}
-	 rm {input.test_pgen}
-	 rm {input.test_pvar}
-	 rm {input.test_psam}
-	 rm {input.pgen}
-	 rm {input.pvar}
-	 rm {input.psam}
-	 rm {input.big_psam}
-	 rm {input.big_pvar}
-	 rm {input.big_pgen}
-	 rm {input.id}
-	 """
+#rule aggregate_genotypes:
+#    input:
+#        frq=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq", model=MODEL, rep=REP, config=CONFIG),
+#        genos=expand("output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.vcf", chr=CHR, rep=REP, config=CONFIG, model=MODEL),
+#        gz_chr=expand("output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz", chr=CHR, model=MODEL, rep=REP),
+#        frq_test=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.afreq", model=MODEL, rep=REP, config=CONFIG),
+#        frq_gwas=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.afreq", model=MODEL, rep=REP, config=CONFIG),
+#        gz=expand("output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz", model=MODEL, rep=REP),
+#	      gwas_pgen=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pgen", model=MODEL, rep=REP, config=CONFIG),
+#	      gwas_pvar=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pvar", model=MODEL, rep=REP, config=CONFIG),
+#	      gwas_psam=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam", model=MODEL, rep=REP, config=CONFIG),
+#	      test_pgen=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen", model=MODEL, rep=REP, config=CONFIG),
+#	      test_pvar=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar", model=MODEL, rep=REP, config=CONFIG),
+#	      test_psam=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam", model=MODEL, rep=REP, config=CONFIG),
+#	      pgen=expand("output/Simulate_Genotypes/{model}/{rep}/genos.pgen", model=MODEL, rep=REP, config=CONFIG),
+#	      pvar=expand("output/Simulate_Genotypes/{model}/{rep}/genos.pvar", model=MODEL, rep=REP, config=CONFIG),
+#	      psam=expand("output/Simulate_Genotypes/{model}/{rep}/genos.psam", model=MODEL, rep=REP, config=CONFIG),
+#	      big_psam=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.psam", model=MODEL, rep=REP, config=CONFIG),
+#	      big_pvar=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.pvar", model=MODEL, rep=REP, config=CONFIG),
+#	      big_pgen=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.pgen", model=MODEL, rep=REP, config=CONFIG),
+#        id=expand("output/Simulate_Genotypes/{model}/{rep}/{config}/downsample.id", model=MODEL, rep=REP, config=CONFIG)
+#    output:
+#        expand("output/Simulate_Genotypes/{model}/{rep}/ff.txt", model=MODEL, rep=REP)
+#    shell:
+#        """
+#	 touch {output}
+#	 echo {input.frq}
+#	 rm {input.genos}
+#	 rm {input.frq_test}
+#	 rm {input.frq_gwas}
+#	 rm {input.gz}
+#	 rm {input.gz_chr}
+#	 rm {input.gwas_pgen}
+#	 rm {input.gwas_pvar}
+#	 rm {input.gwas_psam}
+#	 rm {input.test_pgen}
+#	 rm {input.test_pvar}
+#	 rm {input.test_psam}
+#	 rm {input.pgen}
+#	 rm {input.pvar}
+#	 rm {input.psam}
+#	 rm {input.big_psam}
+#	 rm {input.big_pvar}
+#	 rm {input.big_pgen}
+#	 rm {input.id}
+#	 """
 
 # Simluate Phenotypes
 
