@@ -36,6 +36,7 @@ output/PRS/*/*/*/*.log
 output/PRS/*/*/*/*.betas
 output/PRS/*/*/*/*/*/*.betas
 output/PRS/*/*/*/*/*/*.log 
+output/Empirical_Null/*
 plink2
 logs/*
 .snakemake/*

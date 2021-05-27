@@ -12,6 +12,10 @@ analysis/site_libs
 data/*
 output/*/*/E*
 output/*/*/A*
+output/*/*/M*
+output/*/*/T*
+output/*/*/J*
+output/*/*/F*
 output/Simulate_Genotypes/*/*/*.pgen
 output/Simulate_Genotypes/*/*/*.pvar
 output/Simulate_Genotypes/*/*/*.psam

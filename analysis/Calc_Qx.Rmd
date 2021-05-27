@@ -1577,5 +1577,19 @@ ggplot(data = c, aes(x = diff, y = fp_strat, color = V1)) + geom_point(size =3)+
 ```
 
 
+```{r}
+c_file="output/PRS/4PopSplit/E1/C1/h2-0/env-0.0/genos-test_common.c.sscore"
+cp_file="output/PRS/4PopSplit/E1/C1/h2-0/env-0.0/genos-test_common.c.p.sscore"
+nc_file="output/PRS/4PopSplit/E1/C1/h2-0/env-0.0/genos-test_common.nc.sscore"
+c_Tm_file="output/PRS/4PopSplit/E1/C1/h2-0/env-0.0/genos-test_common-Tm.c.sscore"
+cp_Tm_file="output/PRS/4PopSplit/E1/C1/h2-0/env-0.0/genos-test_common-Tm.c.p.sscore"
+nc_Tm_file="output/PRS/4PopSplit/E1/C1/h2-0/env-0.0/genos-test_common-Tm.nc.sscore"
+lambda_T_file="output/Calculate_Tm/4PopSplit/E1/C1/Lambda_T.txt"
+Va_file="output/PGA_test/4PopSplit/E1/C1/h2-0/env-0.0/Va.txt"
+Va_Tm_file="output/PGA_test/4PopSplit/E1/C1/h2-0/env-0.0/Va-Tm.txt"
+true_file="output/PRS/4PopSplit/E1/C1/h2-0/genos-test_common.true.sscore"
+tvec_file="output/Calculate_Tm/4PopSplit/E1/C1/Tvec.txt"
+resamples_file = "output/Empirical_Null/4PopSplit/E1/C1/h2-0/env-0.0/Qx/resample.txt"
+```
 
 

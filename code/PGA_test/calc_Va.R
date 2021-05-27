@@ -25,7 +25,6 @@ freq <- fread(freq_file)
 c_betas <- fread(c_file)
 cp_betas <- fread(cp_file)
 nc_betas <- fread(nc_file)
-print(head(nc_betas))
 
 # Function to Calculate Va
 calc_Va <- function(freq, betas) {
