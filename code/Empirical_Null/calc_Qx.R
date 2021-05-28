@@ -3,7 +3,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<16){stop("Rscript calc_Tm.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
+if(length(args)<12){stop("Rscript calc_Tm.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
                          <true.sscore> <Tvec.txt> <outfile name> <file with number of snps>")}
 
 suppressWarnings(suppressMessages({
@@ -19,15 +19,11 @@ c_Tm_file = args[4] # causal pgs Tm
 cp_Tm_file = args[5] # causal p-value pgs Tm
 nc_Tm_file = args[6] # clumped pgs Tm
 lambda_file = args[7] # Lambda T
-va_c_file = args[8]
-va_cp_file = args[9]
-va_nc_file = args[10]
-va_c_Tm_file = args[11]
-va_cp_Tm_file = args[12]
-va_nc_Tm_file = args[13]
-true_file = args[14]
-tvec_file = args[15]
-out_pre = args[16]
+va_file = args[8]
+va_tm_file = args[9]
+true_file = args[10]
+tvec_file = args[11]
+out_pre = args[12]
 
 # Function to standardize PGS
 stand_PGS <- function(prs_file, gv_file) {
@@ -53,11 +49,7 @@ stand_PGS <- function(prs_file, gv_file) {
 }
 
 # Function to calculate Qx
-calc_Qx <- function(mprs, tvec_file, Va_file, lambda_T) {
-
-  # Load Va
-  Va <- fread(Va_file)
-  Va <- as.numeric(Va[1,])
+calc_Qx <- function(mprs, tvec_file, Va, lambda_T) {
 
   # Load Test vector
   std.tvec <- fread(tvec_file)
@@ -82,13 +74,17 @@ calc_Qx <- function(mprs, tvec_file, Va_file, lambda_T) {
 lambda_T <- fread(lambda_file)
 lambda_T <- as.numeric(as.character(lambda_T[1,1]))
 
+# Load Va
+Va <- as.matrix(fread(va_file), rownames=1)
+Va_Tm <- as.matrix(fread(va_tm_file), rownames=1)
+
 # Calculate Qx
-qx_c <- t(calc_Qx(stand_PGS(c_file, true_file), tvec_file, va_c_file, lambda_T))
-qx_cp <- t(calc_Qx(stand_PGS(cp_file, true_file), tvec_file, va_cp_file, lambda_T))
-qx_nc <- t(calc_Qx(stand_PGS(nc_file, true_file), tvec_file, va_nc_file, lambda_T))
-qx_c_Tm <- t(calc_Qx(stand_PGS(c_Tm_file, true_file), tvec_file, va_c_Tm_file, lambda_T))
-qx_cp_Tm <- t(calc_Qx(stand_PGS(cp_Tm_file, true_file), tvec_file, va_cp_Tm_file, lambda_T))
-qx_nc_Tm <- t(calc_Qx(stand_PGS(nc_Tm_file, true_file), tvec_file, va_nc_Tm_file, lambda_T))
+qx_c <- t(calc_Qx(stand_PGS(c_file, true_file), tvec_file, Va[1,], lambda_T))
+qx_cp <- t(calc_Qx(stand_PGS(cp_file, true_file), tvec_file, Va[2,], lambda_T))
+qx_nc <- t(calc_Qx(stand_PGS(nc_file, true_file), tvec_file, Va[3,], lambda_T))
+qx_c_Tm <- t(calc_Qx(stand_PGS(c_Tm_file, true_file), tvec_file, Va_Tm[1,], lambda_T))
+qx_cp_Tm <- t(calc_Qx(stand_PGS(cp_Tm_file, true_file), tvec_file, Va_Tm[2,], lambda_T))
+qx_nc_Tm <- t(calc_Qx(stand_PGS(nc_Tm_file, true_file), tvec_file, Va_Tm[3,], lambda_T))
 
 # Output all qx
 df <- cbind(qx_c, qx_cp, qx_nc, qx_c_Tm, qx_cp_Tm, qx_nc_Tm)
