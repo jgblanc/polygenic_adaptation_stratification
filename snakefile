@@ -4,13 +4,13 @@ CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
 #REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
 REP = ["F1"]
-for i in range(1, 6):
+for i in range(1, 501):
   REP.append("F"+str(i))
 HERITABILITY = ["h2-0"]
 #ENV = ["env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.10"]
 ENV = ["env-0.0"]
 SIZE=200
-NUM_RESAMPLE=10
+NUM_RESAMPLE=1000
 RESAMPLE = []
 for i in range(1, NUM_RESAMPLE+1):
   RESAMPLE.append(str(i))

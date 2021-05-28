@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=snkmk-big
-#SBATCH --output=logs/snkmk-big.out
-#SBATCH --error=logs/snkmk-big.err
+#SBATCH --job-name=snkmk-en1
+#SBATCH --output=logs/snkmk-en1.out
+#SBATCH --error=logs/snkmk-en1.err
 #SBATCH --time=08:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=8
@@ -14,4 +14,4 @@ module load samtools
 module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
-snakemake --cores 8 aggregate_genotypes
+snakemake --cores 8 
