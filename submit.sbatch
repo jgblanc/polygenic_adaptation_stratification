@@ -1,11 +1,12 @@
 #!/bin/bash
-#SBATCH --job-name=snkmk-en1
-#SBATCH --output=logs/snkmk-en1.out
-#SBATCH --error=logs/snkmk-en1.err
-#SBATCH --time=08:00:00
+#SBATCH --job-name=snkmk-en4
+#SBATCH --output=logs/snkmk-en4.out
+#SBATCH --error=logs/snkmk-en4.err
+#SBATCH --time=12:00:00
 #SBATCH --partition=broadwl
-#SBATCH --nodes=8
-#SBATCH --mem=12G
+#SBATCH --nodes=4
+#SBATCH --mem-per-cpu=2000
+#SBATCH --ntasks-per-node=14
 
 module load python/cpython-3.7.0
 module load R
@@ -14,4 +15,4 @@ module load samtools
 module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
-snakemake --cores 8 
+snakemake --cores 56 --rerun-incomplete

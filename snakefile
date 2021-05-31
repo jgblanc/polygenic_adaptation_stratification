@@ -10,7 +10,7 @@ HERITABILITY = ["h2-0"]
 #ENV = ["env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.10"]
 ENV = ["env-0.0"]
 SIZE=200
-NUM_RESAMPLE=10
+NUM_RESAMPLE=1000
 
 def get_params(x):
   out = x.split("-")[1]
