@@ -2,7 +2,6 @@
 CHR =["0", "1"]
 CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
-#REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
 REP = ["S1"]
 #for i in range(1, 501):
 #  REP.append("F"+str(i))
@@ -24,7 +23,8 @@ def get_seed(rep, h2):
 
 rule all:
     input:
-        expand("output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx_emprical.txt", model=MODEL, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV)
+        expand("output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx_emprical.txt", model=MODEL, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV),
+        expand("output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx.txt", model=MODEL, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV)
 
 # Simluate Genotypes
 
@@ -323,7 +323,7 @@ rule gwas_no_correction:
         "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
-        --glm \
+        --glm allow-no-covars \
         --pheno {input.pheno} \
         --pheno-name pheno_random,pheno_strat \
         --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
@@ -445,12 +445,12 @@ rule proj_T:
         "output/Calculate_Tm/{model}/{rep}/{config}/projection.sscore"
     shell:
         """
-        ~/Desktop/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
        --pca allele-wts {params.n_minus_1} \
        --out output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/pca
 
-        ~/Desktop/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
        --score output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
        --score-col-nums {params.col_start}-{params.col_end} \

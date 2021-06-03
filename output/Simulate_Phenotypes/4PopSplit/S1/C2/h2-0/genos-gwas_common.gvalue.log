@@ -6,14 +6,14 @@ Options in effect:
 
 Hostname: Jennifers-MacBook-Pro.local
 Working directory: /Users/jenniferblanc/polygenic_adaptation_stratification
-Start time: Wed Jun  2 16:44:00 2021
+Start time: Thu Jun  3 18:13:02 2021
 
-Random number seed: 1622670240
+Random number seed: 1622761982
 8192 MiB RAM detected; reserving 4096 MiB for main workspace.
 Using up to 8 compute threads.
 200 samples (0 females, 0 males, 200 ambiguous; 200 founders) loaded from
 output/Simulate_Genotypes/4PopSplit/S1/C2/genos-gwas_common.psam.
-30342 variants loaded from
+30299 variants loaded from
 output/Simulate_Genotypes/4PopSplit/S1/C2/genos-gwas_common.pvar.
 Note: No phenotype data present.
 Calculating allele frequencies... done.
@@ -22,4 +22,4 @@ Calculating allele frequencies... done.
 output/Simulate_Phenotypes/4PopSplit/S1/C2/h2-0/genos-gwas_common.gvalue.sscore
 .
 
-End time: Wed Jun  2 16:44:00 2021
+End time: Thu Jun  3 18:13:02 2021

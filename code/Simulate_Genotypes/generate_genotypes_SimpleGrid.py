@@ -158,7 +158,7 @@ for i in range(0,int(args.chr)):
     print("writing genotype to vcf file")
 
     with open(args.outpre+"_"+str(i)+".vcf","w") as vcf_file:
-        ts.write_vcf(vcf_file,ploidy=2,contig_id=args.chr)
+        ts.write_vcf(vcf_file,ploidy=2,contig_id=i+1)
 
 
 #write pop file (deme ids for each individual)
@@ -176,8 +176,8 @@ for i in range(0,dim):
     bplace_x.extend([item for item in range(0,dim) for i in range(ss)])
 
 #fid and iid
-fid=["msp_"+str(i) for i in range(0,(ss*d))]
-iid=["msp_"+str(i) for i in range(0,(ss*d))]
+fid=["tsk_"+str(i) for i in range(0,(ss*d))]
+iid=["tsk_"+str(i) for i in range(0,(ss*d))]
 
 popdf=pd.DataFrame({"FID":fid,
                   "IID":iid,

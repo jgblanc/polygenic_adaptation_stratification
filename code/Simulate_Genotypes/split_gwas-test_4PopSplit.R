@@ -1,6 +1,5 @@
 # Split Population IDs into two sets of test/gwas pairs
 
-print("Running")
 library(data.table)
 
 # Read in pop info
