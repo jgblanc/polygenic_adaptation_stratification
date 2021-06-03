@@ -1,0 +1,77 @@
+CHR =["0", "1"]
+REP = ["E1"]
+MODEL=["SimpleGrid"]
+
+
+def get_params(x):
+  out = x.split("-")[1]
+  return out
+
+def get_seed(rep, h2):
+  out1 = list(rep)[1]
+  out2 = h2.split("-")[1]
+  return out1 + out2
+
+#rule all:
+#    input:
+#        expand("output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx_emprical.txt", model=MODEL, rep=REP, #config=CONFIG, h2=HERITABILITY, env=ENV)
+
+# Simluate Genotypes
+
+rule simulate_genotypes_SimpleGrid:
+    output:
+        expand("output/Simulate_Genotypes/SimpleGrid/{{rep}}/genos_{chr}.vcf", chr=CHR),
+	      "output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop"
+    shell:
+        "python code/Simulate_Genotypes/generate_genotypes_SimpleGrid.py \
+	       --outpre output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/genos \
+	       --chr 2 \
+	       --sample_size 2 \
+	       --length 100000 \
+	       --Ne 1000 \
+	       --tmove 100"
+
+rule format_VCF:
+    input:
+        "output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.vcf"
+    output:
+        gz="output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz"
+	      #csi="output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz.csi"
+    shell:
+        """
+	      head -n6 {input} > output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt
+	            cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt <(cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos_{wildcards.chr}.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
+		          #bcftools index {output.gz}
+			        rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt
+				      """
+rule concat_vcfs:
+    input:
+        expand("output/Simulate_Genotypes/{{model}}/{{rep}}/genos_{chr}.ids.vcf.gz", chr=CHR)
+    output:
+        "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
+    shell:
+        "bcftools concat {input} -o {output} -O z"
+
+rule convert_vcf_to_plink:
+    input:
+        "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
+    output:
+        "output/Simulate_Genotypes/{model}/{rep}/genos.psam",
+	"output/Simulate_Genotypes/{model}/{rep}/genos.pgen",
+      	"output/Simulate_Genotypes/{model}/{rep}/genos.pvar"
+    shell:
+        "plink2 \
+        --double-id \
+        --make-pgen \
+        --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
+        --vcf {input}"
+
+
+rule create_panels_SimpleGrid:
+    input:
+        "output/Simulate_Genotypes/{model}/{rep}/genos.pop"
+    output:
+        "output/Simulate_Genotypes/{model}/{rep}/C1/ids.gwas",
+	      "output/Simulate_Genotypes/{model}/{rep}/C1/ids.test",
+    script:
+        "code/Simulate_Genotypes/split_gwas-test_SimpleGrid.R"

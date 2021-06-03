@@ -1,44 +1,74 @@
-## This script calculates Qx for all 3 types of GWAS (including and not including Tm)
+# This script takes actual estimated effect sizes and randomly flips the effect sizes to generate a given number of resampled effect sizes to general an emprical null
 
-## Requires: pgs (c, c.p, and n.c +/- Tm), va, va-Tm, lambda_T
 args=commandArgs(TRUE)
 
-if(length(args)<12){stop("Rscript calc_Tm.R <c.sscore> <c.p.sscore> <n.c.sscore> <lambda_T.txt> <Va.txt>
+if(length(args)<14){stop("Rscript calc_Tm.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
                          <true.sscore> <Tvec.txt> <outfile name> <file with number of snps>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
   library(dplyr)
   library(Matrix)
+  library(pgenlibr)
 }))
 
-c_file = args[1] # causal pgs
-cp_file = args[2] # causal p-value pgs
-nc_file = args[3] # clumped pgs
-c_Tm_file = args[4] # causal pgs (Tm)
-cp_Tm_file = args[5] # causal p-value pgs (Tm)
-nc_Tm_file = args[6] # clumped pgs (Tm)
-lambda_T_file = args[7] # lambda T
-Va_file = args[8]
-Va_Tm_file = args[9]
-true_file = args[10] # True genetic value
-tvec_file =args[11]
-resamples_file = args[12]
-out_file = args[13] # outfile prefix
+c_file = args[1] # causal betas
+cp_file = args[2] # causal p-value betas
+nc_file = args[3] # clumped betas
+c_Tm_file = args[4] # causal betas
+cp_Tm_file = args[5] # causal p-value betas
+nc_Tm_file = args[6] # clumped betas
+geno_prefix = args[7] # Prefix to pilnk files
+lambdaT_file = args[8]
+Va_file = args[9] # Va
+Va_Tm_file = args[10] # Va Tm
+true_file = args[11] # true PGS
+tvec_file = args[12] # test vect
+num = as.numeric(args[13]) # number of times to resapme
+out_pre = args[14] # output prefix
+#out_pre = "~/polygenic_adaptation_stratification/output/Empirical_Null/4PopSplit/E1/C1/h2-0/env-0.0/geno-gwas_"
+
+
+# Function to read in genotype matrix for a set of variants
+read_genos <- function(geno_prefix, betas) {
+
+  pvar <- NewPvar(paste0(geno_prefix, ".pvar"))
+  d1 <- NewPgen(paste0(geno_prefix, ".pgen"))
+  var.ids <- betas$ID
+  var.indx <- rep(0, length(var.ids))
+  for (i in 1:length(var.indx)) {
+    var.indx[i] <- pgenlibr::GetVariantsById(pvar,var.ids[i])
+  }
+  X <- ReadList(d1,var.indx, meanimpute=F)
+
+  return(X)
+}
+
+# Function to compute PGS
+pgs <- function(X, betas) {
+
+  Bhat_random <- betas$BETA_Random
+  Z_random <- X %*% Bhat_random
+
+  Bhat_strat <- betas$BETA_Strat
+  Z_strat <- X %*% Bhat_strat
+
+  out <- cbind(Z_random, Z_strat)
+  colnames(out) <- c("RANDOM", "STRAT")
+
+  return(out)
+}
 
 # Function to standardize PGS
-stand_PGS <- function(prs_file, gv_file) {
-
-  # Load PRS
-  prs <- fread(prs_file)
-  colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
+stand_PGS <- function(prs, gv_file) {
 
   # Load True GV
   gvalue <- fread(gv_file)
   colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
 
   # Join dataframes by IID
-  df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
+  df <- as.data.frame(cbind(prs, gvalue$GV))
+  colnames(df) <- c("RANDOM", "STRAT", "GV")
 
   # Standardize
   mprs.adj = df%>%
@@ -50,13 +80,8 @@ stand_PGS <- function(prs_file, gv_file) {
 }
 
 # Function to calculate Qx
-calc_Qx <- function(mprs, tvec_file, Va, lambda_T, resamples) {
-
-  # Load Test vector
-  std.tvec <- fread(tvec_file)
-  n1 <- table(std.tvec)[1]
-  n2 <- table(std.tvec)[2]
-  std.tvec <- c(rep(1,(n1))/(n1), rep(-1,(n2))/(n2)) * (1/2)
+calc_Qx <- function(mprs, tvec, Va, lambda_T) {
+  std.tvec <- tvec
 
   # Compute Qx Random
   Ztest <- t(std.tvec) %*% mprs$random.adjusted
@@ -66,46 +91,91 @@ calc_Qx <- function(mprs, tvec_file, Va, lambda_T, resamples) {
   Ztest <- t(std.tvec) %*% mprs$strat.adjusted
   Qx_strat <- (t(Ztest) %*% Ztest) / (Va[2]*lambda_T)
 
-  # Calc p-values for chi-square df=1
-  all_random <- dplyr::pull(resamples, 1)
-  p_random <- length(all_random[all_random > Qx_random[1,1]])/length(all_random)
-  all_strat <- dplyr::pull(resamples, 2)
-  p_strat <- length(all_strat[all_strat > Qx_strat[1,1]])/length(all_strat)
-
   # Concat Results
-  out <- c(Qx_random, Qx_strat, p_random, p_strat)
+  out <- c(Qx_random, Qx_strat)
   return(out)
 }
 
+# Function to flip effect sizes
+flip <- function(betas) {
+  new_betas <- sample(c(-1,1), length(betas),  replace = T) * betas
+  return(new_betas)
+}
+
+# Function to flip effect sizes and recompute Qx
+en <- function(betas, tvec, Va, X, true_file, lambda_T) {
+
+  # Flip effect sizes
+  betas$BETA_Random <- flip(betas$BETA_Random)
+  betas$BETA_Strat <- flip(betas$BETA_Strat)
+
+  # Calculate PGS
+  prs <- pgs(X, betas)
+
+  # Calculate Qx
+  Qx <- t(calc_Qx(stand_PGS(prs, true_file), tvec, Va, lambda_T))
+
+  return(Qx)
+}
+
 # Load Lambda_T
-lambda_T <- fread(lambda_T_file)
+lambda_T <- fread(lambdaT_file)
 lambda_T <- as.numeric(as.character(lambda_T[1,1]))
 
-# Load flipped sign resamples
-flip <- fread(resamples_file)
-
-# Calculate Qx for standard GWAS
+# Load Va
 Va <- as.matrix(fread(Va_file), rownames=1)
-Qx_mat <- matrix(NA, ncol = 4, nrow = 3)
-colnames(Qx_mat) <- c("Qx_random", "Qx_strat", "p_random", "p_strat")
-row.names(Qx_mat) <- rownames(Va)
-Qx_mat[1,] <- calc_Qx(stand_PGS(c_file, true_file), tvec_file, Va[1,],lambda_T, flip[,1:2])
-Qx_mat[2,] <- calc_Qx(stand_PGS(cp_file, true_file), tvec_file, Va[2,],lambda_T,flip[,3:4] )
-Qx_mat[3,] <- calc_Qx(stand_PGS(nc_file, true_file), tvec_file, Va[3,],lambda_T, flip[,5:6])
+Va_Tm <- as.matrix(fread(Va_Tm_file), rownames=1)
 
-# Calculate Qx for Tm GWAS
-Va <- as.matrix(fread(Va_Tm_file), rownames=1)
-Qx_mat_Tm <- matrix(NA, ncol = 4, nrow = 3)
-colnames(Qx_mat_Tm) <- c("Qx_random", "Qx_strat", "p_random", "p_strat")
-row.names(Qx_mat_Tm) <- c("Tm-c", "Tm-c.p", "Tm-nc")
-Qx_mat_Tm[1,] <- calc_Qx(stand_PGS(c_Tm_file, true_file), tvec_file, Va[1,],lambda_T, flip[,7:8])
-Qx_mat_Tm[2,] <- calc_Qx(stand_PGS(cp_Tm_file, true_file), tvec_file, Va[2,],lambda_T, flip[,9:10])
-Qx_mat_Tm[3,] <- calc_Qx(stand_PGS(nc_Tm_file, true_file), tvec_file, Va[3,],lambda_T, flip[,11:12])
+# Load Test vector
+std.tvec <- fread(tvec_file)
+n1 <- table(std.tvec)[1]
+n2 <- table(std.tvec)[2]
+tvec <- c(rep(1,(n1))/(n1), rep(-1,(n2))/(n2)) * (1/2)
 
 
-# Concat output
-df <- as.data.frame(rbind(Qx_mat, Qx_mat_Tm))
-fwrite(df, out_file,row.names=T,quote=F,sep="\t", col.names = T)
+# Wrapper function to calculate Qx and empirical p values
+main <- function(beta_file, Va) {
 
+  # Load effect sizes
+  betas <- fread(beta_file)
+
+  # Load Genotypes
+  X <- read_genos(geno_prefix, betas)
+
+  # Calc PGS
+  sscore <- pgs(X, betas)
+
+  # Calc Qx
+  qx <- t(calc_Qx(stand_PGS(sscore, true_file), tvec, Va, lambda_T))
+
+  # Generate Empirical null
+  redraws <- matrix(0, ncol = 2, nrow = num)
+  for (i in 1:num){
+    redraws[i,] <- en(betas, tvec, Va, X, true_file, lambda_T)
+  }
+
+  # Calculate p-values
+  all_random <- redraws[,1]
+  p_random <- length(all_random[all_random > qx[1,1]])/length(all_random)
+  all_strat <- redraws[,2]
+  p_strat <- length(all_strat[all_strat > qx[1,1]])/length(all_strat)
+
+  # Concatenate output (Qx_random, Qx_strat, p_random, p_strat)
+  out <- c(qx, p_random, p_strat)
+  return(out)
+
+}
+
+# Run all types of PGS
+out <- matrix(NA, nrow = 6, ncol =4)
+out[1, ] <- main(c_file, Va[1,])
+out[2, ] <- main(cp_file, Va[2,])
+out[3, ] <- main(nc_file, Va[3,])
+out[4, ] <- main(c_Tm_file, Va_Tm[1,])
+out[5, ] <- main(cp_Tm_file, Va_Tm[2,])
+out[6, ] <- main(nc_Tm_file, Va_Tm[3,])
+
+# Save output
+fwrite(out, out_pre,row.names=F,quote=F,sep="\t", col.names = F)
 
 

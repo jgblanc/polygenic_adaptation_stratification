@@ -3,14 +3,15 @@ CHR =["0", "1"]
 CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
 #REP=["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10","B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20"]
-REP = []
-for i in range(1, 501):
-  REP.append("F"+str(i))
+REP = ["S1"]
+#for i in range(1, 501):
+#  REP.append("F"+str(i))
 HERITABILITY = ["h2-0"]
 #ENV = ["env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.10"]
 ENV = ["env-0.0"]
 SIZE=200
 NUM_RESAMPLE=1000
+PVALUE_THRESHOLD=1
 
 def get_params(x):
   out = x.split("-")[1]
@@ -322,7 +323,7 @@ rule gwas_no_correction:
         "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
-        --glm allow-no-covars \
+        --glm \
         --pheno {input.pheno} \
         --pheno-name pheno_random,pheno_strat \
         --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
@@ -340,8 +341,10 @@ rule pick_SNPS:
         "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.betas",
         "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.p.betas",
         "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.nc.betas"
+    params:
+        pt = PVALUE_THRESHOLD
     shell:
-        "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common 5e-4 output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
+        "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common {params.pt} output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
 
 rule test_snp_freq:
     input:
@@ -442,12 +445,12 @@ rule proj_T:
         "output/Calculate_Tm/{model}/{rep}/{config}/projection.sscore"
     shell:
         """
-        plink2 \
+        ~/Desktop/plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
        --pca allele-wts {params.n_minus_1} \
        --out output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/pca
 
-        plink2 \
+        ~/Desktop/plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
        --score output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
        --score-col-nums {params.col_start}-{params.col_end} \
@@ -518,8 +521,10 @@ rule pick_SNPS_Tm:
         "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.betas",
         "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.p.betas",
         "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.nc.betas"
+    params:
+        pt = PVALUE_THRESHOLD
     shell:
-        "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-Tm 5e-4 output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-Tm"
+        "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-Tm {params.pt} output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-Tm"
 
 rule calc_prs_Tm:
     input:
@@ -618,102 +623,25 @@ rule PGA_collate:
 
 # Redo PGA using empirical null approach
 
-rule flip_signs:
-  input:
-      c="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.betas",
-      cp="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.p.betas",
-      nc="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.nc.betas",
-      c_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.betas",
-      cp_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.p.betas",
-      nc_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.nc.betas",
-      freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq"
-  output:
-      "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.c.betas",
-      "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.c.p.betas",
-      "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.nc.betas",
-      "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.c.betas-Tm",
-      "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.c.p.betas-Tm",
-      "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.nc.betas-Tm"
-  params:
-      num = NUM_RESAMPLE
-  shell:
-      """
-          Rscript code/Empirical_Null/flip_effects.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} {input.freq} {params.num} output/Empirical_Null/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/
-	      """
-
-rule calc_prs_null:
-    input:
-        genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
-        c="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.c.betas",
-        cp="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.c.p.betas",
-        nc="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.nc.betas",
-        c_Tm="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.c.betas-Tm",
-        cp_Tm="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.c.p.betas-Tm",
-        nc_Tm="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/betas/genos-gwas_1.nc.betas-Tm",
-        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq"
-    output:
-        "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.c.sscore",
-        "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.c.p.sscore",
-        "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.nc.sscore",
-        "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.c-Tm.sscore",
-        "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.c.p-Tm.sscore",
-        "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.nc-Tm.sscore"
-    params:
-        num = NUM_RESAMPLE
-    shell:
-        """
-        sh code/Empirical_Null/calc_prs_null.sh output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common {input.freq} output/Empirical_Null/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/betas/genos-gwas_ output/Empirical_Null/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/PRS/genos-gwas_ {params.num}
-        """
-
-rule calc_Qx:
-    input:
-        c="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.c.sscore",
-        cp="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.c.p.sscore",
-        nc="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.nc.sscore",
-        c_Tm="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.c-Tm.sscore",
-        cp_Tm="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.c.p-Tm.sscore",
-        nc_Tm="output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/PRS/genos-gwas_1.nc-Tm.sscore",
-        lambda_T="output/Calculate_Tm/{model}/{rep}/{config}/Lambda_T.txt",
-        Va="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va.txt",
-        Va_Tm="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va-Tm.txt",
-        true="output/PRS/{model}/{rep}/{config}/{h2}/genos-test_common.true.sscore",
-        Tvec="output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt"
-    output:
-        "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/Qx/Qx_1.txt"
-    params:
-        num = NUM_RESAMPLE
-    shell:
-      """
-      sh code/Empirical_Null/calc_Qx.sh output/Empirical_Null/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/PRS/genos-gwas_ {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} output/Empirical_Null/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/Qx/Qx_ {params.num}
-	    """
-
-rule concat_Qx:
-    input:
-        "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/Qx/Qx_1.txt"
-    output:
-        "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/Qx/resample.txt"
-    shell:
-     """
-      cat output/Empirical_Null/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/Qx/Qx_*.txt > {output}
-	    """
-
 rule compute_empirical_p:
     input:
-        c="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.c.sscore",
-        cp="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.c.p.sscore",
-        nc="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.nc.sscore",
-        c_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.c.sscore",
-        cp_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.c.p.sscore",
-        nc_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common-Tm.nc.sscore",
+        c="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.betas",
+        cp="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.p.betas",
+        nc="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.nc.betas",
+        c_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.betas",
+        cp_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.p.betas",
+        nc_Tm="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.nc.betas",
+        genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
         lambda_T="output/Calculate_Tm/{model}/{rep}/{config}/Lambda_T.txt",
         Va="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va.txt",
         Va_Tm="output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va-Tm.txt",
         true="output/PRS/{model}/{rep}/{config}/{h2}/genos-test_common.true.sscore",
         Tvec="output/Calculate_Tm/{model}/{rep}/{config}/Tvec.txt",
-        resamples = "output/Empirical_Null/{model}/{rep}/{config}/{h2}/{env}/Qx/resample.txt"
     output:
         "output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx_emprical.txt"
+    params:
+        num=NUM_RESAMPLE
     shell:
       """
-          Rscript code/PGA_test/calc_Qx_empirical.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.resamples} {output}
+          Rscript code/PGA_test/calc_Qx_empirical.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {params.num} {output}
 	      """

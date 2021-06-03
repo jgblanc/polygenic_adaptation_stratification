@@ -5,16 +5,18 @@ args=commandArgs(TRUE)
 
 if( length(args) != 4){stop("Usage: <causal effects file> <prefix for glm.linear file (w/o phenotype or correction)> <p-value threshold> <output file prefix>") }
 
-library(data.table)
-library(dplyr)
-library(tidyr)
-library(R.utils)
+suppressWarnings(suppressMessages({
+  library(data.table)
+  library(dplyr)
+  library(tidyr)
+  library(R.utils)
+}))
 
 geffects_file=args[1]
-#geffects_file="~/polygenic_adaptation_stratification/output/Simulate_Phenotypes/4PopSplit/V1/C1/genos-gwas_common.effects.txt"
+#geffects_file="~/polygenic_adaptation_stratification/output/Simulate_Phenotypes/4PopSplit/S1/C2/h2-0/genos-gwas_common.effects.txt"
 gwas_file_prefix=args[2]
-#gwas_file_prefix="~/polygenic_adaptation_stratification/output/Run_GWAS/4PopSplit/V1/C1/genos-gwas_common"
-pval_threshold=args[3]
+#gwas_file_prefix="~/polygenic_adaptation_stratification/output/Run_GWAS/4PopSplit/S1/C2/h2-0/env-0.0/genos-gwas_common-Tm"
+pval_threshold=as.numeric(args[3])
 output_file_prefix=args[4]
 #output_file_prefix="~/polygenic_adaptation_stratification/output/PRS/4PopSplit/V1/C1/genos-gwas_common"
 
@@ -73,70 +75,90 @@ fcausal_p = function(gwas_df,beta_colname,pvalue=pval_threshold){
     return(gwas_df)
 }
 
-gwas1.2 = fcausal_p( gwas1.1, "BETA1" )
-gwas2.2 = fcausal_p( gwas2.1, "BETA2" )
+fcausal_p = function(df,pvalue=pval_threshold){
+
+  df=df%>%
+    filter(P < pvalue)
+  return(df)
+}
+
+gwas1.2 = fcausal_p( gwas1.1,pval_threshold )
+gwas2.2 = fcausal_p( gwas2.1,pval_threshold )
 
 gwas.causal.p = cbind( gwas1.2[,c("ID","A1","BETA1")],
                     gwas2.2[,c("BETA2")])
 
 colnames(gwas.causal.p) <- c("ID", "A1", "BETA_Random", "BETA_Strat")
 
+# Add dummy row with effect size zero
+if (nrow(gwas.causal.p) < 1) {
+  gwas.causal.p <- rbind(gwas.causal.p, gwas.causal[1,])
+  gwas.causal.p[1,3] <- 0
+  gwas.causal.p[1,4] <- 0
+}
+
 fwrite(gwas.causal.p,
        paste(output_file_prefix, ".c.p.betas" , sep=""),
        col.names=T, row.names=F , quote=F , sep="\t")
 
 print("ld clumping")
-#write function to assign each SNP to window, then find a single hit within each
-fclump=function(gwas_df,pcutoff=pval_threshold){
- if(missing(pcutoff)){
-   df.red=gwas_df
- }else{
-   df.red = gwas_df[P<pcutoff]
- }
 
+fclump=function(df,pcutoff){
+  if(missing(pcutoff)){
+    df.red=df
+  }else{
+    df.red=df%>%
+      filter(P<pcutoff)
+  }
 
- for(i in 1:101){
-   if(i == 1){
-     start=0
-     stop=start+1e5
-   }else{
+  df.red$window=NA
+  for(i in 1:101){
+    #start=((i-1)*1e5 - 5e4) +1
+    start=((i-1)*1e5) +1
+    stop=start+1e5
+    df.red$window[which((df.red$POS>=start) & (df.red$POS<stop))]=i
+  }
 
-   start=((i-1)*1e5) +1
-   stop=start + 1e5 -1
-   }
+  df.red$window_name=paste(df.red$CHROM,df.red$window,sep="_")
 
-   df.red[ (POS>=start &POS<stop) , window:=i]
- }
- df.red[,window_name:= paste(CHROM,window,sep="_") ]
- return(df.red)
+  return(df.red)
 
 }
 
 flead=function(df){
-  df.red = df[P == min(P)]
- return(df.red)
+  df.red=df%>%
+    slice_min(P, with_ties = F)
+  return(df.red)
 }
 
-#causal=fclump(causal)
-gwas1.red = fclump(gwas1,pval_threshold)
-gwas1.red = gwas1.red[,flead(.SD),by=.(window_name)]
-gwas1.red = unique(gwas1.red, by ="window_name")
-gwas1.red = gwas1.red[,.(ID,A1,BETA1)]
+gwas1.red=fclump(gwas1,pval_threshold)%>%
+  group_by(window_name)%>%
+  flead(.)%>%
+  ungroup()%>%
+  select(ID,A1,BETA1)
 
-gwas2.red = fclump(gwas2,pval_threshold)
-gwas2.red = gwas2.red[,flead(.SD),by=.(window_name)]
-gwas2.red = unique(gwas2.red, by ="window_name")
-gwas2.red = gwas2.red[,.(ID,A1,BETA2)]
-
+gwas2.red=fclump(gwas2,pval_threshold)%>%
+  group_by(window_name)%>%
+  flead(.)%>%
+  ungroup()%>%
+  select(ID,A1,BETA2)
 
 gwas.red = merge(gwas1.red[,c("ID","A1","BETA1")], gwas2.red[,c("ID","BETA2")], by="ID", all=TRUE)
 gwas.red$A1="T"
-
-gwas.red[is.na(BETA1),BETA1:=0]
-gwas.red[is.na(BETA2),BETA2:=0]
+gwas.red = gwas.red%>%
+  replace_na(list( BETA1=0 , BETA2 = 0))
 colnames(gwas.red) <- c("ID", "A1", "BETA_Random", "BETA_Strat")
 
-colnames(gwas.causal.p) <- c("ID", "A1", "BETA_Random", "BETA_Strat")
+# Add dummy row with effect size zero
+if (nrow(gwas.red) < 1) {
+  gwas.red <- rbind(gwas.red, gwas.causal[1,])
+  gwas.red[1,3] <- 0
+  gwas.red[1,4] <- 0
+}
+
 fwrite(gwas.red,
        paste(output_file_prefix,".nc.betas",sep=""),
-       col.names=F,row.names=F,quote=F,sep="\t")
+       col.names=T,row.names=F,quote=F,sep="\t")
+
+
+

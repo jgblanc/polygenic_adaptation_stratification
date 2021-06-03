@@ -1,0 +1,25 @@
+PLINK v2.00a2.3 64-bit (24 Jan 2020)
+Options in effect:
+  --out output/Simulate_Phenotypes/4PopSplit/S1/C2/h2-0/genos-gwas_common.gvalue
+  --pfile output/Simulate_Genotypes/4PopSplit/S1/C2/genos-gwas_common
+  --score output/Simulate_Phenotypes/4PopSplit/S1/C2/h2-0/genos-gwas_common.effects.txt cols=dosagesum,scoresums
+
+Hostname: Jennifers-MacBook-Pro.local
+Working directory: /Users/jenniferblanc/polygenic_adaptation_stratification
+Start time: Wed Jun  2 16:44:00 2021
+
+Random number seed: 1622670240
+8192 MiB RAM detected; reserving 4096 MiB for main workspace.
+Using up to 8 compute threads.
+200 samples (0 females, 0 males, 200 ambiguous; 200 founders) loaded from
+output/Simulate_Genotypes/4PopSplit/S1/C2/genos-gwas_common.psam.
+30342 variants loaded from
+output/Simulate_Genotypes/4PopSplit/S1/C2/genos-gwas_common.pvar.
+Note: No phenotype data present.
+Calculating allele frequencies... done.
+--score: 200 variants processed.
+--score: Results written to
+output/Simulate_Phenotypes/4PopSplit/S1/C2/h2-0/genos-gwas_common.gvalue.sscore
+.
+
+End time: Wed Jun  2 16:44:00 2021

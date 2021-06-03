@@ -1565,16 +1565,35 @@ library(tidyverse)
 library(latex2exp)
 df <- fread("../code/plot/all_M.txt")
 nc <- df %>% filter(V1 == "nc"|V1 == "Tm-nc") %>% group_by(env, V1) %>% summarise(fp_strat = sum(p_strat < 0.05)/ n()) %>% separate(env, c("env", "diff"), "-")
-
 nc$diff <- as.numeric(nc$diff)
-ggplot(data = nc, aes(x = diff, y = fp_strat, color = V1)) + geom_point(size =3)+ geom_smooth(method = "loess", se = FALSE) + xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)
+
+
+cutoff <- subset(df, df$V1 == "nc" & df$env == "env-0.0")
+null_cut <- sort(cutoff$Qx_strat)[475]
+nc2 <- df %>% filter(V1 == "nc"|V1 == "Tm-nc") %>% group_by(env, V1) %>% summarise(fp_strat = sum(Qx_strat >= null_cut)/ n()) %>% separate(env, c("env", "diff"), "-")
+nc2$diff <- as.numeric(nc$diff)
 ```
+
+```{r}
+ggplot(data = nc2, aes(x = diff, y = fp_strat, color = V1)) + geom_point(size =3)+ geom_smooth(method = "loess", se = FALSE) + xlab("Mean(A) - Mean(B)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)
+```
+
+
 
 ```{r}
 c <- df %>% filter(V1 == "c"|V1 == "Tm-c") %>% group_by(env, V1) %>% summarise(fp_strat = sum(p_strat < 0.05)/ n()) %>% separate(env, c("env", "diff"), "-")
 c$diff <- as.numeric(c$diff)
 ggplot(data = c, aes(x = diff, y = fp_strat, color = V1)) + geom_point(size =3)+ geom_smooth(method = "loess", se = FALSE) + xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)
 ```
+
+```{r}
+cutoff <- subset(df, df$V1 == "c" & df$env == "env-0.0")
+null_cut <- sort(cutoff$Qx_strat)[475]
+c2 <- df %>% filter(V1 == "c"|V1 == "Tm-c") %>% group_by(env, V1) %>% summarise(fp_strat = sum(Qx_strat >= null_cut)/ n()) %>% separate(env, c("env", "diff"), "-")
+c2$diff <- as.numeric(c2$diff)
+ggplot(data = c2, aes(x = diff, y = fp_strat, color = V1)) + geom_point(size =3)+ geom_smooth(method = "loess", se = FALSE) + xlab("Mean(A) - Mean(B)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)
+```
+
 
 
 ```{r}
