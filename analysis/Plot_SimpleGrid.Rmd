@@ -1,0 +1,20 @@
+---
+title: "Plot_SimpleGrid"
+author: "Jennifer Blanc"
+date: "6/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+pgs <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E2/C1/h2-0/env-0.1/PGS.txt")
+pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E2/genos.pop")
+colnames(pops) <- c("IID", "#FID", "Pop", "Lat", "Long")
+
+df <- inner_join(pgs, pops)
+plot(df$Lat, df$c)
+```
+

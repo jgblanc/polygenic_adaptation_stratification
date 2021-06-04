@@ -78,8 +78,6 @@ for (i in 2:nchrms){
   causal.variants <- rbind(causal.variants, out)
 }
 
-print(head(causal.variants))
-
 #for some reason, sometimes the final window does not have a variant. let's remove NAs here
 #causal.variants = causal.variants%>%drop_na(ID)
 

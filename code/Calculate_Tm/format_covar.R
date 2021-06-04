@@ -1,7 +1,10 @@
 # Format Tm into covariate file that will work with Plink 2
 
-library(dplyr)
-library(data.table)
+suppressWarnings(suppressMessages({
+  library(data.table)
+  library(dplyr)
+}))
+
 
 args=commandArgs(TRUE)
 
