@@ -1,0 +1,38 @@
+---
+title: "Plot_SimpleGrid"
+author: "Jennifer Blanc"
+date: "6/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Look at Phenotypes
+
+
+
+```{r}
+phenos <- fread("../output/Simulate_Phenotypes/SimpleGrid/E3/C1/h2-0/env-10/genos-gwas_common.phenos.txt")
+phenos <- inner_join(phenos, pops)
+plot(phenos$Lat,phenos$pheno_strat)
+
+```
+
+
+
+
+
+
+
+```{r}
+pgs <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E3/C1/h2-0/env-10/PGS.txt")
+pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E3/genos.pop")
+colnames(pops) <- c("IID", "#FID", "Pop", "Lat", "Long")
+
+df <- inner_join(pgs, pops)
+plot(df$Lat, df$c)
+```
+

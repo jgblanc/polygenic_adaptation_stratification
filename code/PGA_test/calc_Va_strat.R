@@ -30,16 +30,15 @@ nc_betas <- fread(nc_file)
 calc_Va <- function(freq, betas) {
 
   # Select only sites included in PRS
-  colnames(betas) <- c("ID", "ALT", "Beta_Random", "Beta_Strat")
+  colnames(betas) <- c("ID", "ALT", "Beta_Strat")
   df <- dplyr::inner_join(freq, betas)
 
   # Calulate Va = 2 * sum(B^2 * p * (1-p))
-  Va_random <- 2 * sum((df$Beta_Random)^2 * df$ALT_FREQS * (1 - df$ALT_FREQS))
   Va_strat <- 2 * sum((df$Beta_Strat)^2 * df$ALT_FREQS * (1 - df$ALT_FREQS))
 
   # Create output df
-  out <- as.data.frame(matrix(c(Va_random, Va_strat), nrow = 1))
-  colnames(out) <- c("Va_Random", "Va_Strat")
+  out <- as.data.frame(matrix( Va_strat, nrow = 1))
+  colnames(out) <- c("Va_Strat")
   return(out)
 }
 
