@@ -81,7 +81,7 @@ stand_PGS <- function(prs, gv_file) {
 calc_Qx <- function(mprs, tvec, Va, lambda_T) {
 
   # Compute Qx Strat
-  Ztest <- t(std.tvec) %*% mprs$strat.adjusted
+  Ztest <- t(tvec) %*% mprs$strat.adjusted
   Qx_strat <- (t(Ztest) %*% Ztest) / (Va*lambda_T)
 
   return(Qx_strat)

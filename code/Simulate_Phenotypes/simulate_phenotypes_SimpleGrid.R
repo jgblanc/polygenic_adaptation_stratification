@@ -14,6 +14,7 @@ popfile = args[2] # pop file from msprime simulation
 output_file = args[3] #name of output file
 h2 = as.numeric(args[4])
 env_s=as.numeric(args[5])
+print(env_s)
 set.seed(as.numeric(args[6]))
 
 
@@ -40,6 +41,7 @@ if (env_s == 0) {
 } else {
   shifts <- seq(0, env_s, env_s / (num_lat_demes-1))
 }
+print(shifts)
 
 # Shift environment for individuals in each deme
 prs$env = rnorm(sample_size,0, sqrt(1 - h2))
