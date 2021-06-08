@@ -32,8 +32,8 @@ out_pre = args[14] # output prefix
 # Function to read in genotype matrix for a set of variants
 read_genos <- function(geno_prefix, betas) {
 
-  pvar <- NewPvar(paste0(geno_prefix, ".pvar"))
-  d1 <- NewPgen(paste0(geno_prefix, ".pgen"))
+  pvar <- pgenlibr::NewPvar(paste0(geno_prefix, ".pvar"))
+  d1 <- pgenlibr::NewPgen(paste0(geno_prefix, ".pgen"))
   var.ids <- betas$ID
   var.indx <- rep(0, length(var.ids))
   for (i in 1:length(var.indx)) {
@@ -138,10 +138,11 @@ main <- function(beta_file, Va) {
 
   # Load effect sizes
   betas <- fread(beta_file)
+  #colnames(betas) <- c("ID", "A1", "BETA_Random", "BETA_Strat")  
 
   # Load Genotypes
   X <- read_genos(geno_prefix, betas)
-
+ 
   # Calc PGS
   sscore <- pgs(X, betas)
 
