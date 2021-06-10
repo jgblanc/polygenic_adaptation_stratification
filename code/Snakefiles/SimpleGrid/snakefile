@@ -1,9 +1,9 @@
 CHR =["0", "1"]
-REP = ["E3"]
+REP = ["E2"]
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
-ENV = ["env-10"]
-SS_TEST = 5 # Number of inidividuals per deme
+ENV = ["env-0.0", "env-0.05", "env-0.10"]
+SS_TEST =8 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 PVALUE_THRESHOLD = 1
 NUM_RESAMPLE = 1000
@@ -18,10 +18,9 @@ def get_seed(rep, h2):
   return out1 + out2
 
 
-
 rule all:
     input:
-        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Qx.txt", rep=REP, config=CONFIG, h2 = HERITABILITY, env = ENV)
+        expand("output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.cmpruned.b.fst", rep=REP, config=CONFIG)
 
 # Simluate Genotypes
 
@@ -33,10 +32,13 @@ rule simulate_genotypes_SimpleGrid:
         "python code/Simulate_Genotypes/generate_genotypes_SimpleGrid.py \
 	       --outpre output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/genos \
 	       --chr 2 \
-	       --sample_size 15 \
+	       --sample_size 20 \
 	       --length 10000000 \
-	       --Ne 10000 \
-	       --tmove 100"
+	       --Ne 1000 \
+	       --mu 1e-08 \
+	       --rho 1e-08 \
+	       --tmove -9 \
+	       --migrate 0.01"
 
 rule format_VCF:
     input:
@@ -501,6 +503,35 @@ rule Calc_Qx:
           Rscript code/PGA_test/calc_Qx_SimpleGrid.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx} {output.pgs}
 	      """
 
+# Rule to calculate Fst across demes in GWAS panel
 
+rule Fst_GWAS:
+    input:
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pgen",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pvar",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop"
+    output:
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.cmpruned.b.fst"
+    shell:
+        """
+        plink2 \
+        --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+        --maf 0.05 \
+        --indep-pairwise 100 10 0.1 \
+        --write-snplist \
+        --out output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common.cmpruned
+
+        plink2 \
+        --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+        --extract output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common.cmpruned.prune.in \
+        --make-bed \
+        --out output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common.cmpruned.b
+
+        plink --bfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common.cmpruned.b\
+        --fst \
+        --within output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/genos.pop \
+        --out output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common.cmpruned.b
+        """
 
 

@@ -84,6 +84,7 @@ def step_mig_mat(m,nd):
 #generate migration matrix with migration rate provided by user
 mig_mat=step_mig_mat(m=args.migrate,nd=d)
 print(mig_mat.shape)
+print(mig_mat)
 
 #diploid sample size within each deme
 ss=args.ss

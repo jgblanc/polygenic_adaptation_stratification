@@ -12,26 +12,59 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Look at Phenotypes
 
-
-
 ```{r}
-phenos <- fread("../output/Simulate_Phenotypes/SimpleGrid/E3/C1/h2-0/env-10/genos-gwas_common.phenos.txt")
-phenos <- inner_join(phenos, pops)
-plot(phenos$Lat,phenos$pheno_strat)
+library(snpStats)
+library(data.table)
+library(ggplot2)
+library(dplyr)
+Mod <- read.plink("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common.cmpruned.b")
+M <- as.matrix(Mod$genotypes) 
+cov_mat <- xxt(M)
+myE <- eigen(cov_mat)
 
+pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/genos.pop")
+colnames(pops) <- c("IID", "#FID", "Pop", "Lat", "Long")
+
+df <- as.data.frame(cbind(myE$vectors[,1], myE$vectors[,2], Mod$fam[,1]))
+colnames(df) <- c("PC1", "PC2", "IID")
+df <- inner_join(df, pops)
+df$PC1 <- as.numeric(as.character(df$PC1))
+df$PC2 <- as.numeric(as.character(df$PC2))
+ggplot(df, aes(x=PC1, y=PC2, color = Lat)) + geom_point()
 ```
 
 
 
+```{r}
+library(data.table)
+library(ggplot2)
+library(dplyr)
+phenos <- fread("../output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/env-0.10/genos-gwas_common.phenos.txt")
+pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/genos.pop")
+colnames(pops) <- c("IID", "#FID", "Pop", "Lat", "Long")
+phenos <- inner_join(phenos, pops)
+plot(phenos$Lat,phenos$pheno_strat)
+ggplot(df, aes(x=PC1, y=PC2, color = Lat)) + geom_point()
+```
 
+```{r}
+pvar <- NewPvar("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common.pgen")
+M <- ReadList(d1,seq(1, 117179), meanimpute=F)
+M <- scale(M)
 
+s <- svd(M)
+u <- s$u
+d <- s$d
+v <- s$v
+
+df <- as.data.frame(cbind(u[,1], u[,2], as.factor(phenos$Lat), as.factor(phenos$Long), as.factor(phenos$Pop)))
+ggplot(df, aes(x=V1, y=V2, color = as.factor(V3))) + geom_point()
+```
 
 
 ```{r}
-pgs <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E3/C1/h2-0/env-10/PGS.txt")
-pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E3/genos.pop")
-colnames(pops) <- c("IID", "#FID", "Pop", "Lat", "Long")
-
+pgs <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.10/PGS.txt")
 df <- inner_join(pgs, pops)
 plot(df$Lat, df$c)
 ```
