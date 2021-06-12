@@ -12,9 +12,9 @@ suppressWarnings(suppressMessages({
 }))
 
 geffects_file=args[1]
-#geffects_file="~/polygenic_adaptation_stratification/output/Simulate_Phenotypes/4PopSplit/S1/C2/h2-0/genos-gwas_common.effects.txt"
+#geffects_file="~/polygenic_adaptation_stratification/output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/genos-gwas_common.effects.txt"
 gwas_file_prefix=args[2]
-#gwas_file_prefix="~/polygenic_adaptation_stratification/output/Run_GWAS/4PopSplit/S1/C2/h2-0/env-0.0/genos-gwas_common-Tm"
+#gwas_file_prefix="~/polygenic_adaptation_stratification/output/Run_GWAS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common"
 pval_threshold=as.numeric(args[3])
 output_file_prefix=args[4]
 #output_file_prefix="~/polygenic_adaptation_stratification/output/PRS/4PopSplit/V1/C1/genos-gwas_common"
@@ -127,8 +127,9 @@ flead=function(df){
 gwas1.red=fclump(gwas1,pval_threshold)%>%
   group_by(window_name)%>%
   flead(.)%>%
-  ungroup()%>%
-  select(ID,A1,BETA1)
+  ungroup()
+#%>%
+#  select(ID,A1,BETA1)
 
 
 gwas.red = gwas1.red[,c("ID","A1","BETA1")]

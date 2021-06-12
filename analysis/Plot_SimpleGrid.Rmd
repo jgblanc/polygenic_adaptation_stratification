@@ -7,16 +7,17 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+rm(list =ls())
+library(snpStats)
+library(data.table)
+library(ggplot2)
+library(dplyr)
 ```
 
 
 # Look at Phenotypes
 
 ```{r}
-library(snpStats)
-library(data.table)
-library(ggplot2)
-library(dplyr)
 Mod <- read.plink("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common.cmpruned.b")
 M <- as.matrix(Mod$genotypes) 
 cov_mat <- xxt(M)
@@ -33,39 +34,15 @@ df$PC2 <- as.numeric(as.character(df$PC2))
 ggplot(df, aes(x=PC1, y=PC2, color = Lat)) + geom_point()
 ```
 
-
-
 ```{r}
-library(data.table)
-library(ggplot2)
-library(dplyr)
-phenos <- fread("../output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/env-0.10/genos-gwas_common.phenos.txt")
-pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/genos.pop")
-colnames(pops) <- c("IID", "#FID", "Pop", "Lat", "Long")
-phenos <- inner_join(phenos, pops)
-plot(phenos$Lat,phenos$pheno_strat)
-ggplot(df, aes(x=PC1, y=PC2, color = Lat)) + geom_point()
+phenos <- fread("~/polygenic_adaptation_stratification/output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.phenos.txt")
+df <- inner_join(phenos, pops)
+plot(df$Lat, df$pheno_strat)
 ```
-
-```{r}
-pvar <- NewPvar("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common.pvar")
-d1 <- NewPgen("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common.pgen")
-M <- ReadList(d1,seq(1, 117179), meanimpute=F)
-M <- scale(M)
-
-s <- svd(M)
-u <- s$u
-d <- s$d
-v <- s$v
-
-df <- as.data.frame(cbind(u[,1], u[,2], as.factor(phenos$Lat), as.factor(phenos$Long), as.factor(phenos$Pop)))
-ggplot(df, aes(x=V1, y=V2, color = as.factor(V3))) + geom_point()
-```
-
 
 ```{r}
 pgs <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.10/PGS.txt")
 df <- inner_join(pgs, pops)
-plot(df$Lat, df$c)
+plot(df$Lat, df$nc_Tm)
 ```
 

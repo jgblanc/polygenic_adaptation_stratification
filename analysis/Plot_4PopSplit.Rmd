@@ -13,6 +13,10 @@ library(tidyverse)
 library(knitr)
 ```
 
+## Introduction
+
+
+
 # Configuration 1
 
 A/C are the GWAS panel  
@@ -20,7 +24,26 @@ B/D are the test panel
 
 Stratification in the GWAS pannel should effect PGS in the test population. Since there was an environmental effedt in A Population B should have greater PGS than D in the test panel. 
 
-True Genetic Value (calculated using causal effect sizes)
+```{r}
+getwd()
+reps <- rep(NA, 10)
+for (i in 1:10){reps[i] <- paste0("E", i)}
+h2 <- "h2-0"
+envs <- c("env-0.0", "env-0.10", "env-0.50", "env-1.00")
+cases <- c("C1", "C2")
+dat <- expand.grid(reps, cases, h2, envs)
+colnames(dat) <- c("rep", "case", "h2", "env")
+
+agg_phenos <- function(rep, dir_path, case, type, h2, env) {
+  
+  phenos <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", env, "/", "genos-gwas_common.phenos.txt"))
+  
+  return(phenos)
+}
+df_phenos <- plyr::mdply(dat, agg_phenos, dir_path = '../output/Simulate_Phenotypes/4PopSplit/' )
+```
+
+
 ```{r}
 # Read in all Reps and Pick important columns 
 agg_data <- function(rep, file_path, file_name) {
@@ -32,662 +55,65 @@ agg_data <- function(rep, file_path, file_name) {
   return(gvalue)
 }
 
-#reps <- list("B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20" )
-reps <- list("E5", "E6", "E7")
+reps <- list("E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10")
 cols_gwas <- c("red2", "mediumblue")
-df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/genos-gwas_common.gvalue.sscore')
 
-# Histogram 
-ggplot(data = df, aes(x= SCORE1_SUM, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "C"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("True PGS") + scale_fill_manual(values = cols_gwas)
+df_pheno_env0 <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/env-0.0/genos-gwas_common.phenos.txt')
+df_pheno_env0$env <- 0
+df_pheno_env0.1 <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/env-0.10/genos-gwas_common.phenos.txt')
+df_pheno_env0.1$env <- 0.1
+df_pheno_env0.5 <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/env-0.50/genos-gwas_common.phenos.txt')
+df_pheno_env0.5$env <- 0.5
+df_pheno_env1 <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/env-1.00/genos-gwas_common.phenos.txt')
+df_pheno_env1$env <- 1
+
+df_pheno <- rbind(df_pheno_env0, df_pheno_env0.1, df_pheno_env0.5, df_pheno_env1)
+
+ggplot(data = df_pheno, aes(x=pheno_strat, fill = POP)) + geom_histogram(data = subset(df_pheno, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df_pheno, POP == "C"), alpha = 0.75, bins = 30) + facet_grid(REP ~ env) + theme_bw() + xlab("Stratified Phenotype") + scale_fill_manual(values = cols_gwas)
 ```
 
-Random Phenotypes (no stratification)
-```{r}
-df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-0/genos-gwas_common.phenos.txt")
-
-# Histogram 
-ggplot(data = df, aes(x=pheno_random, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "C"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("Random Phenotype") + scale_fill_manual(values = cols_gwas)
-```
-
-Phenotypes (stratification)
-```{r}
-# Histogram 
-ggplot(data = df, aes(x=pheno_strat, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "C"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("Stratified Phenotype") + scale_fill_manual(values = cols_gwas)
-```
-
-Random Phenotype - True Genetic Value  $E = Y - X\beta$  
-```{r}
-genos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/genos-gwas_common.gvalue.sscore')
-phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-0/genos-gwas_common.phenos.txt")
-
-E <- phenos$pheno_rand - genos$SCORE1_SUM 
-df <- as.data.frame(cbind(genos$POP, genos$REP, E))
-df$E <- as.numeric(levels(df$E))[df$E]
-
-# Histogram 
-ggplot(data = df, aes(x=E, fill =V1)) + geom_histogram(data = subset(df, V1 == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, V1 == "C"), alpha = 0.75, bins = 30) + facet_wrap(~V2) + theme_bw() + xlab("Environment") + scale_fill_manual(values = cols_gwas)
-```
-
-Stratified Phenotype - True Genetic Value  $E = Y - X\beta$  (Pop A should have positive environment)
-```{r}
-genos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/genos-gwas_common.gvalue.sscore')
-phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C1/h2-0/env-0/genos-gwas_common.phenos.txt")
-
-E <- phenos$pheno_strat - genos$SCORE1_SUM 
-df <- as.data.frame(cbind(genos$POP, genos$REP, E))
-df$E <- as.numeric(levels(df$E))[df$E]
-
-# Histogram 
-ggplot(data = df, aes(x=E, fill =V1)) + geom_histogram(data = subset(df, V1 == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, V1 == "C"), alpha = 0.75, bins = 30) + facet_wrap(~V2) + theme_bw() + xlab("Environment") + scale_fill_manual(values = cols_gwas)
-```
-
-Polygenic Score in Test Population (clumping) - Random Phenotype
-```{r}
-agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
-  
-  prs <- fread(paste0(file_path, rep,file_name_prs))
-  colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
-  
-  gvalue <- fread(paste0(file_path, rep,file_name_gv))
-  colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
-  
-  gwas.pop <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/ids.test"), header = F)
-  colnames(gwas.pop) <- c("#IID", "FID", "POP")
-  
-  df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
-  df <- suppressMessages(left_join(df, gwas.pop))
-  df$REP <- rep
-  
-  mprs.adj = df%>%
-  group_by(REP)%>%
-    mutate(random.adjusted = RANDOM-GV,
-           random.adjusted = (random.adjusted - mean(random.adjusted)),
-           strat.adjusted = STRAT-GV,
-           strat.adjusted = (strat.adjusted - mean(strat.adjusted))
-           )%>%
-    ungroup()
-  
-  return(mprs.adj)
-}
-
-prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C1/h2-0/env-0/genos-test_common.nc.sscore', file_name_gv='/C1/h2-0/genos-test_common.true.sscore')
-
-cols_test <- c("darkgoldenrod1", "darkorchid1")
-
-# Histogram 
-ggplot(data = prs, aes(x=random.adjusted, fill = POP)) + geom_histogram(data = subset(prs, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
-```
-
-Polygenic Score in Test Population - Stratified Phenotype
-```{r}
-# Histogram 
-ggplot(data = prs, aes(x=strat.adjusted, fill = POP)) + geom_histogram(data = subset(prs, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Stratification") + scale_fill_manual(values = cols_test)
-```
-
-```{r}
-agg_Va <- function(rep, file_path, file_name) {
-  
-  Va <- fread(paste0(file_path, rep,file_name))
-  Va$REP <- rep 
-  
-  Va <- Va %>% filter(V1 == "nc") %>% select("Va_Random", "Va_Strat", "REP")
-  
-  return(Va)
-}
-
-Va <- plyr::ldply(reps, agg_Va, file_path='../output/PGA_test/4PopSplit/', file_name='/C1/h2-0.8/env-2/Va.txt')
-```
-
-```{r}
-agg_Qx <- function(rep, file_path, file_name) {
-  
-  Va <- fread(paste0(file_path, rep,file_name))
-  Va$REP <- rep 
-  
-  Va <- Va %>% filter(V1 == "nc")
-  
-  return(Va)
-}
-
-Qx <- plyr::ldply(reps, agg_Qx, file_path='../output/PGA_test/4PopSplit/', file_name='/C1/h2-0.8/env-2/Qx.txt')
-```
-
-```{r}
-agg_Qx_bh <- function(rep, file_path, va_file_name, lambdaT_file1,lambdaT_file2, tvec_file, mprs) {
-  
-  mprs <- agg_test(rep, file_path='../output/PRS/4PopSplit/', file_name_prs='/C1/h2-0.8/env-2/genos-test_common.nc.sscore', file_name_gv='/C1/h2-0.8/genos-test_common.true.sscore')
-  mprs <- mprs[1:(nrow(mprs)-1),]
-  #print(head(mprs))
-  
-  Va <- fread(paste0(file_path, rep, va_file_name))
-  #print(Va)
-  
-  lambdaT <- fread(paste0(lambdaT_file1, rep,"/", lambdaT_file2))
-  lambdaT <- as.numeric(as.character(lambdaT[1,1]))
-
-  
-  # Load Test vector
-  std.tvec <- fread(paste0(lambdaT_file1, rep, "/",tvec_file))
-  std.tvec <- std.tvec$V1[1:(nrow(std.tvec)-1)]
-
-  # Comput (PGS * Tvec)^2
-  num_random <- (std.tvec %*% mprs$random.adjusted)^2
-  num_strat <- (std.tvec %*% mprs$strat.adjusted)^2
-
-  # Compute denominator 2*Va*Lambda_T
-  denom_random <- 2*as.numeric(as.character(Va[3,2]))*lambdaT
-  denom_strat <- 2*as.numeric(as.character(Va[3,3]))*lambdaT
-
-  # Calc Qx
-  Qx_random <- num_random / denom_random
-  Qx_strat <- num_strat / denom_strat
-
-  # Calc p-values for chi-square df=1
-  p_random <- pchisq(Qx_random, df=1, lower.tail=FALSE)
-  p_strat <- pchisq(Qx_strat, df=1, lower.tail=FALSE)
-
-  # Concat Results
-  out <- as.data.frame(matrix(c(num_random, denom_random, Qx_random, p_random,num_strat, denom_strat, Qx_strat, p_strat), nrow = 1))
-  colnames(out) <- c('num_random', 'denom_random', 'Qx_random', 'p_random','num_strat', 'denom_strat', 'Qx_strat', 'p_strat')
-  out$Rep <- rep
-  return(out)
-}
-
-Qx_bh <- plyr::ldply(reps, agg_Qx_bh, file_path='../output/PGA_test/4PopSplit/', va_file_name='/C1/h2-0.8/env-2/Va.txt', lambdaT_file1 = '../output/Calculate_Tm/4PopSplit/', lambdaT_file2 = 'C1/Lambda_T.txt', tvec_file = '/C1/Tvec.txt')
-```
-
-
-
-Covariance between Test Vector and PGS
-```{r}
-agg_Tvecs <- function(rep, file_path, file_name) {
-  Tvec <- fread(paste0(file_path, rep,file_name ))
-  std.tvec <- Tvec$V1
-  return(std.tvec)
-}
-
-test_vecs <- plyr::ldply(reps, agg_Tvecs, file_path='../output/Calculate_Tm/4PopSplit/', file_name='/C1/Tvec.txt')
-
-cov_strat_C1 <- rep(0, length(reps))
-cov_random_C1 <- rep(0, length(reps))
-for (i in 1:length(cov_strat_C1)) {
-  p <- subset(prs, prs$REP == reps[[i]])
-  cov_strat_C1[i] <- cov(p$strat.adjusted, t(test_vecs[i,]))
-  cov_random_C1[i] <- cov(p$random.adjusted, t(test_vecs[i,]))
-}
-
-mean(cov_strat_C1)
-mean(cov_random_C1)
-
-mod <- lm(t(test_vecs[1,]) ~ subset(prs, prs$REP == "B1")$random.adjusted)
-summary(mod)
-```
-
-Polygenic Score in Test Population (clumping) - Random Phenotype including Tm as a Covariate
-```{r}
-agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
-  
-  prs <- fread(paste0(file_path, rep,file_name_prs))
-  colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
-  
-  gvalue <- fread(paste0(file_path, rep,file_name_gv))
-  colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
-  
-  gwas.pop <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/ids.test"), header = F)
-  colnames(gwas.pop) <- c("#IID", "FID", "POP")
-  
-  df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
-  df <- suppressMessages(left_join(df, gwas.pop))
-  df$REP <- rep
-  
-  mprs.adj = df%>%
-  group_by(REP)%>%
-    mutate(random.adjusted = RANDOM-GV,
-           random.adjusted = (random.adjusted - mean(random.adjusted))/sd(random.adjusted),
-           strat.adjusted = STRAT-GV,
-           strat.adjusted = (strat.adjusted - mean(strat.adjusted))/sd(strat.adjusted)
-           )%>%
-    ungroup()
-  
-  return(mprs.adj)
-}
-
-prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C1/h2-0/env-0/genos-test_common-Tm.nc.sscore', file_name_gv='/C1/genos-test_common.true.sscore')
-
-cols_test <- c("darkgoldenrod1", "darkorchid1")
-
-# Histogram 
-ggplot(data = prs, aes(x=random.adjusted, fill = POP)) + geom_histogram(data = subset(prs, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
-```
-
-Polygenic Score in Test Population - Stratified Phenotype inlcuding Tm as a covariate
-```{r}
-# Histogram 
-ggplot(data = prs, aes(x=strat.adjusted, fill = POP)) + geom_histogram(data = subset(prs, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Stratification") + scale_fill_manual(values = cols_test)
-```
-
-Mean Difference Across Populations
-```{r}
-mprs.sum = prs%>%
-  group_by(POP)%>%
-  summarize(mean.prs.random = mean(random.adjusted), mean.prs.strat = mean(strat.adjusted) )%>%
-  ungroup()
-
-kable(mprs.sum)
-```
-
-Covariance between Test Vector and PGS - including Tm as a covariate
-```{r}
-agg_Tvecs <- function(rep, file_path, file_name) {
-  Tvec <- fread(paste0(file_path, rep,file_name ))
-  std.tvec <- Tvec$V1
-  return(std.tvec)
-}
-
-test_vecs <- plyr::ldply(reps, agg_Tvecs, file_path='../output/Calculate_Tm/4PopSplit/', file_name='/C1/Tvec.txt')
-
-cov_strat_C1_Tm <- rep(0, length(reps))
-cov_random_C1_Tm <- rep(0, length(reps))
-for (i in 1:length(cov_strat_C1_Tm)) {
-  p <- subset(prs, prs$REP == reps[[i]])
-  cov_strat_C1_Tm[i] <- cov(p$strat.adjusted, t(test_vecs[i,]))
-  cov_random_C1_Tm[i] <- cov(p$random.adjusted, t(test_vecs[i,]))
-}
-
-mean(cov_strat_C1_Tm)
-mean(cov_random_C1_Tm)
-```
-
-# Configuration 2
-
-A/B are the GWAS panel  
-C/D are the test panel  
-
-True Genetic Value (calculated using causal effect sizes)
+Polygenic Score in Test Population (clumping) 
 ```{r}
 # Read in all Reps and Pick important columns 
 agg_data <- function(rep, file_path, file_name) {
   gvalue <- fread(paste0(file_path, rep,file_name ))
-  gwas.pop <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C2/ids.gwas"), header = F)
-  colnames(gwas.pop) <- c("#IID", "FID", "POP")
+  gwas.pop <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C1/ids.test"), header = F)
+  colnames(gwas.pop) <- c("IID", "FID", "POP")
   gvalue <- suppressMessages(full_join(gvalue,gwas.pop))
   gvalue$REP <- rep
   return(gvalue)
 }
-cols_gwas <- c("red2", "mediumblue")
-df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C2/h2-0.8/genos-gwas_common.gvalue.sscore')
 
-# Histogram 
-ggplot(data = df, aes(x= SCORE1_SUM, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "B"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("True PGS") + scale_fill_manual(values = cols_gwas)
-```
-
-Random Phenotypes (no stratification)
-```{r}
-df <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C2/h2-0.8/env-2/genos-gwas_common.phenos.txt")
-
-# Histogram 
-ggplot(data = df, aes(x=pheno_random, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "B"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("Random Phenotype") + scale_fill_manual(values = cols_gwas)
-```
-
-Phenotypes (stratification)
-```{r}
-# Histogram 
-ggplot(data = df, aes(x=pheno_strat, fill = POP)) + geom_histogram(data = subset(df, POP == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, POP == "B"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("Stratified Phenotype") + scale_fill_manual(values = cols_gwas)
-```
-
-Stratified Phenotype - True Genetic Value (Pop A should have positive environment)
-```{r}
-genos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C2/genos-gwas_common.gvalue.sscore')
-phenos <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name="/C2/genos-gwas_common.phenos.txt")
-
-E <- phenos$pheno_strat - genos$SCORE1_SUM 
-df <- as.data.frame(cbind(genos$POP, genos$REP, E))
-df$E <- as.numeric(levels(df$E))[df$E]
-
-# Histogram 
-ggplot(data = df, aes(x=E, fill =V1)) + geom_histogram(data = subset(df, V1 == "A"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df, V1 == "B"), alpha = 0.75, bins = 30) + facet_wrap(~V2) + theme_bw() + xlab("Environment") + scale_fill_manual(values = cols_gwas)
-```
-
-Polygenic Score in Test Population - Random Phenotype
-```{r}
-agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
-  
-  prs <- fread(paste0(file_path, rep,file_name_prs))
-  colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
-  
-  gvalue <- fread(paste0(file_path, rep,file_name_gv))
-  colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
-  
-  gwas.pop <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C2/ids.test"), header = F)
-  colnames(gwas.pop) <- c("#IID", "FID", "POP")
-  
-  df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
-  df <- suppressMessages(left_join(df, gwas.pop))
-  df$REP <- rep
-  
-  mprs.adj = df%>%
-  group_by(REP)%>%
-    mutate(random.adjusted = RANDOM-GV,
-           random.adjusted = (random.adjusted - mean(random.adjusted))/sd(random.adjusted),
-           strat.adjusted = STRAT-GV,
-           strat.adjusted = (strat.adjusted - mean(strat.adjusted))/sd(strat.adjusted)
-           )%>%
-    ungroup()
-  
-  return(mprs.adj)
-}
-
-
-prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C2/h2-0.8/env-2/genos-test_common.nc.sscore', file_name_gv='/C2/h2-0.8/genos-test_common.true.sscore')
+df_test_env0 <- plyr::ldply(reps, agg_data, file_path='../output/PGA_test/4PopSplit/', file_name='/C1/h2-0/env-0.0/PGS.txt')
+df_test_env0$env <- 0
+df_test_env0.1 <- plyr::ldply(reps, agg_data, file_path='../output/PGA_test/4PopSplit/', file_name='/C1/h2-0/env-0.10/PGS.txt')
+df_test_env0.1$env <- 0.1
+df_test_env0.5 <- plyr::ldply(reps, agg_data, file_path='../output/PGA_test/4PopSplit/', file_name='/C1/h2-0/env-0.50/PGS.txt')
+df_test_env0.5$env <- 0.5
+df_test_env1 <- plyr::ldply(reps, agg_data, file_path='../output/PGA_test/4PopSplit/', file_name='/C1/h2-0/env-1.00/PGS.txt')
+df_test_env1$env <- 1
 cols_test <- c("darkgoldenrod1", "darkorchid1")
 
-# Histogram 
-ggplot(data = prs, aes(x=random.adjusted, fill = POP)) + geom_histogram(data = subset(prs, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
-```
-
-Polygenic Score in Test Population - Stratified Phenotype
-```{r}
-# Histogram 
-ggplot(data = prs, aes(x=strat.adjusted, fill = POP)) + geom_histogram(data = subset(prs, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Strat") + scale_fill_manual(values = cols_test)
-```
-
-Mean Difference Across Populations
-```{r}
-mprs.sum = prs%>%
-  group_by(POP)%>%
-  summarize(mean.prs.random = mean(random.adjusted), mean.prs.strat = mean(strat.adjusted) )%>%
-  ungroup()
-
-kable(mprs.sum)
-```
-
-Covariance between Test Vector and PGS 
-```{r}
-agg_Tvecs <- function(rep, file_path, file_name) {
-  Tvec <- fread(paste0(file_path, rep,file_name ))
-  std.tvec <- Tvec$V1
-  return(std.tvec)
-}
-
-test_vecs <- plyr::ldply(reps, agg_Tvecs, file_path='../output/Calculate_Tm/4PopSplit/', file_name='/C1/Tvec.txt')
-
-cov_strat_C2 <- rep(0, length(reps))
-cov_random_C2 <- rep(0, length(reps))
-for (i in 1:length(cov_strat_C2)) {
-  p <- subset(prs, prs$REP == reps[[i]])
-  cov_strat_C2[i] <- cov(p$strat.adjusted, t(test_vecs[i,]))
-  cov_random_C2[i] <- cov(p$random.adjusted, t(test_vecs[i,]))
-}
-
-mean(cov_strat_C2)
-mean(cov_random_C2)
-```
-
-Polygenic Score in Test Population - Random Phenotype - includin Tm as a covariate
-```{r}
-agg_test <- function(rep, file_path, file_name_prs, file_name_gv) {
-  
-  prs <- fread(paste0(file_path, rep,file_name_prs))
-  colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
-  
-  gvalue <- fread(paste0(file_path, rep,file_name_gv))
-  colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
-  
-  gwas.pop <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/C2/ids.test"), header = F)
-  colnames(gwas.pop) <- c("#IID", "FID", "POP")
-  
-  df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
-  df <- suppressMessages(left_join(df, gwas.pop))
-  df$REP <- rep
-  
-  mprs.adj = df%>%
-  group_by(REP)%>%
-    mutate(random.adjusted = RANDOM-GV,
-           random.adjusted = (random.adjusted - mean(random.adjusted))/sd(random.adjusted),
-           strat.adjusted = STRAT-GV,
-           strat.adjusted = (strat.adjusted - mean(strat.adjusted))/sd(strat.adjusted)
-           )%>%
-    ungroup()
-  
-  return(mprs.adj)
-}
-
-
-prs <- plyr::ldply(reps, agg_test, file_path='../output/PRS/4PopSplit/', file_name_prs='/C2/genos-test_common-Tm.nc.sscore', file_name_gv='/C2/genos-test_common.true.sscore')
-cols_test <- c("darkgoldenrod1", "darkorchid1")
+df_test <- rbind(df_test_env0, df_test_env0.1, df_test_env0.5, df_test_env1)
 
 # Histogram 
-ggplot(data = prs, aes(x=RANDOM, fill = POP)) + geom_histogram(data = subset(prs, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Random") + scale_fill_manual(values = cols_test)
+ggplot(data = df_test, aes(x=nc, fill = POP)) + geom_histogram(data = subset(df_test, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df_test, POP == "D"), alpha = 0.75, bins = 30) + facet_grid(REP ~ env) + theme_bw() + xlab("Stratified Phenotype") + scale_fill_manual(values = cols_test)
 ```
 
-Polygenic Score in Test Population - Stratified Phenotype -inluding Tm as a covariate
+Polygenic Score in Test Population, including Tm (clumping) 
 ```{r}
-# Histogram 
-ggplot(data = prs, aes(x=STRAT, fill = POP)) + geom_histogram(data = subset(prs, POP == "C"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(prs, POP == "D"), alpha = 0.75, bins = 30) + facet_wrap(~REP) + theme_bw() + xlab("PRS Strat") + scale_fill_manual(values = cols_test)
-```
-
-Mean Difference Across Populations
-```{r}
-mprs.sum = prs%>%
-  group_by(POP)%>%
-  summarize(mean.prs.random = mean(random.adjusted), mean.prs.strat = mean(strat.adjusted) )%>%
-  ungroup()
-
-kable(mprs.sum)
-```
-
-Covariance between Test Vector and PGS - including Tm as a covariate
-```{r}
-agg_Tvecs <- function(rep, file_path, file_name) {
-  Tvec <- fread(paste0(file_path, rep,file_name ))
-  std.tvec <- Tvec$V1
-  return(std.tvec)
-}
-
-test_vecs <- plyr::ldply(reps, agg_Tvecs, file_path='../output/Calculate_Tm/4PopSplit/', file_name='/C1/Tvec.txt')
-
-cov_strat_C2_Tm <- rep(0, length(reps))
-cov_random_C2_Tm <- rep(0, length(reps))
-for (i in 1:length(cov_strat_C2_Tm)) {
-  p <- subset(prs, prs$REP == reps[[i]])
-  cov_strat_C2_Tm[i] <- cov(p$strat.adjusted, t(test_vecs[i,]))
-  cov_random_C2_Tm[i] <- cov(p$random.adjusted, t(test_vecs[i,]))
-}
-
-mean(cov_strat_C2_Tm,)
-mean(cov_random_C2_Tm)
-```
-
-## Summary 
-
-Write function to gather all datasets and plot in one plot  
-
-```{r}
-reps <- list("B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20" )
-agg_all_data <- function(rep, dir_path, case, type) {
-  
-  prs <- fread(paste0(dir_path, rep,"/", case, "/", 'genos-test_common', type))
-  colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
-  
-  gvalue <- fread(paste0(dir_path, rep,"/", case, "/" , 'genos-test_common.true.sscore'))
-  colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
-  
-  gwas.pop <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/", case, "/" , "ids.test"), header = F)
-  colnames(gwas.pop) <- c("#IID", "FID", "POP")
-  
-  df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
-  df <- suppressMessages(left_join(df, gwas.pop))
-  df$REP <- rep
-  
-  mprs.adj = df%>%
-  group_by(REP)%>%
-    mutate(random.adjusted = RANDOM-GV,
-           random.adjusted = (random.adjusted - mean(random.adjusted))/sd(random.adjusted),
-           strat.adjusted = STRAT-GV,
-           strat.adjusted = (strat.adjusted - mean(strat.adjusted))/sd(strat.adjusted)
-           )%>%
-    ungroup() %>% select(POP, REP, random.adjusted, strat.adjusted)
-  colnames(mprs.adj) <-c("POP", "REP", "RANDOM", "STRAT")
-  
-  mprs.adj$TYPE <- paste0(case, type)
-  
-  return(mprs.adj)
-}
-
-concat_prs <- function(type_prs, cases) {
-  prs <- plyr::ldply(reps, agg_all_data, dir_path='../output/PRS/4PopSplit/',case = cases, type=type_prs)
-  return(prs)
-}
-
-all_prs_types <- c(".c.sscore", ".c.p.sscore", ".nc.sscore", "-Tm.c.p.sscore", "-Tm.c.sscore", "-Tm.nc.sscore")
-cases <- c("C1", "C2")
-
-dat <- expand.grid(all_prs_types, cases)
-colnames(dat) <- c("type_prs", "cases")
-df <- plyr::mdply(dat, concat_prs)
-```
-
-```{r}
-plot_df_random <- df %>% group_by(POP, TYPE) %>% summarise(MEAN = mean(RANDOM)) %>% select(POP, TYPE, MEAN)
-plot_df_random$PHENO <- "Random"
+ggplot(data = df_test, aes(x=nc_Tm, fill = POP)) + geom_histogram(data = subset(df_test, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df_test, POP == "D"), alpha = 0.75, bins = 30) + facet_grid(REP ~ env) + theme_bw() + xlab("Stratified Phenotype") + scale_fill_manual(values = cols_test)
 ```
 
 
 ```{r}
-plot_df_strat <- df %>% group_by(POP, TYPE) %>% summarise(MEAN = mean(STRAT)) %>% select(POP, TYPE, MEAN)
-plot_df_strat$PHENO <- "Strat"
-```
-
-
-```{r}
-cc_df <- rbind(plot_df_random, plot_df_strat)
-
-ggplot(cc_df, aes(x = POP, y = TYPE)) + geom_tile(aes(fill = MEAN)) + facet_wrap(~PHENO) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.y = element_blank()) + xlab("Test Population Label") + scale_fill_gradient2(low = "#91bfdb", mid = "#ffffbf",high = "#fc8d59", limits = c(-0.65, 0.65), breaks = c(-0.6, -0.3, 0, 0.3, 0.6), name = "Mean PRS")
-```
-
-
-```{r}
-agg_all_cov <- function(rep, dir_path, case, type) {
-  #print(paste0(rep, case, type))
-  
-  prs <- fread(paste0(dir_path, rep,"/", case, "/", 'genos-test_common', type))
-  colnames(prs) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "RANDOM", "STRAT")
-  
-  gvalue <- fread(paste0(dir_path, rep,"/", case, "/" , 'genos-test_common.true.sscore'))
-  colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
-  
-  gwas.pop <- fread(paste0("../output/Simulate_Genotypes/4PopSplit/", rep, "/", case, "/" , "ids.test"), header = F)
-  colnames(gwas.pop) <- c("#IID", "FID", "POP")
-  
-  df <- suppressMessages(full_join(prs,gvalue, by ="#IID")) %>% select("#IID", "RANDOM", "STRAT", "GV")
-  df <- suppressMessages(left_join(df, gwas.pop))
-  df$REP <- rep
-  
-  mprs.adj = df%>%
-  group_by(REP)%>%
-    mutate(random.adjusted = RANDOM-GV,
-           random.adjusted = (random.adjusted - mean(random.adjusted))/sd(random.adjusted),
-           strat.adjusted = STRAT-GV,
-           strat.adjusted = (strat.adjusted - mean(strat.adjusted))/sd(strat.adjusted)
-           )%>%
-    ungroup() 
-  
-  Tvec <- fread(paste0("../output/Calculate_Tm/4PopSplit/", rep, "/", case, "/", "Tvec.txt"))
-  std.tvec <- Tvec$V1
-  
-  mprs.sum = mprs.adj %>% 
-    summarise(COV_STRAT = cov(std.tvec, strat.adjusted), COV_RANDOM = cov(std.tvec, random.adjusted))
-  
-  #std.tvec[std.tvec < 0] <- 0
-  #std.tvec[std.tvec > 0] <- 1
-  #mod <- logistf(as.factor(std.tvec) ~ mprs.adj$strat.adjusted)
-  #mprs.sum$p_strat <- summary(mod)$coefficients[2,4]
-  
-  B <- subset(mprs.adj, mprs.adj$POP == mprs.adj$POP[1])
-  B <- B$STRAT
-  D <- subset(mprs.adj, mprs.adj$POP == "D")
-  D <- D$STRAT
-  t.out <- t.test(B,D)
-  mprs.sum$p_strat <- t.out$p.value
-  
-  #mod <- glm(std.tvec ~ mprs.adj$random.adjusted, family = "binomial")
-  #mprs.sum$p_random <- summary(mod)$coefficients[2,4] 
-  
-  B <- subset(mprs.adj, mprs.adj$POP == mprs.adj$POP[1])
-  B <- B$RANDOM
-  D <- subset(mprs.adj, mprs.adj$POP == "D")
-  D <- D$RANDOM
-  t.out <- t.test(B,D)
-  mprs.sum$p_random <- t.out$p.value
-  
-  mprs.sum$TYPE <- paste0(case, type)
-  mprs.sum$REP <- rep
-  
-  return(mprs.sum)
-}
-
-concat_prs <- function(type_prs, cases) {
-  prs <- plyr::ldply(reps, agg_all_cov, dir_path='../output/PRS/4PopSplit/',case = cases, type=type_prs)
-  return(prs)
-}
-
-all_prs_types <- c(".c.sscore", ".c.p.sscore", ".nc.sscore", "-Tm.c.p.sscore", "-Tm.c.sscore", "-Tm.nc.sscore")
-cases <- c("C1", "C2")
-
-dat <- expand.grid(all_prs_types, cases)
-colnames(dat) <- c("type_prs", "cases")
-df_sum <- plyr::mdply(dat, concat_prs)
-```
-
-```{r}
-plot_cov <- df_sum %>% group_by(TYPE) %>% summarise(STRAT = mean(COV_STRAT), RANDOM = mean(COV_RANDOM)) %>% gather(PHENO, PRS, -TYPE)
-
-ggplot(plot_cov, aes(x = PHENO, y = TYPE)) + geom_tile(aes(fill = PRS)) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.y = element_blank()) + xlab("") + scale_fill_gradient2(low = "#91bfdb", mid = "#ffffbf",high = "#fc8d59", limits = c(-0.35, 0.65), breaks = c(-0.6, -0.3, 0, 0.3, 0.6), name = "Avg Cov.")
-```
-
-```{r}
-c_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common.c.sscore"
-cp_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common.c.p.sscore"
-nc_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common.nc.sscore"
-nc_Tm_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common-Tm.nc.sscore"
-c_Tm_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common-Tm.c.sscore"
-cp_Tm_file = "output/PRS/4PopSplit/B3/C2/h2-0/env-2/genos-test_common-Tm.c.p.sscore"
-lambda_T_file = "output/Calculate_Tm/4PopSplit/B3/C2/Lambda_T.txt"
-Va_file = "output/PGA_test/4PopSplit/B3/C2/h2-0/env-2/Va.txt"
-Va_Tm_file = "output/PGA_test/4PopSplit/B3/C2/h2-0/env-2/Va-Tm.txt"
-true_file="output/PRS/4PopSplit/B3/C2/h2-0/genos-test_common.true.sscore"
-out_file = "output/Calculate_Tm/4PopSplit/B3/C2/Tvec.txt"
-tvec_file = "output/Calculate_Tm/4PopSplit/B3/C2/Tvec.txt"
-```
-
-```{r}
-agg_all_data <- function(rep, dir_path, case, type, h2, env) {
-  
-  Qx <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", env, "/", "Qx.txt"))
-  colnames(Qx) <- c("type", "Qx_random", "Qx_strat", "p_random", "p_strat")
-  Qx$Rep <- rep
-  
-  return(Qx)
-}
-
-reps <- list("B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17", "B18", "B19", "B20" )
-cases <- c("C1", "C2")
-h2 <- c("h2-0", "h2-0.8")
-envs <- c("env-0", "env-2")
-
+reps <- rep(NA, 10)
+for (i in 1:10){reps[i] <- paste0("E", i)}
+h2 <- "h2-0"
+envs <- c("env-0.0", "env-0.10", "env-0.50", "env-1.00")
+cases <- c("C1")
 dat <- expand.grid(reps, cases, h2, envs)
 colnames(dat) <- c("rep", "case", "h2", "env")
-df <- plyr::mdply(dat, agg_all_data, dir_path = '../output/PGA_test/4PopSplit/' )
-```
-
-
-```{r}
-reps <- rep(NA, 100)
-for (i in 1:100){reps[i] <- paste0("F", i)}
-h2 <- "h2-0"
-envs <- c("env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.10")
-cases <- c("C1", "C2")
-dat <- expand.grid(reps, cases, h2, envs)
 
 agg_all_data <- function(rep, dir_path, case, type, h2, env) {
   
@@ -696,1134 +122,91 @@ agg_all_data <- function(rep, dir_path, case, type, h2, env) {
   
   return(Qx)
 }
-df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/4PopSplit/' )
+df <- plyr::mdply(dat, agg_all_data, dir_path = '../output/PGA_test/4PopSplit/' )
+df <- df %>% filter(type == "nc" & env == "env-0.0")
+df_Qx <- df %>% group_by(type, rep, env) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n())
+
+#ggplot(data = test, aes(x = type, y = env, fill = avg_Ax)) +geom_tile()
 ```
 
-
+# Investigate E5 
 ```{r}
-nc <- df %>% filter(type == "nc" | type == "Tm-nc") %>% filter(h2 == "h2-0.8")
-p <- nc %>% group_by(case, env, type, h2) %>% summarise(avg_Qx_strat = mean(Qx_strat), avg_Qx_random = mean(Qx_random))
-```
+E5 <- fread("~/polygenic_adaptation_stratification/output/PGA_test/4PopSplit/E5/C1/h2-0/env-0.0/PGS.txt")
 
-```{r}
-c <- df %>% filter(type == "c")
-p <- c %>% group_by(case, env, h2) %>% summarise(avg_Qx_strat = mean(Qx_strat), avg_Qx_random = mean(Qx_random))
-```
-
-
-
-# Qx Simulation 
-
-Population - Berg 2014
-```{r}
-calc_Qx <- function(ms, k, L) {
-  
-  # Draw alleles from Beta
-  #p_start <- rep(0.5, L)
-  p_start <- rbeta(L, 1,3)
-  
-  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
-  p1GWAS <- p_start + rnorm(L, ms, 0.1)
-  p2GWAS <- p_start + rnorm(L, -ms, 0.1)
-  rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
-  if (length(rm) > 0) {
-    p1GWAS <- p1GWAS[-rm]
-    p2GWAS <- p2GWAS[-rm]    
-  }
-  
-  # Evolve neautral alleles vias drift
-  p1N <- p_start + rnorm(L, 0, 0.1)
-  p2N <- p_start + rnorm(L, 0, 0.1)
-  rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
-  if (length(rm) > 0) {
-    p1N <- p1N[-rm]
-    p2N <- p2N[-rm]
-  }
-  
-  # Compute mean PGS 
-  Z1 <- 2 * sum(p1GWAS)
-  Z2 <- 2 * sum(p2GWAS)
-  
-  # Mean centering matrix 
-  Tmat <- matrix(-1/k, nrow = 1, ncol = 2)
-  diag(Tmat) <- (k-1)/k
-  
-  # Mean center PGS
-  Zp <- Tmat %*% c(Z1, Z2)
-  
-  # Compute F matrix 
-  G <- rbind(p1N, p2N)
-  S <- matrix(0, ncol(G),ncol(G))
-  diag(S) <- 1 / (colMeans(G) * (1 - colMeans(G)))
-  Fmat <- (1/(ncol(G)-1)) * (Tmat %*% G %*% S %*% t(G) %*% t(Tmat))
-  
-  # Compute Va 
-  G_gwas <- rbind(p1GWAS, p2GWAS)
-  Va <- sum(2* (colMeans(G_gwas) * (1 - colMeans(G_gwas))))
-  
-  # Compute Qx
-  Qx <- (t(Zp) %*% solve(Fmat) %*% Zp) / (2*Va)
-  return(Qx[1,1])
-}
-
-vecQx <- matrix(rep(0, 1000))
-pvals <- rep(0, 1000)
-for(i in 1:1000) {
-  vecQx[i] <- calc_Qx(0, 2, 1000)
-  pvals[i] <- pchisq(vecQx[i],1, lower.tail = F)
-}
-
-mean(vecQx)
-hist(pvals)
-```
-
-Population - get allele freq from genotype matrix 
-```{r}
-make_genotype_matrix <- function(p, n, L) {
-  G <- matrix(NA, nrow = n, ncol = L)
-  for (i in 1:length(p)) {
-    G[,i] <- rbinom(n,2,p[i])
-  }
-  return(G)
-}
-
-calc_Qx1 <- function(ms, k, n, L) {
-  
-  # Draw alleles from Beta
-  #p_start <- rep(0.5, L)
-  p_start <- rbeta(L, 1,3)
-  
-  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
-  p1GWAS <- p_start + rnorm(L, ms, 0.1)
-  p2GWAS <- p_start + rnorm(L, -ms, 0.1)
-  rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
-  if (length(rm) > 0) {
-    p1GWAS <- p1GWAS[-rm]
-    p2GWAS <- p2GWAS[-rm]    
-  }
-  
-  # Evolve neautral alleles vias drift
-  p1N <- p_start + rnorm(L, 0, 0.1)
-  p2N <- p_start + rnorm(L, 0, 0.1)
-  rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
-  if (length(rm) > 0) {
-    p1N <- p1N[-rm]
-    p2N <- p2N[-rm]
-  }
-  
-  # Make Genotype matrix for GWAS alleles by drawing from population 
-  i1GWAS <- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
-  i2GWAS <- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
-  
-  # Make Genotype matrix for neautral alleles by drawing from population 
-  i1N <- make_genotype_matrix(p1N, n/2, length(p1N))
-  i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
-  
-  # Neutral Gentotype Matrix 
-  G <- rbind(i1N, i2N)/2
-  if (length(which(colSums(G) == 0)) > 0 | length(which(colSums(G) == nrow(G))) > 0 ){
-    if (length(which(colSums(G) == 0)) > 0) { G <- G[, -which(colSums(G) == 0)]}
-    if (length(which(colSums(G) == nrow(G))) > 0) {G <- G[, -which(colSums(G) == nrow(G))]}
-  }
-  G_ns <- G
-  G <- scale(G, scale = F)
-  
-  # GWAS Gentotype Matrix 
-  G_gwas <- rbind(i1GWAS, i2GWAS)/2
-  if (length(which(colSums(G_gwas) == 0)) > 0 | length(which(colSums(G_gwas) == nrow(G_gwas))) > 0 ){
-    if (length(which(colSums(G_gwas) == 0)) > 0) { G_gwas <- G_gwas[, -which(colSums(G_gwas) == 0)]}
-    if (length(which(colSums(G_gwas) == nrow(G_gwas))) > 0) {G_gwas <- G_gwas[, -which(colSums(G_gwas) == nrow(G_gwas))]}
-  }
-  G_gwas_ns <- G_gwas
-  G_gwas <- scale(G_gwas, scale = F)
-  
-  # Calc allele frequencies  
-  p1GWAS <- colMeans(G_gwas_ns[1:(n/2), ])
-  p2GWAS <- colMeans(G_gwas_ns[(n/2):n, ])
-  p1N <- colMeans(G_ns[1:(n/2), ])
-  p2N <- colMeans(G_ns[(n/2):n, ])
-  
-   # Compute mean PGS 
-  Z1 <- 2 * sum(p1GWAS)
-  Z2 <- 2 * sum(p2GWAS)
-  
-  # Mean centering matrix 
-  Tmat <- matrix(-1/k, nrow = 1, ncol = 2)
-  diag(Tmat) <- (k-1)/k
-  
-  # Mean center PGS
-  Zp <- Tmat %*% c(Z1, Z2)
-  
-  # Compute F matrix 
-  G <- rbind(p1N, p2N)
-  S <- matrix(0, ncol(G),ncol(G))
-  diag(S) <- 1 / (colMeans(G) * (1 - colMeans(G)))
-  Fmat <- (1/(ncol(G)-1)) * (Tmat %*% G %*% S %*% t(G) %*% t(Tmat))
-  
-  # Compute Va 
-  G_gwas <- rbind(p1GWAS, p2GWAS)
-  Va <- sum(2* (colMeans(G_gwas) * (1 - colMeans(G_gwas))))
-  
-  # Compute Qx
-  Qx <- (t(Zp) %*% solve(Fmat) %*% Zp) / (2*Va)
-  return(Qx[1,1])
-}
-
-vecQx <- matrix(rep(0, 1000))
-pvals <- rep(0, 1000)
-for(i in 1:1000) {
-  vecQx[i] <- calc_Qx1(0, 2, 100, 1000)
-  pvals[i] <- pchisq(vecQx[i],1, lower.tail = F)
-}
-
-mean(vecQx)
-hist(pvals)
-```
-
-
-Population - H matrix
-```{r}
-make_genotype_matrix <- function(p, n, L) {
-  G <- matrix(NA, nrow = n, ncol = L)
-  for (i in 1:length(p)) {
-    G[,i] <- rbinom(n,2,p[i])
-  }
-  return(G)
-}
-
-calc_Qx2 <- function(ms, k, n, L) {
-  
-  # Draw alleles from Beta
-  p_start <- rep(0.5, L)
-  #p_start <- rbeta(L, 1,3)
-  
-  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
-  p1GWAS <- p_start + rnorm(L, ms, 0.1)
-  p2GWAS <- p_start + rnorm(L, -ms, 0.1)
-  rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
-  if (length(rm) > 0) {
-    p1GWAS <- p1GWAS[-rm]
-    p2GWAS <- p2GWAS[-rm]    
-  }
-  
-  # Evolve neautral alleles vias drift
-  p1N <- p_start + rnorm(L, 0, 0.1)
-  p2N <- p_start + rnorm(L, 0, 0.1)
-  rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
-  if (length(rm) > 0) {
-    p1N <- p1N[-rm]
-    p2N <- p2N[-rm]
-  }
-  
-  # Make Genotype matrix for GWAS alleles by drawing from population 
-  i1GWAS <- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
-  i2GWAS <- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
-  
-  # Make Genotype matrix for neautral alleles by drawing from population 
-  i1N <- make_genotype_matrix(p1N, n/2, length(p1N))
-  i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
-  
-  # Neutral Gentotype Matrix 
-  G <- rbind(i1N, i2N)/2
-  if (length(which(colSums(G) == 0)) > 0 | length(which(colSums(G) == nrow(G))) > 0 ){
-    if (length(which(colSums(G) == 0)) > 0) { G <- G[, -which(colSums(G) == 0)]}
-    if (length(which(colSums(G) == (2*nrow(G)))) > 0) {G <- G[, -which(colSums(G) == nrow(G))]}
-  }
-  G_ns <- G
-  G <- scale(G, scale = F)
-  
-  # GWAS Gentotype Matrix 
-  G_gwas <- rbind(i1GWAS, i2GWAS)/2
-  if (length(which(colSums(G_gwas) == 0)) > 0 | length(which(colSums(G_gwas) == nrow(G_gwas))) > 0 ){
-    if (length(which(colSums(G_gwas) == 0)) > 0) { G_gwas <- G_gwas[, -which(colSums(G_gwas) == 0)]}
-    if (length(which(colSums(G_gwas) == (nrow(G_gwas)*2))) > 0) {G_gwas <- G_gwas[, -which(colSums(G_gwas) == nrow(G_gwas))]}
-  }
-  G_gwas_ns <- G_gwas
-  G_gwas <- scale(G_gwas, scale = F)
-  
-  # Compute individual PGS, mean center and drop last value
-  Z <- c(rowSums(G_gwas_ns))
-  Zp <- scale(Z, scale = F)[1:(n-1)]
-  
-  # Mean centering matrix 
-  Tmat <- matrix(-1/n, nrow = n-1, ncol = n)
-  diag(Tmat) <- (n-1)/n
-  
-  # Compute K
-  #het <- mean((colMeans(G_ns) * (1 - colMeans(G_ns))))
-  #TG <- Tmat %*% (G_ns)
-  #TG_s <- (1/sqrt(het)) *  (TG)
-  #K <- TG_s %*% t(TG_s)
-  #K <- (1/(ncol(G)-1)) * G[1:99,] %*% t(G[1:99,])
-  
-  S <- matrix(0, ncol(G), ncol(G))
-  diag(S) <- (colMeans(G_ns) * (1 - colMeans(G_ns)))
-  K <- (1/(ncol(G)-1)) * Tmat %*% (G_ns) %*% S %*% t(G_ns) %*% t(Tmat)
-  
-  # Compute Kpop
-  H <- matrix(0, nrow = (n-1), ncol = 1)
-  H[1:(n/2), 1] <- 1/(n/2)
-  Kpop <-(t(H) %*% K %*% H)
-  
-  #v <- c()
-  #for (i in 1:50){
-  #  for (j in 1:50) {
-  #    v <- c(v, sum((G_ns[i,] - colMeans(G_ns)) * (G_ns[j,] - colMeans(G_ns)))) 
-  #  }
-  #}
-  #Kpop2 <- (1/het) * (1/(50^2))* sum(v) 
-  
-  # Compute Zpop
-  Zpop <- t(H) %*% Zp
-  
-  # Compute Va 
-  Va <- sum(2* ((colMeans(G_gwas_ns)) * (1 - (colMeans(G_gwas_ns)))))
-  
-  # Compute Qx
-  Qx <- (t(Zpop) %*% solve(Kpop) %*% Zpop) / (2*Va)
-  return(Qx[1,1])
-}
-
-vecQx <- matrix(rep(0, 500))
-pvals <- rep(0, 500)
-for(i in 1:500) {
-  vecQx[i] <- calc_Qx2(0, 2, 100, 1000)
-  pvals[i] <- pchisq(vecQx[i],1, lower.tail = F)
-}
-
-mean(vecQx)
-hist(pvals)
-```
-
-```{r}
-# Normalized
-SVD <- svd(scale(G_ns))
-u_svd <- SVD$u
-
-myE <- eigen(scale(G_ns) %*% t(scale(G_ns)))
-u_eig <- myE$vectors
-
-
-# Centered only 
-SVD_c <- svd(scale(G_ns, scale=F)[1:99,])
-u_svd2 <- SVD_c$u
-
-het <- mean((colMeans(G_ns) * (1 - colMeans(G_ns))))
-TG <- Tmat %*% (G_ns)
-TG_s <- (1/sqrt(het)) *  (TG)
-eig2 <- eigen(TG_s %*% t(TG_s))
-u_eig2 <- eig2$vectors
-
-
-Fmat <- sapply(seq(1,dim(neut_leaves_freqs)[2]),function(x){
-  sapply(seq(1,dim(neut_leaves_freqs)[2]),function(y){
-    cov(neut_leaves_freqs[,x]/sqrt(mean_hetero), neut_leaves_freqs[,y]/sqrt(mean_hetero))
-  })
-})
-
-neut_leaves_freqs_means <- apply(neut_leaves_freqs, 1, mean)
-mean_hetero <- neut_leaves_freqs_means*(1-neut_leaves_freqs_means)
-
-neut_leaves_freqs <- cbind(p1N, p2N)
-
-x=1
-y=1
-```
-
-
-
-Population - H matrix replacing $XX^T$ with $U \Delta U^T$
-```{r}
-calc_Qx3 <- function(ms, k, n, L) {
-  
-  # All alleles start at 0.5
-  #p_start <- rep(0.5, 100)
-  p_start <- rbeta(L, 1,3)
-  
-   # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
-  p1GWAS <- p_start + rnorm(L, ms, 0.1)
-  p2GWAS <- p_start + rnorm(L, -ms, 0.1)
-  rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
-  if (length(rm) > 0) {
-    p1GWAS <- p1GWAS[-rm]
-    p2GWAS <- p2GWAS[-rm]    
-  }
-  
-  # Evolve neautral alleles vias drift
-  p1N <- p_start + rnorm(L, 0, 0.1)
-  p2N <- p_start + rnorm(L, 0, 0.1)
-  rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
-  if (length(rm) > 0) {
-    p1N <- p1N[-rm]
-    p2N <- p2N[-rm]
-  }
-  
-  # Make Genotype matrix for GWAS alleles by drawing from population 
-  i1GWAS <- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
-  i2GWAS <- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
-  
-  # Make Genotype matrix for neautral alleles by drawing from population 
-  i1N <- make_genotype_matrix(p1N, n/2, length(p1N))
-  i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
-  
-  # Neutral Gentotype Matrix 
-  G <- rbind(i1N, i2N)
-  if (length(which(colSums(G) == 0)) > 0 | length(which(colSums(G) == nrow(G))) > 0 ){
-    if (length(which(colSums(G) == 0)) > 0) { G <- G[, -which(colSums(G) == 0)]}
-    if (length(which(colSums(G) == (2*nrow(G)))) > 0) {G <- G[, -which(colSums(G) == nrow(G))]}
-  }
-  G_ns <- G
-  G <- scale(G, scale = F)
-  
-  # GWAS Gentotype Matrix 
-  G_gwas <- rbind(i1GWAS, i2GWAS)
-  if (length(which(colSums(G_gwas) == 0)) > 0 | length(which(colSums(G_gwas) == nrow(G_gwas))) > 0 ){
-    if (length(which(colSums(G_gwas) == 0)) > 0) { G_gwas <- G_gwas[, -which(colSums(G_gwas) == 0)]}
-    if (length(which(colSums(G_gwas) == (nrow(G_gwas)*2))) > 0) {G_gwas <- G_gwas[, -which(colSums(G_gwas) == nrow(G_gwas))]}
-  }
-  G_gwas_ns <- G_gwas
-  G_gwas <- scale(G_gwas, scale = F)
-  
-  # Compute individual PGS, mean center and drop last value
-  Z <- c(rowSums(G_gwas_ns))
-  Zp <- scale(Z, scale = F)[1:(n-1)]
-  
-  # Mean centering matrix 
-  Tmat <- matrix(-1/k, nrow = k-1, ncol = k)
-  diag(Tmat) <- (k-1)/k
-
-  # Compute Kpop via Eigen decomp 
-  H <- matrix(0, nrow = n-1, ncol = 1)
-  H[1:(n/2), 1] <- 1/(n/2)
-  myE <- eigen(G %*% t(G))
-  K <- myE$vectors[1:99,1:99] %*% diag(myE$values[1:99]) %*% t(myE$vectors[1:99,1:99])
-  Kpop <- (1/(ncol(G)-1)) * (t(H) %*% K %*% H)
-  
-  # Compute Va 
-  G_gwas <- rbind(i1GWAS, i2GWAS)/2
-  Va <- sum(2* ((colMeans(G_gwas_ns)*0.5) * (1 - (0.5*colMeans(G_gwas_ns)))))
-  
-  # Compute Zpop
-  Zpop <- t(H) %*% Zp
-  
-  # Compute Qx
-  Qx <- (t(Zpop) %*% solve(Kpop) %*% Zpop) / (2*Va)
-  return(Qx[1,1])
-}
-
-vecQx <- matrix(rep(0, 500))
-pvals <- rep(0, 500)
-for(i in 1:500) {
-  vecQx[i] <- calc_Qx3(0, 2, 100, 1000)
-  pvals[i] <- pchisq(vecQx[i],1, lower.tail = F)
-}
-
-mean(vecQx)
-hist(pvals)
-```
-
-Single Test Vector
-```{r}
-make_genotype_matrix <- function(p, n, L) {
-  G <- matrix(NA, nrow = n, ncol = L)
-  for (i in 1:length(p)) {
-    G[,i] <- rbinom(n,2,p[i])
-  }
-  return(G)
-}
-
-calc_Qx4 <- function(ms, n, L, L_gwas) {
-  
-  # Draw alleles from Beta
-  #p_start <- rep(0.5, 100)
-  #p_start_gwas <- rep(0.5, 100)
-  p_start <- rbeta(L, 1,3)
-  p_start_gwas <- rbeta(L_gwas, 1,3)
-  
-  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
-  p1GWAS <- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
-  p2GWAS <- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
-  rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
-  if (length(rm) > 0) {
-    p1GWAS <- p1GWAS[-rm]
-    p2GWAS <- p2GWAS[-rm]    
-  }
-  
-  # Evolve neautral alleles vias drift
-  p1N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
-  p2N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
-  rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
-  if (length(rm) > 0) {
-    p1N <- p1N[-rm]
-    p2N <- p2N[-rm]
-  }
-  
-  # Make Genotype matrix for GWAS alleles by drawing from population 
-  i1GWAS <- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
-  i2GWAS <- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
-  
-  # Make Genotype matrix for neautral alleles by drawing from population 
-  i1N <- make_genotype_matrix(p1N, n/2, length(p1N))
-  i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
-  
-  # Neutral Gentotype Matrix 
-  G <- rbind(i1N, i2N)/2
-  if (length(which(colSums(G) == 0)) > 0 | length(which(colSums(G) == nrow(G))) > 0 ){
-    if (length(which(colSums(G) == 0)) > 0) { G <- G[, -which(colSums(G) == 0)]}
-    if (length(which(colSums(G) == nrow(G))) > 0) {G <- G[, -which(colSums(G) == nrow(G))]}
-  }
-  G <- scale(G)
-  
-  # GWAS Gentotype Matrix 
-  G_gwas <- rbind(i1GWAS, i2GWAS)/2
-  if (length(which(colSums(G_gwas) == 0)) > 0 | length(which(colSums(G_gwas) == nrow(G_gwas))) > 0 ){
-    if (length(which(colSums(G_gwas) == 0)) > 0) { G_gwas <- G_gwas[, -which(colSums(G_gwas) == 0)]}
-    if (length(which(colSums(G_gwas) == nrow(G_gwas))) > 0) {G_gwas <- G_gwas[, -which(colSums(G_gwas) == nrow(G_gwas))]}
-  }
-  G_gwas_ns <- G_gwas
-  G_gwas <- scale(G_gwas)
-  
-  # Compute individual PGS 
-  Z <- c(rowSums(G_gwas_ns)) 
-  
-  # Mean centering matrix 
-  Tmat <- matrix(-1/n, nrow = n-1, ncol = n)
-  diag(Tmat) <- (n-1)/n
-  
-  # Mean center PGS
-  Zp <- Tmat %*% Z
-  
-  # Make Test vector 
-  Tvec <- c(rep(-1,(n/2)),rep(1,(n/2)))
-  Tvec <- scale(Tvec[1:(n-1)], scale = F)
-  
-  # Mean center PGS
-  Ztest <- t(Tvec[1:(n-1)]) %*% Zp
-
-  # Compute K via Eigen decomp 
-  myE <- eigen(G %*% t(G))
-  K <- myE$vectors[,1:(n-1)] %*% diag(myE$values[1:(n-1)]) %*% t(myE$vectors[,1:(n-1)])
-  Fmat <- (1/(ncol(G)-1)) * t(Tvec) %*% K %*% Tvec
-  
-  # Compute Va 
-  Va <- sum(2* (colMeans(G_gwas_ns) * (1 - colMeans(G_gwas_ns))))
-  
-  # Compute Qx
-  Qx <- (t(Ztest)%*% solve(Fmat) %*% Ztest) / (2*Va)
-  return(Qx[1,1])
-}
-
-vecQx <- matrix(rep(0, 500))
-pvals <- rep(0, 500)
-for(i in 1:500) {
-  vecQx[i] <- calc_Qx4(0, 100, 100, 100)
-  pvals[i] <- pchisq(vecQx[i],1, lower.tail = F)
-}
-
-mean(vecQx)
-hist(pvals)
-```
-
-Single Test Vector
-```{r}
-make_genotype_matrix <- function(p, n, L) {
-  G <- matrix(NA, nrow = n, ncol = L)
-  for (i in 1:length(p)) {
-    G[,i] <- rbinom(n,2,p[i])
-  }
-  return(G)
-}
-
-calc_Qx4 <- function(ms, n, L, L_gwas) {
-  
-  # Draw alleles from Beta
-  #p_start <- rep(0.5, 100)
-  #p_start_gwas <- rep(0.5, 100)
-  p_start <- rbeta(L, 1,3)
-  p_start_gwas <- rbeta(L_gwas, 1,3)
-  
-  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
-  p1GWAS <- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
-  p2GWAS <- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
-  rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
-  if (length(rm) > 0) {
-    p1GWAS <- p1GWAS[-rm]
-    p2GWAS <- p2GWAS[-rm]    
-  }
-  
-  # Evolve neautral alleles vias drift
-  p1N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
-  p2N <- p_start + rnorm(L, 0, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
-  rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
-  if (length(rm) > 0) {
-    p1N <- p1N[-rm]
-    p2N <- p2N[-rm]
-  }
-  
-  # Make Genotype matrix for GWAS alleles by drawing from population 
-  i1GWAS <- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
-  i2GWAS <- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
-  
-  # Make Genotype matrix for neautral alleles by drawing from population 
-  i1N <- make_genotype_matrix(p1N, n/2, length(p1N))
-  i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
-  
-  # Neutral Gentotype Matrix 
-  G <- rbind(i1N, i2N)/2
-  if (length(which(colSums(G) == 0)) > 0 | length(which(colSums(G) == nrow(G))) > 0 ){
-    if (length(which(colSums(G) == 0)) > 0) { G <- G[, -which(colSums(G) == 0)]}
-    if (length(which(colSums(G) == nrow(G))) > 0) {G <- G[, -which(colSums(G) == nrow(G))]}
-  }
-  G_ns <- G
-  G <- scale(G)
-  
-  # GWAS Gentotype Matrix 
-  G_gwas <- rbind(i1GWAS, i2GWAS)/2
-  if (length(which(colSums(G_gwas) == 0)) > 0 | length(which(colSums(G_gwas) == nrow(G_gwas))) > 0 ){
-    if (length(which(colSums(G_gwas) == 0)) > 0) { G_gwas <- G_gwas[, -which(colSums(G_gwas) == 0)]}
-    if (length(which(colSums(G_gwas) == nrow(G_gwas))) > 0) {G_gwas <- G_gwas[, -which(colSums(G_gwas) == nrow(G_gwas))]}
-  }
-  G_gwas_ns <- G_gwas
-  G_gwas <- scale(G_gwas)
-  
-  
-  # Calc allele frequencies  
-  #p1GWAS <- colMeans(G_gwas_ns[1:(n/2), ])
-  #p2GWAS <- colMeans(G_gwas_ns[((n/2)+1):n, ])
-  #p1N <- colMeans(G_ns[1:(n/2), ])
-  #p2N <- colMeans(G_ns[((n/2)+1):n, ])
-  
-  # Compute mean PGS 
-  #Z1 <- 2 * sum(p1GWAS)
-  #Z2 <- 2 * sum(p2GWAS)
-  
-  # Mean centering matrix 
-  #Tmat <- matrix(-1/k, nrow = 1, ncol = 2)
-  #diag(Tmat) <- (k-1)/k
-  
-  # Mean center PGS
-  #Zpop <- Tmat %*% c(Z1, Z2)
-  
-  # Compute individual PGS 
-  Z <- 2*c(rowSums(G_gwas_ns))
-  #Z_1 <- mean(Z[1:50])
-  #Z_2 <- mean(Z[51:100])
-  
-  # Make test vector
-  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * (1/2)
-  Ztest <- Z %*% Tvec 
-  
-  # Compute F matrix pop
-  #Gpop <- rbind(p1N, p2N)
-  #S <- matrix(0, ncol(Gpop),ncol(Gpop))
-  #diag(S) <- 1 / (colMeans(Gpop) * (1 - colMeans(Gpop)))
-  #Fmat <- (1/(ncol(Gpop)-1)) * (Tmat %*% Gpop %*% S %*% t(Gpop) %*% t(Tmat))
-  
-  # Compute F matrix individuals
-  #S <- matrix(0, ncol(G_ns),ncol(G_ns))
-  #diag(S) <- 1 / (colMeans(G_ns) * (1 - colMeans(G_ns)))
-  #Fmat_ind <- (1/(ncol(G_ns)-1)) * (Tvec %*% G_ns %*% S %*% t(G_ns) %*% Tvec)
-  
-  # Compute K via Eigen decomp 
-  #cov_mat <- scale(G_ns, scale =F) %*% S %*% t(scale(G_ns, scale =F) )
-  #myE <- eigen(cov_mat)
-  #K <- myE$vectors[,1:(n-1)] %*% diag(myE$values[1:(n-1)]) %*% t(myE$vectors[,1:(n-1)])
-  
-  cov_mat2 <- scale(G_ns, scale =F) %*% t(scale(G_ns, scale =F) )
-  myE2 <- eigen(cov_mat2)
-  K2 <- myE2$vectors[,1:(n-1)] %*% diag(sqrt(myE2$values[1:(n-1)])) %*% t(myE2$vectors[,1:(n-1)])
-  
-  #Fmat <- (1/(ncol(G)-1)) * t(Tvec) %*% K %*% Tvec
-  Fmat2 <- (1/(ncol(G)-1)) * t(Tvec) %*% K2 %*% Tvec
-  
-  # Compute Va 
-  Va <- sum(2* (colMeans(G_gwas_ns) * (1 - colMeans(G_gwas_ns))))
-  
-  # Compute Qx
-  Qx <- (t(Ztest)%*% solve(Fmat2) %*% Ztest) / (2*Va)
-  return(Qx[1,1])
-}
-
-reps <- 1000
-vecQx <- matrix(rep(0, reps))
-pvals <- rep(0, reps)
-for(i in 1:reps) {
-  vecQx[i] <- calc_Qx4(0.005, 100, 1000, 100)
-  pvals[i] <- pchisq(vecQx[i],1, lower.tail = F)
-}
-
-mean(vecQx)
-hist(pvals)
-```
-
-
-Single Test Vector - Clean 
-```{r}
-make_genotype_matrix <- function(p, n, L) {
-  G <- matrix(NA, nrow = n, ncol = L)
-  for (i in 1:length(p)) {
-    G[,i] <- rbinom(n,2,p[i])
-  }
-  return(G)
-}
-
-calc_Qx5 <- function(ms, n, L, L_gwas) {
-  
-  # Draw alleles from Beta
-  p_start <- rbeta(L, 1,3)
-  p_start_gwas <- rbeta(L_gwas, 1,3)
-  
-  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
-  p1GWAS <- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
-  p2GWAS <- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
-  rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
-  if (length(rm) > 0) {
-    p1GWAS <- p1GWAS[-rm]
-    p2GWAS <- p2GWAS[-rm]    
-  }
-  
-  # Evolve neautral alleles vias drift
-  p1N <- p_start + rnorm(L, 0, sqrt((p_start)*(1-p_start)* 0.01))
-  p2N <- p_start + rnorm(L, 0, sqrt((p_start)*(1-p_start)* 0.01))
-  rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
-  if (length(rm) > 0) {
-    p1N <- p1N[-rm]
-    p2N <- p2N[-rm]
-  }
-  
-  # Make Genotype matrix for GWAS alleles by drawing from population 
-  i1GWAS <- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
-  i2GWAS <- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
-  
-  # Make Genotype matrix for neautral alleles by drawing from population 
-  i1N <- make_genotype_matrix(p1N, n/2, length(p1N))
-  i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
-  
-  # Neutral Gentotype Matrix 
-  G <- rbind(i1N, i2N)/2
-  if (length(which(colSums(G) == 0)) > 0 | length(which(colSums(G) == nrow(G))) > 0 ){
-    if (length(which(colSums(G) == 0)) > 0) { G <- G[, -which(colSums(G) == 0)]}
-    if (length(which(colSums(G) == 2*nrow(G))) > 0) {G <- G[, -which(colSums(G) == nrow(G))]}
-  }
-  
-  # GWAS Gentotype Matrix 
-  G_gwas <- rbind(i1GWAS, i2GWAS)/2
-  if (length(which(colSums(G_gwas) == 0)) > 0 | length(which(colSums(G_gwas) == nrow(G_gwas))) > 0 ){
-    if (length(which(colSums(G_gwas) == 0)) > 0) { G_gwas <- G_gwas[, -which(colSums(G_gwas) == 0)]}
-    if (length(which(colSums(G_gwas) == 2*nrow(G_gwas))) > 0) {G_gwas <- G_gwas[, -which(colSums(G_gwas) == nrow(G_gwas))]}
-  }
-  
-  # Compute individual PGS 
-  Z <- 2*c(rowSums(G_gwas))
-  
-  # Make test vector
-  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * (1/2)
-  Ztest <- Z %*% Tvec 
-  
-  # Compute F matrix individuals
-  #S <- matrix(0, ncol(G),ncol(G))
-  #diag(S) <- 1 / (colMeans(G) * (1 - colMeans(G)))
-  #cov_mat2 <- G %*% S %*% t(G)
-  #myE2 <- eigen(cov_mat2)
-  #K2 <- myE2$vectors[,1:(n-1)] %*% diag(myE2$values[1:(n-1)]) %*% t(myE2$vectors[,1:(n-1)])
-  #Fmat2 <- (1/(ncol(G)-1)) * t(Tvec) %*% K2 %*% Tvec
-  
-  # Compute F matrix Individuals from scaled Genotype matrix
-  cov_mat <- scale(G) %*% t(scale(G)) * (1/(ncol(G)-1)) 
-  myE <- eigen(cov_mat)
-  K <- (myE$vectors[,1:(n-1)] %*% diag(myE$values[1:(n-1)]) %*% t(myE$vectors[,1:(n-1)])) * 0.5
-  Fmat <- t(Tvec) %*% K %*% Tvec
-  
-  # Compute Va 
-  Va <- sum(2* ((colMeans(G_gwas)) * (1 - (colMeans(G_gwas)))))
-  
-  # Compute Qx
-  Qx <- (t(Ztest)%*% solve(Fmat) %*% Ztest) / (2*Va)
-  return(Qx[1,1])
-}
-
-reps <- 100
-vecQx <- matrix(rep(0, reps))
-pvals <- rep(0, reps)
-for(i in 1:reps) {
-  vecQx[i] <- calc_Qx5(0, 200, 1000, 100)
-  pvals[i] <- pchisq(vecQx[i],1, lower.tail = F)
-}
-
-mean(vecQx)
-hist(pvals)
-```
-
-```{r}
-make_genotype_matrix <- function(p, n, L) {
-  G <- matrix(NA, nrow = n, ncol = L)
-  for (i in 1:length(p)) {
-    G[,i] <- rbinom(n,2,p[i])
-  }
-  return(G)
-}
-
-calc_Qx5 <- function(ms, n, L, L_gwas) {
-  
-  # Draw alleles from Beta
-  p_start <- rbeta(L, 1,3)
-  p_start_gwas <- rbeta(L_gwas, 1,3)
-  
-  # Evolve GWAS alleles (ms = mean shift to add direction to frequency change)
-  p1GWAS <- p_start_gwas + rnorm(L_gwas, ms, sqrt((p_start_gwas)*(1-p_start_gwas)* 0.01))
-  p2GWAS <- p_start_gwas + rnorm(L_gwas, -ms, sqrt((p_start_gwas)*(1-p_start_gwas) *0.01))
-  rm <- which(p1GWAS < 0 | p1GWAS > 1 | p2GWAS < 0 | p2GWAS > 1)
-  if (length(rm) > 0) {
-    p1GWAS <- p1GWAS[-rm]
-    p2GWAS <- p2GWAS[-rm]    
-  }
-  
-  # Evolve neautral alleles vias drift
-  p1N <- p_start + rnorm(L, 0, sqrt((p_start)*(1-p_start)* 0.01))
-  p2N <- p_start + rnorm(L, 0, sqrt((p_start)*(1-p_start)* 0.01))
-  rm <- which(p1N < 0 | p1N > 1 | p2N < 0 | p2N > 1)
-  if (length(rm) > 0) {
-    p1N <- p1N[-rm]
-    p2N <- p2N[-rm]
-  }
-  
-  # Make Genotype matrix for GWAS alleles by drawing from population 
-  i1GWAS <- make_genotype_matrix(p1GWAS, n/2, length(p1GWAS))
-  i2GWAS <- make_genotype_matrix(p2GWAS, n/2, length(p2GWAS))
-  
-  # Make Genotype matrix for neautral alleles by drawing from population 
-  i1N <- make_genotype_matrix(p1N, n/2, length(p1N))
-  i2N <- make_genotype_matrix(p2N, n/2, length(p2N))
-  
-  # Neutral Gentotype Matrix 
-  G <- rbind(i1N, i2N)
-  if (length(which(colSums(G) == 0)) > 0 | length(which(colSums(G) == 2*nrow(G))) > 0 ){
-    if (length(which(colSums(G) == 0)) > 0) { G <- G[, -which(colSums(G) == 0)]}
-    if (length(which(colSums(G) == (2*nrow(G)))) > 0) {G <- G[, -which(colSums(G) == nrow(G))]}
-  }
-  
-  # GWAS Gentotype Matrix 
-  G_gwas <- rbind(i1GWAS, i2GWAS)
-  if (length(which(colSums(G_gwas) == 0)) > 0 | length(which(colSums(G_gwas) == 2*nrow(G_gwas))) > 0 ){
-    if (length(which(colSums(G_gwas) == 0)) > 0) { G_gwas <- G_gwas[, -which(colSums(G_gwas) == 0)]}
-    if (length(which(colSums(G_gwas) == (2*nrow(G_gwas)))) > 0) {G_gwas <- G_gwas[, -which(colSums(G_gwas) == nrow(G_gwas))]}
-  }
-  
-  # Compute individual PGS 
-  Z <- c(rowSums(G_gwas))
-  
-  # Make test vector
-  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
-  Ztest <- Z %*% Tvec 
-  
-  # Compute F matrix individuals
-  #S <- matrix(0, ncol(G),ncol(G))
-  #diag(S) <- 1 / (colMeans(G) * (1 - colMeans(G)))
-  #cov_mat2 <- G %*% S %*% t(G)
-  #myE2 <- eigen(cov_mat2)
-  #K2 <- myE2$vectors[,1:(n-1)] %*% diag(myE2$values[1:(n-1)]) %*% t(myE2$vectors[,1:(n-1)])
-  #Fmat2 <- (1/(ncol(G)-1)) * t(Tvec) %*% K2 %*% Tvec
-  
-  # Compute F matrix Individuals from scaled Genotype matrix
-  cov_mat <- scale(G) %*% t(scale(G)) * (1/(ncol(G)-1)) 
-  myE <- eigen(cov_mat)
-  K <- (myE$vectors[,1:(n-1)] %*% diag(myE$values[1:(n-1)]) %*% t(myE$vectors[,1:(n-1)])) * 0.5
-  Fmat <- t(Tvec) %*% K %*% Tvec 
-  
-  # Compute Va 
-  Va <- 2* sum(((colMeans(G_gwas)/2) * (1 - (colMeans(G_gwas)/2))))
-  
-  # Compute Qx
-  Qx <- ((t(Ztest)%*% solve(Fmat) %*% Ztest) / (2*Va)) 
-  return(Qx[1,1])
-}
-
-reps <- 100
-vecQx <- matrix(rep(0, reps))
-pvals <- rep(0, reps)
-for(i in 1:reps) {
-  vecQx[i] <- calc_Qx5(0, 200, 1000, 100)
-  pvals[i] <- pchisq(vecQx[i],1, lower.tail = F)
-}
-
-mean(vecQx)
-hist(pvals)
-```
-
-
-
-
-
-
-
-
-
-```{r}
 library(pgenlibr)
-pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pvar")
-d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pgen")
-X <- ReadList(d1,seq(1,97096), meanimpute=F)
-Tvec <- fread("../output/Calculate_Tm/4PopSplit/S1/C1/Tvec.txt")
-Tvec <- Tvec$V1
+read_genos <- function(geno_prefix, betas) {
 
-calc_Qx6 <- function(G, n, L, Tvec) {
-  
-  G <- G/2
-  
-  # Sample random 20 causal sites to include in PGS
-  indx <- sample(seq(1,L), 100)
-  G_gwas <- G[,indx]
-  
-  # Compute individual PGS 
-  Z <- 2*c(rowSums(G_gwas))
-  
-  # Make test vector
-  Tvec <- fread("../output/Calculate_Tm/4PopSplit/S1/C1/Tvec.txt")
-  Tvec <- Tvec$V1
-  n1 <- sum(Tvec==1)
-  n2 <- sum(Tvec==-1)
-  Tvec <- c(rep(1,(n1))/(n1), rep(-1,(n2))/(n2)) * (1/2)
-  Ztest <- Z %*% Tvec 
-  
-  # Compute F matrix Individuals from scaled Genotype matrix
-  #cov_mat <- scale(G) %*% t(scale(G))
-  #myE <- eigen(cov_mat)
-  #K <- (myE$vectors %*% diag(myE$values) %*% t(myE$vectors)) 
-  #Fmat <- (1/(ncol(G)-1)) * t(Tvec) %*% K %*% Tvec
-  
-  S <- matrix(0, ncol(G),ncol(G))
-  diag(S) <- 1 / (colMeans(G) * (1 - colMeans(G)))
-  cov_mat2 <- scale(G, scale = F) %*% S %*% t(scale(G, scale = F))
-  myE2 <- eigen(cov_mat2)
-  K2 <- myE2$vectors %*% diag(myE2$values) %*% t(myE2$vectors)
-  Fmat2 <- (1/(ncol(G)-1)) * t(Tvec) %*% K2 %*% Tvec
-  
-  # Compute Va 
-  Va <- sum(2* (colMeans(G_gwas) * (1 - colMeans(G_gwas))))
-  
-  # Compute Qx
-  Qx <- (t(Ztest)%*% solve(Fmat2) %*% Ztest) / (2*Va)
-  return(Qx[1,1])
-}
-
-reps <- 200
-vecQx <- matrix(rep(0, reps))
-pvals <- rep(0, reps)
-for(i in 1:reps) {
-  X <- ReadList(d1,seq(1,97096), meanimpute=F)
-  indx <- sample(seq(1,ncol(X)), 1000)
-  X <- X[,indx] 
-  vecQx[i] <- calc_Qx6(X, nrow(X), ncol(X), Tvec)
-  pvals[i] <- pchisq(vecQx[i],1, lower.tail = F)
-}
-
-mean(vecQx)
-hist(pvals)
-```
-
-
-
-
-```{r}
-c_file = "output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common.c.sscore"
-cp_file = "output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common.c.p.sscore"
-nc_file = "output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common.nc.sscore"
-c_Tm_file = "output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common-Tm.c.sscore"
-cp_Tm_file = "output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common-Tm.c.p.sscore"
-nc_Tm_file = "output/PRS/4PopSplit/S1/C1/h2-0/env-0/genos-test_common-Tm.nc.sscore"
-lambda_T_file = "output/Calculate_Tm/4PopSplit/S1/C1/Lambda_T.txt"
-Va_file = "output/PGA_test/4PopSplit/S1/C1/h2-0/env-0/Va.txt"
-Va_Tm_file = "output/PGA_test/4PopSplit/S1/C1/h2-0/env-0/Va-Tm.txt"
-true_file = "output/PRS/4PopSplit/S1/C1/h2-0/genos-test_common.true.sscore" # True genetic value
-tvec_file ="output/Calculate_Tm/4PopSplit/S1/C1/Tvec.txt"
-#out_file = args[12] # outfile prefix
-snps_file="output/PGA_test/4PopSplit/S1/C1/h2-0/env-0/num_snp.txt"
-```
-
-
-```{r}
-pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pvar")
-d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pgen")
-X <- ReadList(d1,seq(1,97096), meanimpute=F)
-
-vecs <- fread("../output/Calculate_Tm/4PopSplit/S1/C1/pca.eigenvec")
-cov_mat <- scale(X) %*% t(scale(X))
-myE <- eigen(cov_mat)
-u <- myE$vectors
-
-make_genotype_matrix <- function(p, n, L) {
-  G <- matrix(NA, nrow = n, ncol = L)
-  for (i in 1:length(p)) {
-    G[,i] <- rbinom(n,2,p[i])
+  pvar <- pgenlibr::NewPvar(paste0(geno_prefix, ".pvar"))
+  d1 <- pgenlibr::NewPgen(paste0(geno_prefix, ".pgen"))
+  var.ids <- betas$ID
+  var.indx <- rep(0, length(var.ids))
+  for (i in 1:length(var.indx)) {
+    var.indx[i] <- pgenlibr::GetVariantsById(pvar,var.ids[i])
   }
-  return(G)
+  X <- ReadList(d1,var.indx, meanimpute=F)
+
+  return(X)
 }
 
-X <- make_genotype_matrix(rbeta(1000, 1,3), 1000, 1000)
-G <- X/2
-if (length(which(colSums(G) == 0)) > 0 | length(which(colSums(G) == nrow(G))) > 0 ){
-    if (length(which(colSums(G) == 0)) > 0) { G <- G[, -which(colSums(G) == 0)]}
-    if (length(which(colSums(G) == nrow(G))) > 0) {G <- G[, -which(colSums(G) == nrow(G))]}
-  }
+betas <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E5/C1/h2-0/env-0.0/genos-gwas_common.c.betas")
+M <- read_genos("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/E5/C1/genos-gwas_common", betas)
 
-cov_mat <- scale(G) %*% t(scale(G))
-myE <- eigen(cov_mat)
-u <- myE$vectors
-v <- myE$values
-K <- (myE$vectors %*% diag(myE$values) %*% t(myE$vectors)) 
+freqA <- colSums(M[1:100,]) / 200 
+freqC <- colSums(M[101:200,]) / 200 
 
-S <- matrix(0, ncol(G),ncol(G))
-diag(S) <- 1 / ((colMeans(G)) * (1 - (colMeans(G))))
-cov_mat2 <- scale(G, scale=F) %*% S %*% t(scale(G, scale =F))
-myE2 <- eigen(cov_mat2)
-u2 <- myE2$vectors
-v2 <- myE2$values
-K2 <- myE2$vectors %*% diag(myE2$values) %*% t(myE2$vectors)
+diff_gwas <- freqA - freqC
+plot(diff_gwas, betas$BETA_Strat)
 
-Sp <- matrix(0, ncol(G),ncol(G))
-diag(Sp) <- 1 / (sqrt(0.5 * colMeans(G) * (1 - colMeans(G))))
-GS <- scale(G, scale=F) %*% Sp
-G_s <- scale(G)
-
-t <- GS %*% t(GS)
-#j <- G %*% S %*% 
-i <- G_s %*% t(G_s)
-```
-
-```{r}
-X <- rbinom(100, 2, 0.5)
-X <- X/2
-#mean(X)
-var(X)
-sd(X)
-
-sqrt(0.5 * (0.5*0.5))
-
+mean(betas$BETA_Strat)
 ```
 
 
 ```{r}
-Z <- c(2, 4, -5, -1, 1)
-
-Z1 <- mean(Z[1:2])
-Z2 <- mean(Z[3:5])
-
-Tvec <- c(rep(1, 2)/2, rep(-1,3)/3) * (1/2)
-Ztest <- t(Tvec) %*% Z 
-
-Tmat <- c(0.5, -0.5)
-Zpop <- Tmat %*% c(Z1,Z2) 
-```
-
-```{r}
-pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.pvar")
-d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.pgen")
-G <- ReadList(d1,seq(1,95698), meanimpute=F)
-vecs <- fread("../output/Calculate_Tm/4PopSplit/S2/C1/pca.eigenvec")
-vals <- fread("../output/Calculate_Tm/4PopSplit/S2/C1/pca.eigenval")
-vals <- vals$V1
-vecs <- vecs[,3:ncol(vecs)]
-vecs <- apply(vecs, 2, as.numeric)
-
-Tvec <- fread("../output/Calculate_Tm/4PopSplit/S2/C1/Tvec.txt")
-Tvec <- Tvec$V1
-n1 <- sum(Tvec==1)
-n2 <- sum(Tvec==-1)
-Tvec <- c(rep(1,(n1))/(n1), rep(-1,(n2))/(n2)) * (1/2)
-
-lambdaT <- t(Tvec) %*% vecs %*% diag(vals) %*% t(vecs) %*% Tvec
-Fmat <-  lambdaT
-
-
-cov_mat <- scale(G) %*% t(scale(G)) * (1/(ncol(G)-1))
-Gs <- (G - (colMeans(G))) / sqrt((colMeans(G)/2) * (1-(colMeans(G)/2)))
-cov_mat <- Gs %*% t(Gs)* (1/(ncol(G)-1))
-
-myE <- eigen(cov_mat)
-u <- myE$vectors
-v <- myE$values
-lambdaT1 <- t(Tvec) %*% u %*% diag(v) %*% t(u) %*% Tvec * (0.5)
-Fmat1 <-  lambdaT1
-
-plot(vals, v[1:199])
-abline(a=0,b=1)
-```
-
-
-```{r}
-pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.pvar")
-d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common.pgen")
-G <- ReadList(d1,seq(1,95698), meanimpute=F)
-
-# Scale G
-Gs <- scale(G)
-L <- ncol(G)
-
-# Covariance Matrix 
-test.cov <- Gs %*% t(Gs) / L
-
-# Eigen decomposition
-eig <- eigen(test.cov)
-vecs <- eig$vectors
-vals <- eig$values
-```
-
-
-```{bash, results='hide'}
-# Run PCA using plink
-~/Desktop/plink2 -pfile ../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common -pca 200 --out ~/Desktop/genos_pca
-```
-
-```{r}
-plink_vecs <- fread("~/Desktop/genos_pca.eigenvec")[,3:202]
-plink_vecs <- apply(plink_vecs, 2, as.numeric)
-plink_vals <- fread("~/Desktop/genos_pca.eigenval")
-
-plot(plink_vals$V1[2:200], vals[2:200])
-abline(a=0,b=1)
-```
-
-
-```{bash, results='hide'}
-# Run PCA using plink
-~/Desktop/plink2 -pfile ../output/Simulate_Genotypes/4PopSplit/S2/C1/genos-test_common --make-rel square --out ~/Desktop/genos_grm
-```
-
-```{r}
-plink_grm <- fread("~/Desktop/genos_grm.rel")
-
-myEGRM <- eigen(plink_grm)
-u_grm <- myEGRM$vectors
-v_grm <- myEGRM$values
-
-plot(plink_vals$V1, v_grm)
-abline(a=0,b=1)
-```
-
-
-
-```{r}
-p <- colMeans(G)/2
-
-bySNP <- rep(NA, L)
-for (l in 1:L) {
-        bySNP[l] <- ((G[1,l]-(2*p[l]))*(G[2,l]-(2*p[l]))) /  (2*p[l]*(1-p[l]))      
+mean_nc <- rep(0, 10)
+for (i in 1:10) {
+  betas <- fread(paste0("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E", i, "/C1/h2-0/env-0.0/genos-gwas_common.nc.betas"))
+  mean_nc[i] <- mean(betas$BETA_Strat)
 }
-
-sum(bySNP) / L
+mean_nc
 ```
 
 ```{r}
-Z <- c(1,3,-5, 4, -1)
-Tvec <- c(rep(1,2)/2, rep(-1,3)/3)
-
-Ztest <- t(Z) %*% Tvec
-
-Z1 <- mean(Z[1:2])
-Z2 <- mean(Z[3:5])
-Tmat <- c(0.5, -0.5)
-Zpop <- c(Z1, Z2) %*% Tmat
+mean_c <- rep(0, 10)
+for (i in 1:10) {
+  betas <- fread(paste0("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E", i, "/C1/h2-0/env-0.0/genos-gwas_common.c.betas"))
+  mean_c[i] <- mean(betas$BETA_Strat)
+}
+mean_c
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

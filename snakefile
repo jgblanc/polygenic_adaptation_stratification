@@ -1,5 +1,5 @@
 CHR =["0", "1"]
-REP = ["E2"]
+REP = ["E1", "E2", "E3"]
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 ENV = ["env-0.0", "env-0.05", "env-0.10"]
@@ -20,7 +20,7 @@ def get_seed(rep, h2):
 
 rule all:
     input:
-        expand("output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.cmpruned.b.fst", rep=REP, config=CONFIG)
+        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Qx.txt", rep=REP, config=CONFIG, h2 = HERITABILITY, env = ENV)
 
 # Simluate Genotypes
 

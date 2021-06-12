@@ -1,12 +1,12 @@
 #CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
 CHR =["0", "1"]
-CONFIG=["C1", "C2"]
+CONFIG=["C1"]
 MODEL=["4PopSplit"]
 REP = []
-for i in range(1, 101):
-  REP.append("F"+str(i))
+for i in range(1, 11):
+  REP.append("E"+str(i))
 HERITABILITY = ["h2-0"]
-ENV = ["env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.10"]
+ENV = ["env-0.0", "env-0.10", "env-0.50", "env-1.00"]
 SIZE=200
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -22,7 +22,7 @@ def get_seed(rep, h2):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/finish.txt",rep=REP)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Qx.txt",rep=REP, h2=HERITABILITY, env=ENV, config=CONFIG)
 
 # Simluate Genotypes
 
@@ -320,7 +320,7 @@ rule gwas_no_correction:
         "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
-        --glm allow-no-covars \
+        --glm \
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
         --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
@@ -410,12 +410,12 @@ rule proj_T:
         "output/Calculate_Tm/{model}/{rep}/{config}/projection.sscore"
     shell:
         """
-        plink2 \
+        ~/Desktop/plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
        --pca allele-wts {params.n_minus_1} \
        --out output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/pca
 
-        plink2 \
+        ~/Desktop/plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
        --score output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
        --score-col-nums {params.col_start}-{params.col_end} \
@@ -557,19 +557,19 @@ rule Calc_Qx:
 
 # Remove non-end files
 
-rule delete_files:
-    input:
-        qx=expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Qx.txt", model=MODEL, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV),
-        pgs=expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/PGS.txt", model=MODEL, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV)
-    output:
-        "output/PGA_test/4PopSplit/{rep}/finish.txt"
-    shell:
-        """
-	 touch {output}
-	 rm -r output/Simulate_Genotypes/4PopSplit/{wildcards.rep}
-	 rm -r output/Simulate_Phenotypes/4PopSplit/{wildcards.rep}
-	 rm -r output/Calculate_Tm/4PopSplit/{wildcards.rep}
-	 rm -r output/Run_GWAS/4PopSplit/{wildcards.rep}
-	 rm -r output/PRS/4PopSplit/{wildcards.rep}
-	 """
+#rule delete_files:
+#    input:
+#        qx=expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Qx.txt", model=MODEL, rep=REP, config=CONFIG, #h2=HERITABILITY, env=ENV),
+#        pgs=expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/PGS.txt", model=MODEL, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV)
+#    output:
+#        "output/PGA_test/4PopSplit/{rep}/finish.txt"
+#    shell:
+#        """
+#	 touch {output}
+#	 rm -r output/Simulate_Genotypes/4PopSplit/{wildcards.rep}
+#	 rm -r output/Simulate_Phenotypes/4PopSplit/{wildcards.rep}
+#	 rm -r output/Calculate_Tm/4PopSplit/{wildcards.rep}
+#	 rm -r output/Run_GWAS/4PopSplit/{wildcards.rep}
+#	 rm -r output/PRS/4PopSplit/{wildcards.rep}
+#	 """
 

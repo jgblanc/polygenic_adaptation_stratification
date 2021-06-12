@@ -42,6 +42,7 @@ read_genos <- function(geno_prefix, betas) {
     var.indx[i] <- pgenlibr::GetVariantsById(pvar,var.ids[i])
   }
   X <- ReadList(d1,var.indx, meanimpute=F)
+  colnames(X) <- var.ids
 
   return(X)
 }
@@ -129,11 +130,11 @@ main <- function(beta_file, Va) {
 
   # Load effect sizes
   betas <- fread(beta_file)
-  #colnames(betas) <- c("ID", "A1", "BETA_Random", "BETA_Strat")  
+  #colnames(betas) <- c("ID", "A1", "BETA_Random", "BETA_Strat")
 
   # Load Genotypes
   X <- read_genos(geno_prefix, betas)
- 
+
   # Calc PGS
   sscore <- pgs(X, betas)
 
@@ -155,6 +156,7 @@ main <- function(beta_file, Va) {
   # Calculate empirical p-values
   all_strat <- redraws[,1]
   p_strat_en <- length(all_strat[all_strat > qx[1,1]])/length(all_strat)
+  print(var(all_strat))
 
   # Calculate p-value from chi-square
   p_strat <- pchisq(qx[1,1], df=1, lower.tail=FALSE)
@@ -206,5 +208,6 @@ fam$nc <- main2(nc_file)
 fam$c_Tm <- main2(c_Tm_file)
 fam$c.p_Tm <- main2(cp_Tm_file)
 fam$nc_Tm <- main2(nc_Tm_file)
+fam$Tvec <- tvec
 
 fwrite(fam, out_pgs,row.names=F,quote=F,sep="\t", col.names = T)

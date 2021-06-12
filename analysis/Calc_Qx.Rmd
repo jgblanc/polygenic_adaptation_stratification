@@ -1563,7 +1563,7 @@ ggplot(data = nc, aes(x = env, y = fp_strat, color = V1)) + geom_point(size =3) 
 library(data.table)
 library(tidyverse)
 library(latex2exp)
-df <- fread("../code/plot/all_M.txt")
+df <- fread("../code/plot/F100.txt")
 nc <- df %>% filter(V1 == "nc"|V1 == "Tm-nc") %>% group_by(env, V1) %>% summarise(fp_strat = sum(p_strat < 0.05)/ n()) %>% separate(env, c("env", "diff"), "-")
 nc$diff <- as.numeric(nc$diff)
 
@@ -1610,5 +1610,30 @@ true_file="output/PRS/4PopSplit/E1/C1/h2-0/genos-test_common.true.sscore"
 tvec_file="output/Calculate_Tm/4PopSplit/E1/C1/Tvec.txt"
 resamples_file = "output/Empirical_Null/4PopSplit/E1/C1/h2-0/env-0.0/Qx/resample.txt"
 ```
+
+```{r}
+library(data.table)
+library(tidyverse)
+library(latex2exp)
+df <- fread("../code/plot/F100.txt")
+test <- df %>% filter(type == "nc"| type == "nc-Tm") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-") %>% filter(case == "C1")
+nc$diff <- as.numeric(nc$diff)
+
+t <- df %>% filter(type == "nc" & case == "C1" & env == "env-0.0")
+
+ggplot(data = test, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ geom_smooth(method = "loess", se = FALSE) + xlab("Mean(A) - Mean(B)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)
+
+```
+
+```{r}
+df <- fread("../code/plot/F100.txt")
+c <- df %>% filter(type == "c"| type == "c-Tm") %>% group_by(env, type) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n()) %>% separate(env, c("env", "diff"), "-")
+c$diff <- as.numeric(c$diff)
+
+ggplot(data = c, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ geom_smooth(method = "loess", se = FALSE) + xlab("Mean(A) - Mean(B)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)
+```
+
+
+
 
 
