@@ -1,8 +1,10 @@
 CHR =["0", "1"]
-REP = ["E1", "E2", "E3"]
+REP = []
+for i in range(1, 101):
+  REP.append("F"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
-ENV = ["env-0.0", "env-0.5", "env-1", "env-2"]
+ENV = ["env-0.0", "env-0.5"]
 SS_TEST =8 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 PVALUE_THRESHOLD = 1
@@ -283,7 +285,7 @@ rule gwas_no_correction:
         "plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
-        --glm \
+        --glm allow-no-covars \
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
         --out output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
@@ -359,12 +361,12 @@ rule proj_T:
         "output/Calculate_Tm/SimpleGrid/{rep}/{config}/projection.sscore"
     shell:
         """
-        ~/Desktop/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common \
        --pca allele-wts {params.n_minus_1} \
        --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/pca
 
-        ~/Desktop/plink2 \
+        plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
        --score output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
        --score-col-nums {params.col_start}-{params.col_end} \
