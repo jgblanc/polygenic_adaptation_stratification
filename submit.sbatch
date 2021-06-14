@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=F102
-#SBATCH --output=logs/F102.out
-#SBATCH --error=logs/F102.err
-#SBATCH --time=12:00:00
+#SBATCH --job-name=SimpleGrid_F100
+#SBATCH --output=logs/SimpleGrid_F100.out
+#SBATCH --error=logs/SimpleGrid_F100.err
+#SBATCH --time=05:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=8
 #SBATCH --mem=4G
@@ -14,4 +14,5 @@ module load samtools
 module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
-snakemake --cores 8 --rerun-incomplete
+cat snakefile
+snakemake --cores 8
