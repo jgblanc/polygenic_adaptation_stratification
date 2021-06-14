@@ -15,7 +15,14 @@ library(dplyr)
 ```
 
 
-# Look at Phenotypes
+# Grid Genotype Simulaltion 
+
+* Fst = 0.015  
+* 36 demes on a 6 x 6 grid  
+* Number of SNPs = 184,228  
+* Used a pruned set of 2402 SNPS to do PCA  
+* 432 GWAS individuals 
+
 
 ```{r}
 Mod <- read.plink("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common.cmpruned.b")
@@ -23,7 +30,7 @@ M <- as.matrix(Mod$genotypes)
 cov_mat <- xxt(M)
 myE <- eigen(cov_mat)
 
-pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/genos.pop")
+pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E2/genos.pop")
 colnames(pops) <- c("IID", "#FID", "Pop", "Lat", "Long")
 
 df <- as.data.frame(cbind(myE$vectors[,1], myE$vectors[,2], Mod$fam[,1]))
@@ -31,18 +38,120 @@ colnames(df) <- c("PC1", "PC2", "IID")
 df <- inner_join(df, pops)
 df$PC1 <- as.numeric(as.character(df$PC1))
 df$PC2 <- as.numeric(as.character(df$PC2))
-ggplot(df, aes(x=PC1, y=PC2, color = Lat)) + geom_point()
+ggplot(df, aes(x=PC1, y=PC2, color = Lat)) + geom_point() + theme_classic()
+```
+
+# Phenotype simulalation 
+
+No phenotypic difference across Latitude 
+```{r}
+phenos <- fread("../output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.phenos.txt")
+df <- suppressMessages(inner_join(phenos, pops))
+ggplot(data = df, aes(Lat, pheno_strat)) + geom_point() + geom_smooth() + theme_bw() + ylab("Phenotype")
 ```
 
 ```{r}
-phenos <- fread("~/polygenic_adaptation_stratification/output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.phenos.txt")
-df <- inner_join(phenos, pops)
-plot(df$Lat, df$pheno_strat)
+ggplot(df, aes(x = Lat, y = Long, fill = pheno_strat)) + geom_tile() + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
+```
+
+2 unit phenotypic difference across Latitude
+```{r}
+phenos <- fread("../output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/env-2/genos-gwas_common.phenos.txt")
+df <- suppressMessages(inner_join(phenos, pops))
+ggplot(data = df, aes(Lat, pheno_strat)) + geom_point() + geom_smooth() + theme_bw() + ylab("Phenotype")
 ```
 
 ```{r}
-pgs <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.10/PGS.txt")
-df <- inner_join(pgs, pops)
-plot(df$Lat, df$nc_Tm)
+ggplot(df, aes(x = Lat, y = Long, fill = pheno_strat)) + geom_tile() + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
 ```
+
+
+# PGS in test panel 
+
+No stratification
+```{r}
+pgs <- fread("../output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/PGS.txt")
+df <- inner_join(pgs, pops) %>% gather(key = "Type", value = "PRS" , c, c.p, nc, c_Tm, c.p_Tm, nc_Tm)
+df <- arrange(transform(df,Type=factor(Type,levels=c("c", "c.p", "nc", "c_Tm", "c.p_Tm", "nc_Tm"))),Type)
+ggplot(data = df, aes(Lat, PRS)) + geom_point() + geom_smooth() + theme_bw()  + facet_wrap(~Type)
+```
+
+```{r}
+df_pop <- df %>% group_by(Type, Pop) %>% mutate(avg_PRS = mean(PRS)) %>% ungroup()
+ggplot(df_pop, aes(x = Lat, y = Long, fill = avg_PRS)) + geom_tile() + facet_wrap(~Type) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
+```
+
+```{r}
+Qx <- fread("../output/PGA_test/SimpleGrid/E1/C1/h2-0/env-0.0/Qx.txt")
+Qx
+```
+
+
+
+Stratification
+```{r}
+pgs <- fread("../output/PRS/SimpleGrid/E1/C1/h2-0/env-0.5/PGS.txt")
+df <- inner_join(pgs, pops) %>% gather(key = "Type", value = "PRS" , c, c.p, nc, c_Tm, c.p_Tm, nc_Tm)
+df <- arrange(transform(df,Type=factor(Type,levels=c("c", "c.p", "nc", "c_Tm", "c.p_Tm", "nc_Tm"))),Type)
+ggplot(data = df, aes(Lat, PRS)) + geom_point() + geom_smooth() + theme_bw()  + facet_wrap(~Type)
+```
+
+```{r}
+df_pop <- df %>% group_by(Type, Pop) %>% mutate(avg_PRS = mean(PRS)) %>% ungroup()
+df_pop <- arrange(transform(df_pop,Type=factor(Type,levels=c("c", "c.p", "nc", "c_Tm", "c.p_Tm", "nc_Tm"))),Type)
+ggplot(df_pop, aes(x = Lat, y = Long, fill = avg_PRS)) + geom_tile() + facet_wrap(~Type) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
+```
+
+```{r}
+Qx <- fread("../output/PGA_test/SimpleGrid/E1/C1/h2-0/env-2/Qx.txt")
+Qx
+```
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+library(pgenlibr)
+read_genos <- function(geno_prefix, betas) {
+
+  pvar <- pgenlibr::NewPvar(paste0(geno_prefix, ".pvar"))
+  d1 <- pgenlibr::NewPgen(paste0(geno_prefix, ".pgen"))
+  var.ids <- betas$ID
+  var.indx <- rep(0, length(var.ids))
+  for (i in 1:length(var.indx)) {
+    var.indx[i] <- pgenlibr::GetVariantsById(pvar,var.ids[i])
+  }
+  X <- ReadList(d1,var.indx, meanimpute=F)
+
+  return(X)
+}
+
+betas <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.nc.betas")
+Mnc <- read_genos("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common", betas)
+
+hist(colSums(Mnc), breaks = 30)
+```
+
+```{r}
+betas <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.c.betas")
+Mc <- read_genos("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common", betas)
+
+hist(colSums(Mc), breaks = 30)
+```
+
+```{r}
+frq_c <- colMeans(Mc) /2
+frq_nc <- colMeans(Mnc) /2
+
+plot(sort(log10(frq_c)))
+points(sort(log10(frq_nc)), col = "red")
+```
+
 
