@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Jennifer Blanc" />
+
+
+<title>Plot_SimpleGrid</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-sm-12 col-md-4 col-lg-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-sm-12 col-md-8 col-lg-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">polygenic_adaptation_stratification</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jgblanc/polygenic_adaptation_stratification">
+    <span class="fas fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Plot_SimpleGrid</h1>
+<h4 class="author">Jennifer Blanc</h4>
+<h4 class="date">6/4/2021</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2021-06-15
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
+</p>
+<p>
+<strong>Knit directory:</strong> <code>polygenic_adaptation_stratification/analysis/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.6.2). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div class="panel-group" id="workflowr-checks">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20201015code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20201015)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20201015code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20201015)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongabsolute"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>File paths:</strong> absolute </a>
+</p>
+</div>
+<div id="strongFilepathsstrongabsolute" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Using absolute paths to the files within your workflowr project makes it difficult for you and others to run your code on a different machine. Change the absolute path(s) below to the suggested relative path(s) to make your code more reproducible.
+</p>
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th style="text-align:left;">
+absolute
+</th>
+<th style="text-align:left;">
+relative
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common
+</td>
+<td style="text-align:left;">
+../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E2/genos.pop
+</td>
+<td style="text-align:left;">
+../output/Simulate_Genotypes/SimpleGrid/E2/genos.pop
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.nc.betas
+</td>
+<td style="text-align:left;">
+../output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.nc.betas
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.c.betas
+</td>
+<td style="text-align:left;">
+../output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.c.betas
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree64a812dcced2ff5b9aff69c250cecf27d719312ftargetblank64a812da"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/64a812dcced2ff5b9aff69c250cecf27d719312f" target="_blank">64a812d</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree64a812dcced2ff5b9aff69c250cecf27d719312ftargetblank64a812da" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/64a812dcced2ff5b9aff69c250cecf27d719312f" target="_blank">64a812d</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    .snakemake/
+    Ignored:    code/.DS_Store
+    Ignored:    code/Debug/.DS_Store
+    Ignored:    code/PGA_test/.DS_Store
+    Ignored:    code/Snakefiles/.DS_Store
+    Ignored:    code/Snakefiles/SimpleGrid/
+    Ignored:    data/.DS_Store
+    Ignored:    data/projection_example/
+    Ignored:    output/Calculate_Tm/4PopSplit/E1/
+    Ignored:    output/Calculate_Tm/4PopSplit/E10/
+    Ignored:    output/Calculate_Tm/4PopSplit/E2/
+    Ignored:    output/Calculate_Tm/4PopSplit/E3/
+    Ignored:    output/Calculate_Tm/4PopSplit/E4/
+    Ignored:    output/Calculate_Tm/4PopSplit/E5/
+    Ignored:    output/Calculate_Tm/4PopSplit/E6/
+    Ignored:    output/Calculate_Tm/4PopSplit/E7/
+    Ignored:    output/Calculate_Tm/4PopSplit/E8/
+    Ignored:    output/Calculate_Tm/4PopSplit/E9/
+    Ignored:    output/Calculate_Tm/SimpleGrid/
+    Ignored:    output/PGA_test/4PopSplit/E1/
+    Ignored:    output/PGA_test/4PopSplit/E10/
+    Ignored:    output/PGA_test/4PopSplit/E2/
+    Ignored:    output/PGA_test/4PopSplit/E3/
+    Ignored:    output/PGA_test/4PopSplit/E4/
+    Ignored:    output/PGA_test/4PopSplit/E5/
+    Ignored:    output/PGA_test/4PopSplit/E6/
+    Ignored:    output/PGA_test/4PopSplit/E7/
+    Ignored:    output/PGA_test/4PopSplit/E8/
+    Ignored:    output/PGA_test/4PopSplit/E9/
+    Ignored:    output/PGA_test/SimpleGrid/
+    Ignored:    output/PRS/4PopSplit/E1/
+    Ignored:    output/PRS/4PopSplit/E10/
+    Ignored:    output/PRS/4PopSplit/E2/
+    Ignored:    output/PRS/4PopSplit/E3/
+    Ignored:    output/PRS/4PopSplit/E4/
+    Ignored:    output/PRS/4PopSplit/E5/
+    Ignored:    output/PRS/4PopSplit/E6/
+    Ignored:    output/PRS/4PopSplit/E7/
+    Ignored:    output/PRS/4PopSplit/E8/
+    Ignored:    output/PRS/4PopSplit/E9/
+    Ignored:    output/PRS/SimpleGrid/
+    Ignored:    output/Run_GWAS/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/E1/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/E10/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/E2/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/E3/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/E4/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/E5/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/E6/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/E7/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/E8/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/E9/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E1/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E10/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E2/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E3/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E4/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E5/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E6/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E7/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E8/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E9/
+    Ignored:    output/Simulate_Phenotypes/SimpleGrid/
+
+Untracked files:
+    Untracked:  Rplots.pdf
+
+Unstaged changes:
+    Modified:   code/PGA_test/calc_Qx_SimpleGrid.R
+    Modified:   snakefile
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/Plot_SimpleGrid.Rmd</code>) and HTML (<code>docs/Plot_SimpleGrid.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/64a812dcced2ff5b9aff69c250cecf27d719312f/analysis/Plot_SimpleGrid.Rmd" target="_blank">64a812d</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-06-15
+</td>
+<td>
+wflow_publish(c(“analysis/Plot_4PopSplit.Rmd”, “analysis/Plot_SimpleGrid.Rmd”,
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/b5fddce58ebae9762d766dbcf5772ddeee445469/analysis/Plot_SimpleGrid.Rmd" target="_blank">b5fddce</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-06-14
+</td>
+<td>
+please merge
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/4041a7396e82527731320498caa89034459931d7/analysis/Plot_SimpleGrid.Rmd" target="_blank">4041a73</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-06-12
+</td>
+<td>
+clumping still broken
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/c0fd2a73dd356373a9655eee84b63e3976a1f8fe/analysis/Plot_SimpleGrid.Rmd" target="_blank">c0fd2a7</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-06-10
+</td>
+<td>
+hoping this syncs
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/4675bb89adf5b8e148ed1dd740143f6f3729a63a/analysis/Plot_SimpleGrid.Rmd" target="_blank">4675bb8</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-06-08
+</td>
+<td>
+slimmed down 4PopSplit
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/2fa0a339f0e2af3ecc8cdb3f0a0e3367331e7407/analysis/Plot_SimpleGrid.Rmd" target="_blank">2fa0a33</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-06-04
+</td>
+<td>
+finished lat-long pipeline
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="grid-genotype-simulaltion" class="section level1">
+<h1>Grid Genotype Simulaltion</h1>
+<ul>
+<li>Fst = 0.015<br />
+</li>
+<li>36 demes on a 6 x 6 grid<br />
+</li>
+<li>Number of SNPs = 184,228<br />
+</li>
+<li>Used a pruned set of 2402 SNPS to do PCA<br />
+</li>
+<li>432 GWAS individuals</li>
+</ul>
+<pre class="r"><code>Mod &lt;- read.plink(&quot;../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common.cmpruned.b&quot;)
+M &lt;- as.matrix(Mod$genotypes) 
+cov_mat &lt;- xxt(M)
+myE &lt;- eigen(cov_mat)
+
+pops &lt;- fread(&quot;~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E2/genos.pop&quot;)
+colnames(pops) &lt;- c(&quot;IID&quot;, &quot;#FID&quot;, &quot;Pop&quot;, &quot;Lat&quot;, &quot;Long&quot;)
+
+df &lt;- as.data.frame(cbind(myE$vectors[,1], myE$vectors[,2], Mod$fam[,1]))
+colnames(df) &lt;- c(&quot;PC1&quot;, &quot;PC2&quot;, &quot;IID&quot;)
+df &lt;- inner_join(df, pops)</code></pre>
+<pre><code>Joining, by = &quot;IID&quot;</code></pre>
+<pre class="r"><code>df$PC1 &lt;- as.numeric(as.character(df$PC1))
+df$PC2 &lt;- as.numeric(as.character(df$PC2))
+ggplot(df, aes(x=PC1, y=PC2, color = Lat)) + geom_point() + theme_classic()</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="phenotype-simulalation" class="section level1">
+<h1>Phenotype simulalation</h1>
+<p>No phenotypic difference across Latitude</p>
+<pre class="r"><code>phenos &lt;- fread(&quot;../output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.phenos.txt&quot;)
+df &lt;- suppressMessages(inner_join(phenos, pops))
+ggplot(data = df, aes(Lat, pheno_strat)) + geom_point() + geom_smooth() + theme_bw() + ylab(&quot;Phenotype&quot;)</code></pre>
+<pre><code>`geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(df, aes(x = Lat, y = Long, fill = pheno_strat)) + geom_tile() + theme_classic() +  theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + scale_fill_gradient2(low = &quot;red&quot;, high = &quot;blue&quot;, mid = &quot;white&quot;)</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>2 unit phenotypic difference across Latitude</p>
+<pre class="r"><code>phenos &lt;- fread(&quot;../output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/env-2/genos-gwas_common.phenos.txt&quot;)
+df &lt;- suppressMessages(inner_join(phenos, pops))
+ggplot(data = df, aes(Lat, pheno_strat)) + geom_point() + geom_smooth() + theme_bw() + ylab(&quot;Phenotype&quot;)</code></pre>
+<pre><code>`geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(df, aes(x = Lat, y = Long, fill = pheno_strat)) + geom_tile() + theme_classic() +  theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + scale_fill_gradient2(low = &quot;red&quot;, high = &quot;blue&quot;, mid = &quot;white&quot;)</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="pgs-in-test-panel" class="section level1">
+<h1>PGS in test panel</h1>
+<p>No stratification</p>
+<pre class="r"><code>pgs &lt;- fread(&quot;../output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/PGS.txt&quot;)
+df &lt;- inner_join(pgs, pops) %&gt;% gather(key = &quot;Type&quot;, value = &quot;PRS&quot; , c, c.p, nc, c_Tm, c.p_Tm, nc_Tm)</code></pre>
+<pre><code>Joining, by = c(&quot;#FID&quot;, &quot;IID&quot;)</code></pre>
+<pre class="r"><code>df &lt;- arrange(transform(df,Type=factor(Type,levels=c(&quot;c&quot;, &quot;c.p&quot;, &quot;nc&quot;, &quot;c_Tm&quot;, &quot;c.p_Tm&quot;, &quot;nc_Tm&quot;))),Type)
+ggplot(data = df, aes(Lat, PRS)) + geom_point() + geom_smooth() + theme_bw()  + facet_wrap(~Type)</code></pre>
+<pre><code>`geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_pop &lt;- df %&gt;% group_by(Type, Pop) %&gt;% mutate(avg_PRS = mean(PRS)) %&gt;% ungroup()
+ggplot(df_pop, aes(x = Lat, y = Long, fill = avg_PRS)) + geom_tile() + facet_wrap(~Type) + theme_classic() +  theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + scale_fill_gradient2(low = &quot;red&quot;, high = &quot;blue&quot;, mid = &quot;white&quot;)</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Qx &lt;- fread(&quot;../output/PGA_test/SimpleGrid/E1/C1/h2-0/env-0.0/Qx.txt&quot;)
+Qx</code></pre>
+<pre><code>             Qx       P-Chi  P-EN          Ax         P-Ax
+1:  0.011503332 0.914587805 0.901 0.009753529 0.8690959424
+2:  0.011503332 0.914587805 0.901 0.009753529 0.8690959424
+3:  8.869586931 0.002899607 0.009 0.189343816 0.0012441929
+4:  0.004928255 0.944033255 0.947 0.006378767 0.9141689583
+5:  0.004928255 0.944033255 0.950 0.006378767 0.9141689583
+6: 10.421414486 0.001245625 0.007 0.200398252 0.0006242645</code></pre>
+<p>Stratification</p>
+<pre class="r"><code>pgs &lt;- fread(&quot;../output/PRS/SimpleGrid/E1/C1/h2-0/env-2/PGS.txt&quot;)
+df &lt;- inner_join(pgs, pops) %&gt;% gather(key = &quot;Type&quot;, value = &quot;PRS&quot; , c, c.p, nc, c_Tm, c.p_Tm, nc_Tm)</code></pre>
+<pre><code>Joining, by = c(&quot;#FID&quot;, &quot;IID&quot;)</code></pre>
+<pre class="r"><code>df &lt;- arrange(transform(df,Type=factor(Type,levels=c(&quot;c&quot;, &quot;c.p&quot;, &quot;nc&quot;, &quot;c_Tm&quot;, &quot;c.p_Tm&quot;, &quot;nc_Tm&quot;))),Type)
+ggplot(data = df, aes(Lat, PRS)) + geom_point() + geom_smooth() + theme_bw()  + facet_wrap(~Type)</code></pre>
+<pre><code>`geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_pop &lt;- df %&gt;% group_by(Type, Pop) %&gt;% mutate(avg_PRS = mean(PRS)) %&gt;% ungroup()
+df_pop &lt;- arrange(transform(df_pop,Type=factor(Type,levels=c(&quot;c&quot;, &quot;c.p&quot;, &quot;nc&quot;, &quot;c_Tm&quot;, &quot;c.p_Tm&quot;, &quot;nc_Tm&quot;))),Type)
+ggplot(df_pop, aes(x = Lat, y = Long, fill = avg_PRS)) + geom_tile() + facet_wrap(~Type) + theme_classic() +  theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + scale_fill_gradient2(low = &quot;red&quot;, high = &quot;blue&quot;, mid = &quot;white&quot;)</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Qx &lt;- fread(&quot;../output/PGA_test/SimpleGrid/E1/C1/h2-0/env-2/Qx.txt&quot;)
+kable(Qx)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Qx</th>
+<th align="right">P-Chi</th>
+<th align="right">P-EN</th>
+<th align="right">Ax</th>
+<th align="right">P-Ax</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">76.8297349</td>
+<td align="right">0.0000000</td>
+<td align="right">0.000</td>
+<td align="right">0.6221670</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="right">76.8297349</td>
+<td align="right">0.0000000</td>
+<td align="right">0.000</td>
+<td align="right">0.6221670</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="odd">
+<td align="right">378.2870245</td>
+<td align="right">0.0000000</td>
+<td align="right">0.000</td>
+<td align="right">0.7473460</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="right">0.0005439</td>
+<td align="right">0.9813929</td>
+<td align="right">0.981</td>
+<td align="right">-0.0021638</td>
+<td align="right">0.9708346</td>
+</tr>
+<tr class="odd">
+<td align="right">0.0005439</td>
+<td align="right">0.9813929</td>
+<td align="right">0.982</td>
+<td align="right">-0.0021638</td>
+<td align="right">0.9708346</td>
+</tr>
+<tr class="even">
+<td align="right">4.6688447</td>
+<td align="right">0.0307146</td>
+<td align="right">0.050</td>
+<td align="right">0.1435552</td>
+<td align="right">0.0147582</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="simulations" class="section level1">
+<h1>100 Simulations</h1>
+<p>Look at number of false positives for <span class="math inline">\(Q_x\)</span> test using a p-value calculated from an empirical null (randomly flipping effect size signs).</p>
+<p>Clumped sites</p>
+<pre class="r"><code>All &lt;- fread(&quot;../code/plot/F100_SimpleGrid.txt&quot;)
+
+nc &lt;- All %&gt;% filter(type == &quot;nc&quot;| type == &quot;nc-Tm&quot;) %&gt;% group_by(env, type, case) %&gt;% summarise(fp_strat = sum(`P-EN` &lt; 0.05)/ n(), avg_Ax = mean(Ax)) %&gt;% separate(env, c(&quot;env&quot;, &quot;diff&quot;), &quot;-&quot;) %&gt;% filter(case == &quot;C1&quot;)</code></pre>
+<pre><code>`summarise()` has grouped output by &#39;env&#39;, &#39;type&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>nc$diff &lt;- as.numeric(nc$diff)
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3) + xlab(&quot;Env Shift&quot;) + ylab(&quot;False Postive Rate&quot;) + theme_classic(base_size = 14) + scale_color_manual(values = c(&quot;goldenrod2&quot;, &quot;navy&quot;), labels = unname(TeX(c(&quot;No covariate&quot;, &quot; Including $T^{GWAS}&quot;)))) + theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + ylim(0,1) + labs(colour=&quot;GWAS&quot;) + theme(legend.text.align = 0) + geom_hline(yintercept = 0.05, color = &quot;red&quot;)</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Random Sites</p>
+<pre class="r"><code>All &lt;- fread(&quot;../code/plot/F100_SimpleGrid.txt&quot;)
+
+c &lt;- All %&gt;% filter(type == &quot;c&quot;| type == &quot;c-Tm&quot;) %&gt;% group_by(env, type, case) %&gt;% summarise(fp_strat = sum(`P-EN` &lt; 0.05)/ n(), avg_Ax = mean(Ax)) %&gt;% separate(env, c(&quot;env&quot;, &quot;diff&quot;), &quot;-&quot;) %&gt;% filter(case == &quot;C1&quot;)</code></pre>
+<pre><code>`summarise()` has grouped output by &#39;env&#39;, &#39;type&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>c$diff &lt;- as.numeric(c$diff)
+
+ggplot(data = c, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3) + xlab(&quot;Env Shift&quot;) + ylab(&quot;False Postive Rate&quot;) + theme_classic(base_size = 14) + scale_color_manual(values = c(&quot;goldenrod2&quot;, &quot;navy&quot;), labels = unname(TeX(c(&quot;No covariate&quot;, &quot; Including $T^{GWAS}&quot;)))) + theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + ylim(0,1) + labs(colour=&quot;GWAS&quot;) + theme(legend.text.align = 0) + geom_hline(yintercept = 0.05, color = &quot;red&quot;)</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="look-at-code-used-to-calculate-emprical-null-for-a-single-example" class="section level1">
+<h1>Look at code used to calculate emprical null for a single example</h1>
+<p>Calculate Qx</p>
+<pre class="r"><code>num = 1000
+read_genos &lt;- function(geno_prefix, betas) {
+
+  pvar &lt;- pgenlibr::NewPvar(paste0(geno_prefix, &quot;.pvar&quot;))
+  d1 &lt;- pgenlibr::NewPgen(paste0(geno_prefix, &quot;.pgen&quot;))
+  var.ids &lt;- betas$ID
+  var.indx &lt;- rep(0, length(var.ids))
+  for (i in 1:length(var.indx)) {
+    var.indx[i] &lt;- pgenlibr::GetVariantsById(pvar,var.ids[i])
+  }
+  X &lt;- ReadList(d1,var.indx, meanimpute=F)
+
+  return(X)
+}
+
+pgs &lt;- function(X, betas) {
+
+  Bhat_strat &lt;- betas$BETA_Strat
+  Z_strat &lt;- X %*% Bhat_strat
+
+  out &lt;- cbind(Z_strat)
+  colnames(out) &lt;- c(&quot;STRAT&quot;)
+
+  return(out)
+}
+
+# Read in PGS w/ clumped sites
+betas &lt;- fread(&quot;../output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.nc.betas&quot;)
+X &lt;- read_genos(&quot;../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-test_common&quot;, betas)
+sscore &lt;- pgs(X, betas)
+
+# Calculate Qx
+calc_Qx &lt;- function(mprs, tvec, Va, lambda_T) {
+
+  # Compute Qx Strat
+  Ztest &lt;- t(tvec) %*% mprs$strat.adjusted
+  Qx_strat &lt;- (t(Ztest) %*% Ztest) / (Va*lambda_T)
+
+  return(Qx_strat)
+}
+
+
+tvec &lt;- fread(&quot;../output/Calculate_Tm/SimpleGrid/E1/C1/Tvec.txt&quot;)
+tvec &lt;- tvec$V1
+lambda_T &lt;- fread(&quot;../output/Calculate_Tm/SimpleGrid/E1/C1/Lambda_T.txt&quot;)
+lambda_T &lt;- as.numeric(lambda_T[1,1])
+mprs &lt;- as.data.frame(sscore)
+colnames(mprs) &lt;- &quot;strat.adjusted&quot;
+Va &lt;- fread(&quot;../output/PGA_test/SimpleGrid/E1/C1/h2-0/env-0.0/Va.txt&quot;)
+
+Qx = calc_Qx(mprs, tvec,Va[3,2] , lambda_T)
+Qx</code></pre>
+<pre><code>   Va_Strat
+1: 8.869587</code></pre>
+<p>Generate Empirical Null</p>
+<pre class="r"><code># Function to flip effect sizes
+flip &lt;- function(betas) {
+  new_betas &lt;- sample(c(-1,1), length(betas),  replace = T) * betas
+  return(new_betas)
+}
+
+# Function to flip effect sizes and recompute Qx
+en &lt;- function(betas, tvec, Va, X, lambda_T) {
+
+  # Flip effect sizes
+  betas$BETA_Strat &lt;- flip(betas$BETA_Strat)
+
+  # Calculate PGS
+  prs &lt;- pgs(X, betas)
+  prs &lt;- as.data.frame(prs)
+  colnames(prs) &lt;- &quot;strat.adjusted&quot;
+
+  # Calculate Qx
+  Qx &lt;- t(calc_Qx(prs, tvec, Va, lambda_T))
+
+  return(Qx)
+}
+
+# Generate Empirical null
+redraws &lt;- matrix(0, ncol = 1, nrow = num)
+for (i in 1:num){
+    redraws[i,] &lt;- en(betas, tvec, Va[3,2], X, lambda_T)
+}
+
+hist(redraws)
+abline(v = Qx, col = &quot;red&quot;)</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>all_strat &lt;- redraws[,1]
+p_strat_en &lt;- length(all_strat[all_strat &gt; as.numeric(Qx)])/length(all_strat)
+p_strat_en</code></pre>
+<pre><code>[1] 0.005</code></pre>
+</div>
+<div id="looking-at-allele-frequencies" class="section level1">
+<h1>Looking at allele frequencies</h1>
+<pre class="r"><code>betas &lt;- fread(&quot;~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.nc.betas&quot;)
+Mnc &lt;- read_genos(&quot;/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common&quot;, betas)
+
+hist(colMeans(Mnc)/2, breaks = seq(from=0, to=1, by=.05))</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>betas &lt;- fread(&quot;~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.c.betas&quot;)
+Mc &lt;- read_genos(&quot;/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common&quot;, betas)
+
+hist(colMeans(Mc)/2, breaks = seq(from=0, to=1, by=.05))</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>frq_c &lt;- sort(colMeans(Mc)/2)
+frq_nc &lt;- sort(colMeans(Mnc)/2)
+
+plot(sort(log10(frq_c)))
+points(sort(log10(frq_nc)), col = &quot;red&quot;)</code></pre>
+<p><img src="figure/Plot_SimpleGrid.Rmd/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.6.2 (2019-12-12)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.6
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] latex2exp_0.4.0   knitr_1.31        forcats_0.5.1     stringr_1.4.0    
+ [5] purrr_0.3.4       readr_1.4.0       tidyr_1.1.2       tibble_3.1.0     
+ [9] tidyverse_1.3.0   pgenlibr_0.3.1    dplyr_1.0.4       ggplot2_3.3.3    
+[13] data.table_1.14.0 snpStats_1.36.0   Matrix_1.3-2      survival_3.2-7   
+[17] workflowr_1.6.2  
+
+loaded via a namespace (and not attached):
+ [1] httr_1.4.2          sass_0.3.1          jsonlite_1.7.2     
+ [4] splines_3.6.2       modelr_0.1.8        bslib_0.2.4        
+ [7] assertthat_0.2.1    highr_0.8           cellranger_1.1.0   
+[10] yaml_2.2.1          pillar_1.5.0        backports_1.2.1    
+[13] lattice_0.20-41     glue_1.4.2          digest_0.6.27      
+[16] promises_1.2.0.1    rvest_0.3.6         colorspace_2.0-0   
+[19] htmltools_0.5.1.1   httpuv_1.5.5        pkgconfig_2.0.3    
+[22] broom_0.7.5         haven_2.3.1         zlibbioc_1.32.0    
+[25] scales_1.1.1        whisker_0.4         later_1.1.0.1      
+[28] git2r_0.28.0        mgcv_1.8-34         generics_0.1.0     
+[31] farver_2.0.3        ellipsis_0.3.1      withr_2.4.1        
+[34] BiocGenerics_0.32.0 cli_2.3.1           magrittr_2.0.1     
+[37] crayon_1.4.1        readxl_1.3.1        evaluate_0.14      
+[40] fs_1.5.0            fansi_0.4.2         nlme_3.1-152       
+[43] xml2_1.3.2          tools_3.6.2         hms_1.0.0          
+[46] lifecycle_1.0.0     munsell_0.5.0       reprex_1.0.0       
+[49] compiler_3.6.2      jquerylib_0.1.4     rlang_0.4.10       
+[52] grid_3.6.2          rstudioapi_0.13     labeling_0.4.2     
+[55] rmarkdown_2.7       gtable_0.3.0        DBI_1.1.1          
+[58] R6_2.5.0            lubridate_1.7.9.2   utf8_1.1.4         
+[61] rprojroot_2.0.2     stringi_1.5.3       parallel_3.6.2     
+[64] Rcpp_1.0.6          vctrs_0.3.6         dbplyr_2.1.0       
+[67] tidyselect_1.1.0    xfun_0.21          </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
