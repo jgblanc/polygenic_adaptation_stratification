@@ -12,6 +12,10 @@ library(snpStats)
 library(data.table)
 library(ggplot2)
 library(dplyr)
+library(pgenlibr)
+library(tidyverse)
+library(knitr)
+library(latex2exp)
 ```
 
 
@@ -87,10 +91,9 @@ Qx
 ```
 
 
-
 Stratification
 ```{r}
-pgs <- fread("../output/PRS/SimpleGrid/E1/C1/h2-0/env-0.5/PGS.txt")
+pgs <- fread("../output/PRS/SimpleGrid/E1/C1/h2-0/env-2/PGS.txt")
 df <- inner_join(pgs, pops) %>% gather(key = "Type", value = "PRS" , c, c.p, nc, c_Tm, c.p_Tm, nc_Tm)
 df <- arrange(transform(df,Type=factor(Type,levels=c("c", "c.p", "nc", "c_Tm", "c.p_Tm", "nc_Tm"))),Type)
 ggplot(data = df, aes(Lat, PRS)) + geom_point() + geom_smooth() + theme_bw()  + facet_wrap(~Type)
@@ -104,21 +107,38 @@ ggplot(df_pop, aes(x = Lat, y = Long, fill = avg_PRS)) + geom_tile() + facet_wra
 
 ```{r}
 Qx <- fread("../output/PGA_test/SimpleGrid/E1/C1/h2-0/env-2/Qx.txt")
-Qx
+kable(Qx)
 ```
 
+# 100 Simulations 
 
+Look at number of false positives for $Q_x$ test using a p-value calculated from an empirical null (randomly flipping effect size signs).  
 
-
-
-
-
-
-
-
-
+Clumped sites
 ```{r}
-library(pgenlibr)
+All <- fread("../code/plot/F100_SimpleGrid.txt")
+
+nc <- All %>% filter(type == "nc"| type == "nc-Tm") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-") %>% filter(case == "C1")
+nc$diff <- as.numeric(nc$diff)
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3) + xlab("Env Shift") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0) + geom_hline(yintercept = 0.05, color = "red")
+```
+
+Random Sites
+```{r}
+All <- fread("../code/plot/F100_SimpleGrid.txt")
+
+c <- All %>% filter(type == "c"| type == "c-Tm") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-") %>% filter(case == "C1")
+c$diff <- as.numeric(c$diff)
+
+ggplot(data = c, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3) + xlab("Env Shift") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0) + geom_hline(yintercept = 0.05, color = "red")
+```
+
+# Look at code used to calculate emprical null for a single example
+
+Calculate Qx
+```{r}
+num = 1000
 read_genos <- function(geno_prefix, betas) {
 
   pvar <- pgenlibr::NewPvar(paste0(geno_prefix, ".pvar"))
@@ -133,25 +153,105 @@ read_genos <- function(geno_prefix, betas) {
   return(X)
 }
 
+pgs <- function(X, betas) {
+
+  Bhat_strat <- betas$BETA_Strat
+  Z_strat <- X %*% Bhat_strat
+
+  out <- cbind(Z_strat)
+  colnames(out) <- c("STRAT")
+
+  return(out)
+}
+
+# Read in PGS w/ clumped sites
+betas <- fread("../output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.nc.betas")
+X <- read_genos("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-test_common", betas)
+sscore <- pgs(X, betas)
+
+# Calculate Qx
+calc_Qx <- function(mprs, tvec, Va, lambda_T) {
+
+  # Compute Qx Strat
+  Ztest <- t(tvec) %*% mprs$strat.adjusted
+  Qx_strat <- (t(Ztest) %*% Ztest) / (Va*lambda_T)
+
+  return(Qx_strat)
+}
+
+
+tvec <- fread("../output/Calculate_Tm/SimpleGrid/E1/C1/Tvec.txt")
+tvec <- tvec$V1
+lambda_T <- fread("../output/Calculate_Tm/SimpleGrid/E1/C1/Lambda_T.txt")
+lambda_T <- as.numeric(lambda_T[1,1])
+mprs <- as.data.frame(sscore)
+colnames(mprs) <- "strat.adjusted"
+Va <- fread("../output/PGA_test/SimpleGrid/E1/C1/h2-0/env-0.0/Va.txt")
+
+Qx = calc_Qx(mprs, tvec,Va[3,2] , lambda_T)
+Qx
+```
+
+Generate Empirical Null 
+```{r}
+# Function to flip effect sizes
+flip <- function(betas) {
+  new_betas <- sample(c(-1,1), length(betas),  replace = T) * betas
+  return(new_betas)
+}
+
+# Function to flip effect sizes and recompute Qx
+en <- function(betas, tvec, Va, X, lambda_T) {
+
+  # Flip effect sizes
+  betas$BETA_Strat <- flip(betas$BETA_Strat)
+
+  # Calculate PGS
+  prs <- pgs(X, betas)
+  prs <- as.data.frame(prs)
+  colnames(prs) <- "strat.adjusted"
+
+  # Calculate Qx
+  Qx <- t(calc_Qx(prs, tvec, Va, lambda_T))
+
+  return(Qx)
+}
+
+# Generate Empirical null
+redraws <- matrix(0, ncol = 1, nrow = num)
+for (i in 1:num){
+    redraws[i,] <- en(betas, tvec, Va[3,2], X, lambda_T)
+}
+
+hist(redraws)
+abline(v = Qx, col = "red")
+
+all_strat <- redraws[,1]
+p_strat_en <- length(all_strat[all_strat > as.numeric(Qx)])/length(all_strat)
+p_strat_en
+```
+
+# Looking at allele frequencies 
+
+```{r}
 betas <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.nc.betas")
 Mnc <- read_genos("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common", betas)
 
-hist(colSums(Mnc), breaks = 30)
+hist(colMeans(Mnc)/2, breaks = seq(from=0, to=1, by=.05))
 ```
 
 ```{r}
 betas <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.c.betas")
 Mc <- read_genos("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common", betas)
 
-hist(colSums(Mc), breaks = 30)
+hist(colMeans(Mc)/2, breaks = seq(from=0, to=1, by=.05))
 ```
 
 ```{r}
-frq_c <- colMeans(Mc) /2
-frq_nc <- colMeans(Mnc) /2
+frq_c <- sort(colMeans(Mc)/2)
+frq_nc <- sort(colMeans(Mnc)/2)
 
 plot(sort(log10(frq_c)))
 points(sort(log10(frq_nc)), col = "red")
 ```
-
 

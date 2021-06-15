@@ -104,7 +104,7 @@ agg_all_data <- function(rep, dir_path, case, type, h2, env) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../output/PGA_test/4PopSplit/' )
 df_null <- df %>% filter(type == "nc" & env == "env-0.0")
-print(df_null)
+kable(df_null)
 
 
 df_Qx <- df %>% group_by(env, type) %>% summarise(avg_Ax = mean(Ax))
