@@ -11,10 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(tidyverse)
 library(knitr)
+library(latex2exp)
 ```
 
 ## Introduction
-
 
 
 # Configuration 1
@@ -23,26 +23,6 @@ A/C are the GWAS panel
 B/D are the test panel  
 
 Stratification in the GWAS pannel should effect PGS in the test population. Since there was an environmental effedt in A Population B should have greater PGS than D in the test panel. 
-
-```{r}
-getwd()
-reps <- rep(NA, 10)
-for (i in 1:10){reps[i] <- paste0("E", i)}
-h2 <- "h2-0"
-envs <- c("env-0.0", "env-0.10", "env-0.50", "env-1.00")
-cases <- c("C1", "C2")
-dat <- expand.grid(reps, cases, h2, envs)
-colnames(dat) <- c("rep", "case", "h2", "env")
-
-agg_phenos <- function(rep, dir_path, case, type, h2, env) {
-  
-  phenos <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", env, "/", "genos-gwas_common.phenos.txt"))
-  
-  return(phenos)
-}
-df_phenos <- plyr::mdply(dat, agg_phenos, dir_path = '../output/Simulate_Phenotypes/4PopSplit/' )
-```
-
 
 ```{r}
 # Read in all Reps and Pick important columns 
@@ -105,7 +85,7 @@ Polygenic Score in Test Population, including Tm (clumping)
 ggplot(data = df_test, aes(x=nc_Tm, fill = POP)) + geom_histogram(data = subset(df_test, POP == "B"), alpha = 0.75, bins = 30) + geom_histogram(data = subset(df_test, POP == "D"), alpha = 0.75, bins = 30) + facet_grid(REP ~ env) + theme_bw() + xlab("Stratified Phenotype") + scale_fill_manual(values = cols_test)
 ```
 
-
+Qx stats
 ```{r}
 reps <- rep(NA, 10)
 for (i in 1:10){reps[i] <- paste0("E", i)}
@@ -123,11 +103,44 @@ agg_all_data <- function(rep, dir_path, case, type, h2, env) {
   return(Qx)
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../output/PGA_test/4PopSplit/' )
-df <- df %>% filter(type == "nc" & env == "env-0.0")
-df_Qx <- df %>% group_by(type, rep, env) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n())
+df_null <- df %>% filter(type == "nc" & env == "env-0.0")
+print(df_null)
 
-#ggplot(data = test, aes(x = type, y = env, fill = avg_Ax)) +geom_tile()
+
+df_Qx <- df %>% group_by(env, type) %>% summarise(avg_Ax = mean(Ax))
+ggplot(data = df_Qx, aes(x = type, y = env, fill = avg_Ax)) +geom_tile() + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient(low = "lightgoldenrod1", high = "blue")
 ```
+
+# Look over 100 simulations 
+
+Clumped Sites 
+```{r}
+df <- fread("../code/plot/F100.txt")
+nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-") %>% filter(case == "C1")
+nc$diff <- as.numeric(nc$diff)
+
+t <- df %>% filter(type == "nc" & case == "C1" & env == "env-0.0")
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ geom_smooth(method = "loess", se = FALSE) + xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red")
+```
+
+Random sites
+```{r}
+c <- df %>% filter(type == "c"| type == "c-Tm") %>% group_by(env, type) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n()) %>% separate(env, c("env", "diff"), "-")
+c$diff <- as.numeric(c$diff)
+
+ggplot(data = c, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ geom_smooth(method = "loess", se = FALSE) + xlab("Mean(A) - Mean(B)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0) + geom_hline(yintercept = 0.05, color = "red")
+```
+
+
+
+
+
+**Ignore** 
+
+
+
+
 
 # Investigate E5 
 ```{r}
