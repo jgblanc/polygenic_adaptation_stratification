@@ -255,3 +255,66 @@ plot(sort(log10(frq_c)))
 points(sort(log10(frq_nc)), col = "red")
 ```
 
+```{r}
+betas_c <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.c.betas")
+betas_nc <- fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.nc.betas")
+
+
+betas_c <- betas_c %>% mutate(SNP_A = ID) %>% separate(ID, c("CHR", "POS", "A", "B"), "_") %>% filter(CHR == 1) 
+betas_c$POS <- as.numeric(as.character(betas_c$POS))
+betas_c <- betas_c[order(POS),]
+betas_nc <- betas_nc %>% mutate(SNP_A = ID) %>% separate(ID, c("CHR", "POS", "A", "B"), "_") %>% filter(CHR == 1)
+betas_nc$POS <- as.numeric(as.character(betas_nc$POS))
+betas_nc <- betas_nc[order(POS),]
+
+plot(betas_c$POS, betas_c$BETA_Strat)
+points(betas_nc$POS, betas_nc$BETA_Strat, col = "red")
+```
+
+
+```{r}
+test_c <- betas_c%>% 
+  mutate(pairwise = POS - lag(POS), COV = BETA_Strat * lag(BETA_Strat), SNP_B = lag(SNP_A) )
+
+test_nc <- betas_nc%>% 
+  mutate(pairwise = POS - lag(POS), COV = BETA_Strat * lag(BETA_Strat), SNP_B = lag(SNP_A)  )
+
+plot(test_nc$pairwise, test_nc$COV)
+points(test_c$pairwise, test_c$COV, col = "red")
+```
+
+```{r}
+X <- read_genos("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-test_common", fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.nc.betas"))
+
+frq <- colMeans(X) /2
+LD <- rep(NA, 100)
+for (i in 1:99) {
+  LD[i+1] <- cor(X[,i], X[,i+1]) 
+}
+
+test_nc$LD <- LD
+test_nc$prod <- test_nc$COV * test_nc$LD
+
+plot(test_nc$pairwise, test_nc$prod)
+```
+
+```{r}
+Xc <- read_genos("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-test_common", fread("~/polygenic_adaptation_stratification/output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.c.betas"))
+
+LD <- rep(NA, 100)
+for (i in 1:99) {
+  LD[i+1] <- cor(Xc[,i], Xc[,i+1]) 
+}
+
+test_c$LD <- LD
+test_c$prod <- test_c$COV * test_c$LD
+
+plot(test_c$pairwise, test_c$prod)
+```
+
+
+```{r}
+plot(test_nc$pairwise, test_nc$prod)
+points(test_c$pairwise, test_c$prod, col = "red")
+```
+

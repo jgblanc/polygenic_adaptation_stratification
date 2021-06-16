@@ -1,7 +1,7 @@
 CHR =["0", "1"]
-REP = []
-for i in range(1, 101):
-  REP.append("F"+str(i))
+REP = ["E1", "E2", "E3", "E4"]
+#for i in range(1, 101):
+#  REP.append("F"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 ENV = ["env-0.0", "env-0.5"]
@@ -285,7 +285,7 @@ rule gwas_no_correction:
         "plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
-        --glm allow-no-covars \
+        --glm \
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
         --out output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
@@ -361,12 +361,12 @@ rule proj_T:
         "output/Calculate_Tm/SimpleGrid/{rep}/{config}/projection.sscore"
     shell:
         """
-        plink2 \
+        ~/Desktop/plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common \
        --pca allele-wts {params.n_minus_1} \
        --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/pca
 
-        plink2 \
+        ~/Desktop/plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
        --score output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
        --score-col-nums {params.col_start}-{params.col_end} \
@@ -488,7 +488,7 @@ rule Calc_Qx:
         c_Tm="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.betas",
         cp_Tm="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.p.betas",
         nc_Tm="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.nc.betas",
-        genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
+        genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
         lambda_T="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Lambda_T.txt",
         Va="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Va.txt",
         Va_Tm="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Va-Tm.txt",

@@ -96,43 +96,37 @@ fwrite(gwas.causal.p,
 
 print("ld clumping")
 
-fclump=function(df,pcutoff){
-  if(missing(pcutoff)){
-    df.red=df
-  }else{
-    df.red=df%>%
-      filter(P<pcutoff)
+fclump <- function(df, pt, CHR) {
+
+  df <-  gwas1 %>% filter(P < pt) %>% filter(CHROM == CHR)
+  min_p <- df %>% slice_min(P, with_ties = F)
+  clumped <- min_p
+  min_pos <- min_p$POS - 1e5
+  max_pos <- min_p$POS + 1e5
+  df <- df %>% filter(!(POS > min_pos & POS < max_pos))
+
+  while (nrow(df) > 0) {
+    min_p <- df %>% slice_min(P, with_ties = F)
+    clumped <- rbind(clumped, min_p)
+    min_pos <- min_p$POS - 1e5
+    max_pos <- min_p$POS + 1e5
+    df <- df %>% filter(!(POS > min_pos & POS < max_pos))
+    nrow(df)
   }
-
-  df.red$window=NA
-  for(i in 1:101){
-    #start=((i-1)*1e5 - 5e4) +1
-    start=((i-1)*1e5) +1
-    stop=start+1e5
-    df.red$window[which((df.red$POS>=start) & (df.red$POS<stop))]=i
-  }
-
-  df.red$window_name=paste(df.red$CHROM,df.red$window,sep="_")
-
-  return(df.red)
-
+  return(clumped)
 }
 
-flead=function(df){
-  df.red=df%>%
-    slice_min(P, with_ties = F)
-  return(df.red)
+nchrms = unique(gwas1$CHROM)
+gwas.red = fclump(gwas1, pval_threshold, 1)
+gwas.red = gwas.red[order(gwas.red), ]
+for (i in 2:length(nchrms)) {
+  new = fclump(gwas1, pval_threshold, nchrms[i])
+  new = new[order(new), ]
+  gwas.red = rbind(gwas.red, new)
 }
 
-gwas1.red=fclump(gwas1,pval_threshold)%>%
-  group_by(window_name)%>%
-  flead(.)%>%
-  ungroup()
-#%>%
-#  select(ID,A1,BETA1)
-
-
-gwas.red = gwas1.red[,c("ID","A1","BETA1")]
+gwas.red = gwas.red %>% select(ID, A1, BETA1)
+gwas.red = gwas.red[,c("ID","A1","BETA1")]
 colnames(gwas.red) <- c("ID", "A1","BETA_Strat")
 
 # Add dummy row with effect size zero

@@ -31,6 +31,22 @@ out_pgs = args[16]
 #out_pre = "~/polygenic_adaptation_stratification/output/Empirical_Null/4PopSplit/E1/C1/h2-0/env-0.0/geno-gwas_"
 
 
+#c_file="output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.c.betas"
+#cp_file="output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.c.p.betas"
+#nc_file="output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.nc.betas"
+#c_Tm_file="output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common-Tm.c.betas"
+#cp_Tm_file="output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common-Tm.c.p.betas"
+#nc_Tm_file="output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common-Tm.nc.betas"
+#geno_prefix="output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-test_common"
+#lambdaT_file="output/Calculate_Tm/SimpleGrid/E1/C1/Lambda_T.txt"
+#Va_file="output/PGA_test/SimpleGrid/E1/C1/h2-0/env-0.0/Va.txt"
+#Va_Tm_file="output/PGA_test/SimpleGrid/E1/C1/h2-0/env-0.0/Va-Tm.txt"
+#true_file="output/PRS/SimpleGrid/E1/C1/h2-0/genos-test_common.true.sscore"
+#tvec_file="output/Calculate_Tm/SimpleGrid/E1/C1/Tvec.txt"
+#pops_file="output/Simulate_Genotypes/SimpleGrid/E1/genos.pop"
+
+
+
 # Function to read in genotype matrix for a set of variants
 read_genos <- function(geno_prefix, betas) {
 
@@ -151,6 +167,8 @@ main <- function(beta_file, Va) {
   # Calculate empirical p-values
   all_strat <- redraws[,1]
   p_strat_en <- length(all_strat[all_strat > qx[1,1]])/length(all_strat)
+  hist(all_strat)
+  abline(v=qx[1,1], col = "red")
 
   # Calculate p-value from chi-square
   p_strat <- pchisq(qx[1,1], df=1, lower.tail=FALSE)
