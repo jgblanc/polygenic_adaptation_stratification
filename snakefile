@@ -1,13 +1,13 @@
 #CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
 CHR =["0", "1"]
-CONFIG=["C1", "C2"]
+CONFIG=["C1"]
 MODEL=["4PopSplit"]
 REP = []
 for i in range(1, 101):
-  REP.append("J"+str(i))
+  REP.append("K"+str(i))
 HERITABILITY = ["h2-0"]
-ENV = ["env-0.0", "env-1"]
-SIZE=200
+ENV = ["env-0.0"]
+SIZE=400
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
 
@@ -34,11 +34,15 @@ rule simulate_genotypes_4popsplit:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
 	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
 	       --chr 2 \
-       	       --Nanc 10000 \
-  	       -a 200 \
-	       -b 200 \
-	       -c 200 \
-	       -d 200 \
+       	       --Nanc 20000 \
+	       --NA 20000 \
+	       --NB 20000 \
+	       --NC 20000 \
+	       --ND 20000 \
+  	       -a 400 \
+	       -b 400 \
+	       -c 400 \
+	       -d 400 \
                -s1 22000 \
                -s2 11000 \
 	       -r 1e-07"
