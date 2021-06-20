@@ -22,4 +22,4 @@ agg_all_data <- function(rep, dir_path, case, type, h2, env) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/4PopSplit/' )
 
-fwrite(df, "K100.txt", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "K100_widewindow.txt", row.names=F,quote=F,sep="\t", col.names = T)
