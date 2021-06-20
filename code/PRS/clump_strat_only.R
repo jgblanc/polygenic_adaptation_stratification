@@ -101,15 +101,15 @@ fclump <- function(df, pt, CHR) {
   df <-  gwas1 %>% filter(P < pt) %>% filter(CHROM == CHR)
   min_p <- df %>% slice_min(P, with_ties = F)
   clumped <- min_p
-  min_pos <- min_p$POS - 1e5
-  max_pos <- min_p$POS + 1e5
+  min_pos <- min_p$POS - 2e5
+  max_pos <- min_p$POS + 2e5
   df <- df %>% filter(!(POS > min_pos & POS < max_pos))
 
   while (nrow(df) > 0) {
     min_p <- df %>% slice_min(P, with_ties = F)
     clumped <- rbind(clumped, min_p)
-    min_pos <- min_p$POS - 1e5
-    max_pos <- min_p$POS + 1e5
+    min_pos <- min_p$POS - 2e5
+    max_pos <- min_p$POS + 2e5
     df <- df %>% filter(!(POS > min_pos & POS < max_pos))
     nrow(df)
   }
