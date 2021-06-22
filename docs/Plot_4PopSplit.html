@@ -363,7 +363,7 @@ div.tocify {
 
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
-<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 </button>
 </p>
 <div id="workflowr-report" class="collapse">
@@ -372,7 +372,7 @@ div.tocify {
 <a data-toggle="tab" href="#summary">Summary</a>
 </li>
 <li>
-<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -381,10 +381,10 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-06-15
+<strong>Last updated:</strong> 2021-06-22
 </p>
 <p>
-<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
 </p>
 <p>
 <strong>Knit directory:</strong> <code>polygenic_adaptation_stratification/analysis/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
@@ -396,7 +396,7 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <hr>
 </div>
 <div id="checks" class="tab-pane fade">
-<div class="panel-group" id="workflowr-checks">
+<div id="workflowr-checks" class="panel-group">
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
@@ -460,76 +460,28 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongabsolute"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>File paths:</strong> absolute </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
 </p>
 </div>
-<div id="strongFilepathsstrongabsolute" class="panel-collapse collapse">
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
 <div class="panel-body">
-<p>
-Using absolute paths to the files within your workflowr project makes it difficult for you and others to run your code on a different machine. Change the absolute path(s) below to the suggested relative path(s) to make your code more reproducible.
-</p>
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th style="text-align:left;">
-absolute
-</th>
-<th style="text-align:left;">
-relative
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/E5/C1/genos-gwas_common
-</td>
-<td style="text-align:left;">
-../output/Simulate_Genotypes/4PopSplit/E5/C1/genos-gwas_common
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-~/polygenic_adaptation_stratification/output/PGA_test/4PopSplit/E5/C1/h2-0/env-0.0/PGS.txt
-</td>
-<td style="text-align:left;">
-../output/PGA_test/4PopSplit/E5/C1/h2-0/env-0.0/PGS.txt
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E5/C1/h2-0/env-0.0/genos-gwas_common.c.betas
-</td>
-<td style="text-align:left;">
-../output/PRS/4PopSplit/E5/C1/h2-0/env-0.0/genos-gwas_common.c.betas
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E
-</td>
-<td style="text-align:left;">
-../output/PRS/4PopSplit/E
-</td>
-</tr>
-</tbody>
-</table>
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
 </div>
 </div>
 </div>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree64a812dcced2ff5b9aff69c250cecf27d719312ftargetblank64a812da"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/64a812dcced2ff5b9aff69c250cecf27d719312f" target="_blank">64a812d</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree709d27614eee2dccd6daeedbb9fed2e4dc283503targetblank709d276a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/709d27614eee2dccd6daeedbb9fed2e4dc283503" target="_blank">709d276</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree64a812dcced2ff5b9aff69c250cecf27d719312ftargetblank64a812da" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree709d27614eee2dccd6daeedbb9fed2e4dc283503targetblank709d276a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/64a812dcced2ff5b9aff69c250cecf27d719312f" target="_blank">64a812d</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/709d27614eee2dccd6daeedbb9fed2e4dc283503" target="_blank">709d276</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -544,7 +496,6 @@ Ignored files:
     Ignored:    code/Debug/.DS_Store
     Ignored:    code/PGA_test/.DS_Store
     Ignored:    code/Snakefiles/.DS_Store
-    Ignored:    code/Snakefiles/SimpleGrid/
     Ignored:    data/.DS_Store
     Ignored:    data/projection_example/
     Ignored:    output/Calculate_Tm/4PopSplit/E1/
@@ -604,12 +555,8 @@ Ignored files:
     Ignored:    output/Simulate_Phenotypes/4PopSplit/E9/
     Ignored:    output/Simulate_Phenotypes/SimpleGrid/
 
-Untracked files:
-    Untracked:  Rplots.pdf
-
 Unstaged changes:
-    Modified:   code/PGA_test/calc_Qx_SimpleGrid.R
-    Modified:   snakefile
+    Modified:   code/Simulate_Genotypes/generate_genotypes_4PopSplit.py
 
 </code></pre>
 <p>
@@ -648,6 +595,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/709d27614eee2dccd6daeedbb9fed2e4dc283503/analysis/Plot_4PopSplit.Rmd" target="_blank">709d276</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-06-22
+</td>
+<td>
+wflow_publish(c(“analysis/Plot_4PopSplit.Rmd”, “analysis/Plot_SimpleGrid.Rmd”))
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/de9e91d9299d80f1fc07d107f14b1b4f1fed2dd2/analysis/Plot_4PopSplit.Rmd" target="_blank">de9e91d</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-06-20
+</td>
+<td>
+uggg why is clumping not working?
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/d9097240c6da5ad034c144b1e1cc9a9740394d9d/docs/Plot_4PopSplit.html" target="_blank">d909724</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-06-15
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -1553,15 +1551,58 @@ jgblanc
 </div>
 <div id="look-over-100-simulations" class="section level1">
 <h1>Look over 100 simulations</h1>
-<p>Clumped Sites</p>
+<p>Original Simulations</p>
+<ul>
+<li>100 Inidividuals per population (200 per panel)<br />
+</li>
+<li>N = 10000 (ancestral and individual pops)<br />
+</li>
+<li>L = 10000000 (1 MB) - 2 chromosomes<br />
+</li>
+<li>mu = 1e-8<br />
+</li>
+<li>rho = 1e-8</li>
+</ul>
+<p>Clumping</p>
+<ul>
+<li>Pick lowested p-value in predefined 100Kb windows<br />
+</li>
+<li>Always results in 200 sites included in PRS</li>
+</ul>
 <pre class="r"><code>df &lt;- fread(&quot;../code/plot/F100.txt&quot;)
-nc &lt;- df %&gt;% filter(type == &quot;nc&quot;| type == &quot;nc-Tm&quot;) %&gt;% group_by(env, type, case) %&gt;% summarise(fp_strat = sum(`P-EN` &lt; 0.05)/ n(), avg_Ax = mean(Ax)) %&gt;% separate(env, c(&quot;env&quot;, &quot;diff&quot;), &quot;-&quot;) %&gt;% filter(case == &quot;C1&quot;)</code></pre>
+nc &lt;- df %&gt;% filter(type == &quot;nc&quot;| type == &quot;nc-Tm&quot;) %&gt;% filter(case == &quot;C1&quot;)  %&gt;% group_by(env, type, case) %&gt;% summarise(fp_strat = sum(`P-EN` &lt; 0.05)/ n(), avg_Ax = mean(Ax)) %&gt;% separate(env, c(&quot;env&quot;, &quot;diff&quot;), &quot;-&quot;)</code></pre>
 <pre><code>`summarise()` has grouped output by &#39;env&#39;, &#39;type&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>kable(nc[1:2,1:5])</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">env</th>
+<th align="left">diff</th>
+<th align="left">type</th>
+<th align="left">case</th>
+<th align="right">fp_strat</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc</td>
+<td align="left">C1</td>
+<td align="right">0.16</td>
+</tr>
+<tr class="even">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc-Tm</td>
+<td align="left">C1</td>
+<td align="right">0.18</td>
+</tr>
+</tbody>
+</table>
 <pre class="r"><code>nc$diff &lt;- as.numeric(nc$diff)
 
-t &lt;- df %&gt;% filter(type == &quot;nc&quot; &amp; case == &quot;C1&quot; &amp; env == &quot;env-0.0&quot;)
-
-ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ geom_smooth(method = &quot;loess&quot;, se = FALSE) + xlab(&quot;Mean(A) - Mean(C)&quot;) + ylab(&quot;False Postive Rate&quot;) + theme_classic(base_size = 14) + scale_color_manual(values = c(&quot;goldenrod2&quot;, &quot;navy&quot;), labels = unname(TeX(c(&quot;No covariate&quot;, &quot; Including $T^{GWAS}&quot;)))) + theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + ylim(0,1) + labs(colour=&quot;GWAS&quot;) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = &quot;red&quot;)</code></pre>
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab(&quot;Mean(A) - Mean(C)&quot;) + ylab(&quot;False Postive Rate&quot;) + theme_classic(base_size = 14) + scale_color_manual(values = c(&quot;goldenrod2&quot;, &quot;navy&quot;), labels = unname(TeX(c(&quot;No covariate&quot;, &quot; Including $T^{GWAS}&quot;)))) + theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + ylim(0,1) + labs(colour=&quot;GWAS&quot;) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = &quot;red&quot;) + geom_smooth(method = &quot;loess&quot;, se = FALSE) </code></pre>
 <pre><code>`geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
 <p><img src="figure/Plot_4PopSplit.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
@@ -1634,13 +1675,48 @@ jgblanc
 </table>
 </div>
 </div>
-<p>Random sites</p>
-<pre class="r"><code>c &lt;- df %&gt;% filter(type == &quot;c&quot;| type == &quot;c-Tm&quot;) %&gt;% group_by(env, type) %&gt;% summarise(fp_strat = sum(`P-EN` &lt; 0.05)/ n()) %&gt;% separate(env, c(&quot;env&quot;, &quot;diff&quot;), &quot;-&quot;)</code></pre>
-<pre><code>`summarise()` has grouped output by &#39;env&#39;. You can override using the `.groups` argument.</code></pre>
-<pre class="r"><code>c$diff &lt;- as.numeric(c$diff)
+<p>New Clumping Procedure</p>
+<ul>
+<li>Iteratively pick lowest possible p-value and eliminates SNPs within 100KB on either side<br />
+</li>
+<li>Keep going until all SNPs have been eliminated<br />
+</li>
+<li>Results in ~150 SNPs included</li>
+</ul>
+<pre class="r"><code>df &lt;- fread(&quot;../code/plot/F100_NewClump.txt&quot;)
+nc &lt;- df %&gt;% filter(type == &quot;nc&quot;| type == &quot;nc-Tm&quot;) %&gt;% filter(case == &quot;C1&quot;)  %&gt;% group_by(env, type, case) %&gt;% summarise(fp_strat = sum(`P-EN` &lt; 0.05)/ n(), avg_Ax = mean(Ax)) %&gt;% separate(env, c(&quot;env&quot;, &quot;diff&quot;), &quot;-&quot;)</code></pre>
+<pre><code>`summarise()` has grouped output by &#39;env&#39;, &#39;type&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>kable(nc[1:2,1:5])</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">env</th>
+<th align="left">diff</th>
+<th align="left">type</th>
+<th align="left">case</th>
+<th align="right">fp_strat</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc</td>
+<td align="left">C1</td>
+<td align="right">0.18</td>
+</tr>
+<tr class="even">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc-Tm</td>
+<td align="left">C1</td>
+<td align="right">0.10</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>nc$diff &lt;- as.numeric(nc$diff)
 
-ggplot(data = c, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ geom_smooth(method = &quot;loess&quot;, se = FALSE) + xlab(&quot;Mean(A) - Mean(B)&quot;) + ylab(&quot;False Postive Rate&quot;) + theme_classic(base_size = 14) + scale_color_manual(values = c(&quot;goldenrod2&quot;, &quot;navy&quot;), labels = unname(TeX(c(&quot;No covariate&quot;, &quot; Including $T^{GWAS}&quot;)))) + theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + ylim(0,1) + labs(colour=&quot;GWAS&quot;) + theme(legend.text.align = 0) + geom_hline(yintercept = 0.05, color = &quot;red&quot;)</code></pre>
-<pre><code>`geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab(&quot;Mean(A) - Mean(C)&quot;) + ylab(&quot;False Postive Rate&quot;) + theme_classic(base_size = 14) + scale_color_manual(values = c(&quot;goldenrod2&quot;, &quot;navy&quot;), labels = unname(TeX(c(&quot;No covariate&quot;, &quot; Including $T^{GWAS}&quot;)))) + theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + ylim(0,1) + labs(colour=&quot;GWAS&quot;) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = &quot;red&quot;)</code></pre>
 <p><img src="figure/Plot_4PopSplit.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
@@ -1712,35 +1788,56 @@ jgblanc
 </table>
 </div>
 </div>
-<p><strong>Ignore</strong></p>
-</div>
-<div id="investigate-e5" class="section level1">
-<h1>Investigate E5</h1>
-<pre class="r"><code>E5 &lt;- fread(&quot;~/polygenic_adaptation_stratification/output/PGA_test/4PopSplit/E5/C1/h2-0/env-0.0/PGS.txt&quot;)
+<p>New Genotype Simulations</p>
+<ul>
+<li>100 Inidividuals per population (100 per panel)<br />
+</li>
+<li>N = 10000 (ancestral and individual pops)<br />
+</li>
+<li>L = 10000000 (1 MB) - 2 chromosomes<br />
+</li>
+<li>mu = 1e-8<br />
+</li>
+<li>rho = 1e-7</li>
+</ul>
+<p>Same Clumping</p>
+<ul>
+<li>~150 SNPs included in PRS</li>
+</ul>
+<pre class="r"><code>df &lt;- fread(&quot;../code/plot/J100.txt&quot;)
+nc &lt;- df %&gt;% filter(type == &quot;nc&quot;| type == &quot;nc-Tm&quot;) %&gt;% filter(case == &quot;C1&quot;)  %&gt;% group_by(env, type, case) %&gt;% summarise(fp_strat = sum(`P-EN` &lt; 0.05)/ n(), avg_Ax = mean(Ax)) %&gt;% separate(env, c(&quot;env&quot;, &quot;diff&quot;), &quot;-&quot;)</code></pre>
+<pre><code>`summarise()` has grouped output by &#39;env&#39;, &#39;type&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>kable(nc[1:2,1:5])</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">env</th>
+<th align="left">diff</th>
+<th align="left">type</th>
+<th align="left">case</th>
+<th align="right">fp_strat</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc</td>
+<td align="left">C1</td>
+<td align="right">0.15</td>
+</tr>
+<tr class="even">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc-Tm</td>
+<td align="left">C1</td>
+<td align="right">0.12</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>nc$diff &lt;- as.numeric(nc$diff)
 
-library(pgenlibr)
-read_genos &lt;- function(geno_prefix, betas) {
-
-  pvar &lt;- pgenlibr::NewPvar(paste0(geno_prefix, &quot;.pvar&quot;))
-  d1 &lt;- pgenlibr::NewPgen(paste0(geno_prefix, &quot;.pgen&quot;))
-  var.ids &lt;- betas$ID
-  var.indx &lt;- rep(0, length(var.ids))
-  for (i in 1:length(var.indx)) {
-    var.indx[i] &lt;- pgenlibr::GetVariantsById(pvar,var.ids[i])
-  }
-  X &lt;- ReadList(d1,var.indx, meanimpute=F)
-
-  return(X)
-}
-
-betas &lt;- fread(&quot;~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E5/C1/h2-0/env-0.0/genos-gwas_common.c.betas&quot;)
-M &lt;- read_genos(&quot;/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/E5/C1/genos-gwas_common&quot;, betas)
-
-freqA &lt;- colSums(M[1:100,]) / 200 
-freqC &lt;- colSums(M[101:200,]) / 200 
-
-diff_gwas &lt;- freqA - freqC
-plot(diff_gwas, betas$BETA_Strat)</code></pre>
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab(&quot;Mean(A) - Mean(C)&quot;) + ylab(&quot;False Postive Rate&quot;) + theme_classic(base_size = 14) + scale_color_manual(values = c(&quot;goldenrod2&quot;, &quot;navy&quot;), labels = unname(TeX(c(&quot;No covariate&quot;, &quot; Including $T^{GWAS}&quot;)))) + theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + ylim(0,1) + labs(colour=&quot;GWAS&quot;) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = &quot;red&quot;)</code></pre>
 <p><img src="figure/Plot_4PopSplit.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
@@ -1801,24 +1898,437 @@ jgblanc
 </table>
 </div>
 </div>
-<pre class="r"><code>mean(betas$BETA_Strat)</code></pre>
-<pre><code>[1] -0.02456328</code></pre>
-<pre class="r"><code>mean_nc &lt;- rep(0, 10)
-for (i in 1:10) {
-  betas &lt;- fread(paste0(&quot;~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E&quot;, i, &quot;/C1/h2-0/env-0.0/genos-gwas_common.nc.betas&quot;))
-  mean_nc[i] &lt;- mean(betas$BETA_Strat)
-}
-mean_nc</code></pre>
-<pre><code> [1] -0.02580160 -0.22249686  0.01605514  0.41579412  0.12828471  0.12514327
- [7]  0.36759319  0.37910336 -0.01693349  0.10325865</code></pre>
-<pre class="r"><code>mean_c &lt;- rep(0, 10)
-for (i in 1:10) {
-  betas &lt;- fread(paste0(&quot;~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E&quot;, i, &quot;/C1/h2-0/env-0.0/genos-gwas_common.c.betas&quot;))
-  mean_c[i] &lt;- mean(betas$BETA_Strat)
-}
-mean_c</code></pre>
-<pre><code> [1]  0.003993074  0.010972639  0.015500324  0.009306136 -0.024563276
- [6]  0.029915551 -0.005237193 -0.025603425  0.004103204 -0.014170304</code></pre>
+<p>New Genotype Simulations</p>
+<ul>
+<li>200 Inidividuals per population (400 per panel)<br />
+</li>
+<li>N = 20000 (ancestral and individual pops)<br />
+</li>
+<li>L = 10000000 (1 MB) - 2 chromosomes<br />
+</li>
+<li>mu = 1e-8<br />
+</li>
+<li>rho = 1e-7</li>
+</ul>
+<p>Same Clumping</p>
+<ul>
+<li>~150 SNPs included in PRS</li>
+</ul>
+<pre class="r"><code>df &lt;- fread(&quot;../code/plot/K100.txt&quot;)
+nc &lt;- df %&gt;% filter(type == &quot;nc&quot;| type == &quot;nc-Tm&quot;) %&gt;% filter(case == &quot;C1&quot;)  %&gt;% group_by(env, type, case) %&gt;% summarise(fp_strat = sum(`P-EN` &lt; 0.05)/ n(), avg_Ax = mean(Ax)) %&gt;% separate(env, c(&quot;env&quot;, &quot;diff&quot;), &quot;-&quot;)</code></pre>
+<pre><code>`summarise()` has grouped output by &#39;env&#39;, &#39;type&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>kable(nc[1:2,1:5])</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">env</th>
+<th align="left">diff</th>
+<th align="left">type</th>
+<th align="left">case</th>
+<th align="right">fp_strat</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc</td>
+<td align="left">C1</td>
+<td align="right">0.18</td>
+</tr>
+<tr class="even">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc-Tm</td>
+<td align="left">C1</td>
+<td align="right">0.17</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>nc$diff &lt;- as.numeric(nc$diff)
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab(&quot;Mean(A) - Mean(C)&quot;) + ylab(&quot;False Postive Rate&quot;) + theme_classic(base_size = 14) + scale_color_manual(values = c(&quot;goldenrod2&quot;, &quot;navy&quot;), labels = unname(TeX(c(&quot;No covariate&quot;, &quot; Including $T^{GWAS}&quot;)))) + theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + ylim(0,1) + labs(colour=&quot;GWAS&quot;) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = &quot;red&quot;)</code></pre>
+<p><img src="figure/Plot_4PopSplit.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-1">
+Past versions of unnamed-chunk-8-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/100ac3fa51906515d9a222fd7a8a418a8f17b425/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-8-1.png" target="_blank">100ac3f</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-02-16
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/8f44c3e126dad7afe9cc1f70f1daf6d96ed2a27a/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-8-1.png" target="_blank">8f44c3e</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-02-02
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/be1f7f87a2462914f1fc7bcf770d313a5748b80f/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-8-1.png" target="_blank">be1f7f8</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-01-31
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>New Clumping</p>
+<ul>
+<li>Eliminate 200 KB on either side of included SNP</li>
+</ul>
+<pre class="r"><code>df &lt;- fread(&quot;../code/plot/K100_widewindow.txt&quot;)
+nc &lt;- df %&gt;% filter(type == &quot;nc&quot;| type == &quot;nc-Tm&quot;) %&gt;% filter(case == &quot;C1&quot;)  %&gt;% group_by(env, type, case) %&gt;% summarise(fp_strat = sum(`P-EN` &lt; 0.05)/ n(), avg_Ax = mean(Ax)) %&gt;% separate(env, c(&quot;env&quot;, &quot;diff&quot;), &quot;-&quot;)</code></pre>
+<pre><code>`summarise()` has grouped output by &#39;env&#39;, &#39;type&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>kable(nc[1:2,1:5])</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">env</th>
+<th align="left">diff</th>
+<th align="left">type</th>
+<th align="left">case</th>
+<th align="right">fp_strat</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc</td>
+<td align="left">C1</td>
+<td align="right">0.12</td>
+</tr>
+<tr class="even">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc-Tm</td>
+<td align="left">C1</td>
+<td align="right">0.10</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>nc$diff &lt;- as.numeric(nc$diff)
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab(&quot;Mean(A) - Mean(C)&quot;) + ylab(&quot;False Postive Rate&quot;) + theme_classic(base_size = 14) + scale_color_manual(values = c(&quot;goldenrod2&quot;, &quot;navy&quot;), labels = unname(TeX(c(&quot;No covariate&quot;, &quot; Including $T^{GWAS}&quot;)))) + theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + ylim(0,1) + labs(colour=&quot;GWAS&quot;) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = &quot;red&quot;)</code></pre>
+<p><img src="figure/Plot_4PopSplit.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-9-1">
+Past versions of unnamed-chunk-9-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-9-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/8c316daf5f90ac616194b028a01de98ea0e36c63/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-9-1.png" target="_blank">8c316da</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-06-15
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/100ac3fa51906515d9a222fd7a8a418a8f17b425/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-9-1.png" target="_blank">100ac3f</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-02-16
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/8f44c3e126dad7afe9cc1f70f1daf6d96ed2a27a/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-9-1.png" target="_blank">8f44c3e</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-02-02
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/be1f7f87a2462914f1fc7bcf770d313a5748b80f/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-9-1.png" target="_blank">be1f7f8</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-01-31
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>New Clumping</p>
+<ul>
+<li>Eliminate 300 KB on either side of included SNP</li>
+</ul>
+<pre class="r"><code>df &lt;- fread(&quot;../code/plot/K100_widewindow3.txt&quot;)
+nc &lt;- df %&gt;% filter(type == &quot;nc&quot;| type == &quot;nc-Tm&quot;) %&gt;% filter(case == &quot;C1&quot;)  %&gt;% group_by(env, type, case) %&gt;% summarise(fp_strat = sum(`P-EN` &lt; 0.05)/ n(), avg_Ax = mean(Ax)) %&gt;% separate(env, c(&quot;env&quot;, &quot;diff&quot;), &quot;-&quot;)</code></pre>
+<pre><code>`summarise()` has grouped output by &#39;env&#39;, &#39;type&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>kable(nc[1:2,1:5])</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">env</th>
+<th align="left">diff</th>
+<th align="left">type</th>
+<th align="left">case</th>
+<th align="right">fp_strat</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc</td>
+<td align="left">C1</td>
+<td align="right">0.09</td>
+</tr>
+<tr class="even">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc-Tm</td>
+<td align="left">C1</td>
+<td align="right">0.09</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>nc$diff &lt;- as.numeric(nc$diff)
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab(&quot;Mean(A) - Mean(C)&quot;) + ylab(&quot;False Postive Rate&quot;) + theme_classic(base_size = 14) + scale_color_manual(values = c(&quot;goldenrod2&quot;, &quot;navy&quot;), labels = unname(TeX(c(&quot;No covariate&quot;, &quot; Including $T^{GWAS}&quot;)))) + theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + ylim(0,1) + labs(colour=&quot;GWAS&quot;) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = &quot;red&quot;)</code></pre>
+<p><img src="figure/Plot_4PopSplit.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-10-1">
+Past versions of unnamed-chunk-10-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-10-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/8c316daf5f90ac616194b028a01de98ea0e36c63/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-10-1.png" target="_blank">8c316da</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-06-15
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/100ac3fa51906515d9a222fd7a8a418a8f17b425/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-10-1.png" target="_blank">100ac3f</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-02-16
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/8f44c3e126dad7afe9cc1f70f1daf6d96ed2a27a/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-10-1.png" target="_blank">8f44c3e</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-02-02
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/be1f7f87a2462914f1fc7bcf770d313a5748b80f/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-10-1.png" target="_blank">be1f7f8</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-01-31
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>New Clumping</p>
+<ul>
+<li>Eliminate 500 KB on either side of included SNP<br />
+</li>
+<li>~ 30 SNPs included in PRS</li>
+</ul>
+<pre class="r"><code>df &lt;- fread(&quot;../code/plot/K100_widewindow5.txt&quot;)
+nc &lt;- df %&gt;% filter(type == &quot;nc&quot;| type == &quot;nc-Tm&quot;) %&gt;% filter(case == &quot;C1&quot;)  %&gt;% group_by(env, type, case) %&gt;% summarise(fp_strat = sum(`P-EN` &lt; 0.05)/ n(), avg_Ax = mean(Ax)) %&gt;% separate(env, c(&quot;env&quot;, &quot;diff&quot;), &quot;-&quot;)</code></pre>
+<pre><code>`summarise()` has grouped output by &#39;env&#39;, &#39;type&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code>kable(nc[1:2,1:5])</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">env</th>
+<th align="left">diff</th>
+<th align="left">type</th>
+<th align="left">case</th>
+<th align="right">fp_strat</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc</td>
+<td align="left">C1</td>
+<td align="right">0.05</td>
+</tr>
+<tr class="even">
+<td align="left">env</td>
+<td align="left">0.0</td>
+<td align="left">nc-Tm</td>
+<td align="left">C1</td>
+<td align="right">0.04</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>nc$diff &lt;- as.numeric(nc$diff)
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab(&quot;Mean(A) - Mean(C)&quot;) + ylab(&quot;False Postive Rate&quot;) + theme_classic(base_size = 14) + scale_color_manual(values = c(&quot;goldenrod2&quot;, &quot;navy&quot;), labels = unname(TeX(c(&quot;No covariate&quot;, &quot; Including $T^{GWAS}&quot;)))) + theme(panel.border = element_rect(colour = &quot;black&quot;, fill=NA, size=1)) + ylim(0,1) + labs(colour=&quot;GWAS&quot;) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = &quot;red&quot;)</code></pre>
+<p><img src="figure/Plot_4PopSplit.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-11-1">
+Past versions of unnamed-chunk-11-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-11-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/100ac3fa51906515d9a222fd7a8a418a8f17b425/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-11-1.png" target="_blank">100ac3f</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-02-16
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/8f44c3e126dad7afe9cc1f70f1daf6d96ed2a27a/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-11-1.png" target="_blank">8f44c3e</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-02-02
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/be1f7f87a2462914f1fc7bcf770d313a5748b80f/docs/figure/Plot_4PopSplit.Rmd/unnamed-chunk-11-1.png" target="_blank">be1f7f8</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-01-31
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Yay? Seems like a huge window<br />
+Implement LD based clumping instead of physical distance?<br />
+Increase sample size?</p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -1842,16 +2352,16 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] pgenlibr_0.3.1    latex2exp_0.4.0   knitr_1.31        forcats_0.5.1    
- [5] stringr_1.4.0     dplyr_1.0.4       purrr_0.3.4       readr_1.4.0      
- [9] tidyr_1.1.2       tibble_3.1.0      ggplot2_3.3.3     tidyverse_1.3.0  
-[13] data.table_1.14.0 workflowr_1.6.2  
+ [1] latex2exp_0.4.0   knitr_1.31        forcats_0.5.1     stringr_1.4.0    
+ [5] dplyr_1.0.4       purrr_0.3.4       readr_1.4.0       tidyr_1.1.2      
+ [9] tibble_3.1.0      ggplot2_3.3.3     tidyverse_1.3.0   data.table_1.14.0
+[13] workflowr_1.6.2  
 
 loaded via a namespace (and not attached):
  [1] Rcpp_1.0.6        lattice_0.20-41   lubridate_1.7.9.2 assertthat_0.2.1 
- [5] rprojroot_2.0.2   digest_0.6.27     utf8_1.1.4        plyr_1.8.6       
- [9] R6_2.5.0          cellranger_1.1.0  backports_1.2.1   reprex_1.0.0     
-[13] evaluate_0.14     httr_1.4.2        highr_0.8         pillar_1.5.0     
+ [5] rprojroot_2.0.2   digest_0.6.27     utf8_1.1.4        R6_2.5.0         
+ [9] cellranger_1.1.0  plyr_1.8.6        backports_1.2.1   reprex_1.0.0     
+[13] evaluate_0.14     highr_0.8         httr_1.4.2        pillar_1.5.0     
 [17] rlang_0.4.10      readxl_1.3.1      rstudioapi_0.13   whisker_0.4      
 [21] jquerylib_0.1.4   Matrix_1.3-2      rmarkdown_2.7     splines_3.6.2    
 [25] labeling_0.4.2    munsell_0.5.0     broom_0.7.5       compiler_3.6.2   
