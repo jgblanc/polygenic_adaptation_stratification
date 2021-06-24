@@ -1,12 +1,13 @@
-#CHR=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19"]
-CHR =["0", "1"]
-CONFIG=["C1"]
+CHR =[]
+for i in range(0, 200):
+  CHR.append(str(i))
+CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
-REP = []
-for i in range(1, 101):
-  REP.append("K"+str(i))
+REP = ["E1", "E2"]
+#for i in range(1, 11):
+#  REP.append("K"+str(i))
 HERITABILITY = ["h2-0"]
-ENV = ["env-0.0"]
+ENV = ["env-0.0", "env-0.10", "env-0.50", "env-1.00"]
 SIZE=400
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -22,7 +23,7 @@ def get_seed(rep, h2):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Qx.txt",rep=REP, h2=HERITABILITY, env=ENV, config=CONFIG)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Qx.txt",rep=REP, model = MODEL, h2 = HERITABILITY, env=ENV, config=CONFIG)
 
 # Simluate Genotypes
 
@@ -30,22 +31,25 @@ rule simulate_genotypes_4popsplit:
     output:
         expand("output/Simulate_Genotypes/4PopSplit/{{rep}}/genos_{chr}.vcf", chr=CHR),
 	      "output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
+    params:
+      chr_num = len(CHR)
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
 	       --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
-	       --chr 2 \
-       	       --Nanc 20000 \
-	       --NA 20000 \
-	       --NB 20000 \
-	       --NC 20000 \
-	       --ND 20000 \
-  	       -a 400 \
+	       --chr {params.chr_num} \
+       	       --Nanc 10000 \
+	       --NA 10000 \
+	       --NB 10000 \
+	       --NC 10000 \
+	       --ND 10000 \
+  	     -a 400 \
 	       -b 400 \
 	       -c 400 \
 	       -d 400 \
-               -s1 22000 \
-               -s2 11000 \
-	       -r 1e-07"
+         -s1 22000 \
+          -s2 11000 \
+          -L 100000 \
+	       -r 0"
 
 rule format_VCF:
     input:
@@ -67,7 +71,12 @@ rule concat_vcfs:
     output:
         "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
     shell:
-        "bcftools concat {input} -o {output} -O z"
+        """
+        bcftools concat {input} -o output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/temp.vcf.gz -O z
+        bcftools annotate --rename-chrs code/Simulate_Genotypes/convert_chr.txt output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/temp.vcf.gz -o {output} -O z
+        rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/temp.vcf.gz
+        """
+
 
 rule convert_vcf_to_plink:
     input:
@@ -325,7 +334,7 @@ rule gwas_no_correction:
         "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
-        --glm allow-no-covars \
+        --glm  allow-no-covars \
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
         --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"

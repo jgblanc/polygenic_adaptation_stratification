@@ -9,11 +9,11 @@ import pandas as pd
 parser=argparse.ArgumentParser()
 req_grp=parser.add_argument_group(title="Required arguments")
 
-parser.add_argument("--NA","-A",dest="NA",help="haploid effective population size in population A",type=int,default=10000)
-parser.add_argument("--NB","-B",dest="NB",help="haploid effective population size in population B",type=int,default=10000)
-parser.add_argument("--NC","-C",dest="NC",help="haploid effective population size in population C",type=int,default=10000)
-parser.add_argument("--ND","-D",dest="ND",help="haploid effective population size in population A",type=int,default=10000)
-parser.add_argument("--Nanc","-anc",dest="Nanc",help="haploid effective ancestral population size before the first split",type=int,default=10000)
+parser.add_argument("--NA","-A",dest="NA",help="diploid effective population size in population A",type=int,default=10000)
+parser.add_argument("--NB","-B",dest="NB",help="diploid effective population size in population B",type=int,default=10000)
+parser.add_argument("--NC","-C",dest="NC",help="diploid effective population size in population C",type=int,default=10000)
+parser.add_argument("--ND","-D",dest="ND",help="diploid effective population size in population A",type=int,default=10000)
+parser.add_argument("--Nanc","-anc",dest="Nanc",help="diploid effective ancestral population size before the first split",type=int,default=10000)
 parser.add_argument("--sample_size_A","-a",dest="sample_A",help="haploid sample size in population A (must be divisible by ploidy)",type=int,default=50)
 parser.add_argument("--sample_size_B","-b",dest="sample_B",help="haploid sample size in population B (must be divisible by ploidy)",type=int,default=50)
 parser.add_argument("--sample_size_C","-c",dest="sample_C",help="haploid sample size in population C (must be divisible by ploidy)",type=int,default=50)
@@ -79,14 +79,14 @@ def split(N_A, N_B, N_C, N_D, split_time1, split_time2, sample_A, sample_B, samp
 # Generate Tree Sequences and Save to VCF
 for i in range(0,args.chrom_num):
     
-    print(i)
+    #print(i)
     
     # Generate Tree Sequence 
-    print("simulating genotypes under demographic model")
+    #print("simulating genotypes under demographic model")
     ts = split(args.NA, args.NB, args.NC, args.ND, args.split_time1, args.split_time2, args.sample_A, args.sample_B, args.sample_C, args.sample_D, args.length, args.rho, args.mu, args.Nanc)
 
     # Save to VCF
-    print("writing genotype to vcf file")
+    #print("writing genotype to vcf file")
 
     with open(args.outpre+"_"+str(i)+".vcf","w") as vcf_file:
         ts.write_vcf(vcf_file,ploidy=args.ploidy,contig_id=i+1)

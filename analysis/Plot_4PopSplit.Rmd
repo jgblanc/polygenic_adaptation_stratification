@@ -35,7 +35,7 @@ agg_data <- function(rep, file_path, file_name) {
   return(gvalue)
 }
 
-reps <- list("E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10")
+reps <- list("E1", "E2")
 cols_gwas <- c("red2", "mediumblue")
 
 df_pheno_env0 <- plyr::ldply(reps, agg_data, file_path='../output/Simulate_Phenotypes/4PopSplit/', file_name='/C1/h2-0/env-0.0/genos-gwas_common.phenos.txt')
@@ -87,8 +87,8 @@ ggplot(data = df_test, aes(x=nc_Tm, fill = POP)) + geom_histogram(data = subset(
 
 Qx stats
 ```{r}
-reps <- rep(NA, 10)
-for (i in 1:10){reps[i] <- paste0("E", i)}
+reps <- rep(NA, 2)
+for (i in 1:2){reps[i] <- paste0("E", i)}
 h2 <- "h2-0"
 envs <- c("env-0.0", "env-0.10", "env-0.50", "env-1.00")
 cases <- c("C1")
@@ -240,6 +240,18 @@ Increase sample size?
 
 
 
+```{r}
+mat <- rep(NA, 5000)
+for (i in 1:5000) {
+  mat[i] <- paste0(i, "\t", 1)
+}
+```
+
+
+```{r}
+mat <- as.data.frame(mat)
+fwrite(mat, file = "~/Desktop/convert_chr.txt", row.names = F, col.names = F, quote = F)
+```
 
 
 

@@ -37,9 +37,9 @@ set.seed(args[5])
 # load variant frequency file
 p = fread(freq_file)
 
-colnames(p)=c("CHROM","ID","REF","ALT","ALT_FREQS","COUNT")
-p=p[,c("CHROM","ID","ALT_FREQS")]
-p[, c("chr", "position","ref","alt") := tstrsplit(ID, "_", fixed=TRUE)]
+colnames(p)=c("chr","ID","REF","ALT","ALT_FREQS","COUNT")
+p=p[,c("chr","ID","ALT_FREQS")]
+p[, c("CHROM", "position","ref","alt") := tstrsplit(ID, "_", fixed=TRUE)]
 p = p[,c("CHROM","ID","position","ALT_FREQS")]
 p$position = as.numeric(p$position)
 
@@ -47,26 +47,29 @@ p$position = as.numeric(p$position)
 #then, select every other variant to be at least 100kb apart
 
 #write function to do this for each chromosome separately
-roundDw <- function(x,to=-1e5){
-  to*(x%/%to + as.logical(x%%to))
+#roundDw <- function(x,to=-1e5){
+#  to*(x%/%to + as.logical(x%%to))
+#}
+#
+#sample.variant=function(df){
+#  min_pos = roundDw(as.numeric(df[1,3])) + 1e5
+#  max_pos = roundDw(as.numeric(tail(df,1)[1,3])) + 1e5
+#
+#  position1 = as.numeric(dplyr::sample_n(df[position < min_pos, 'position' ], 1))
+#  positions = position1 + seq(0,(max_pos/1e5 - 1))*1e5
+#
+#  #pick variants that are further than these
+#  positions.adj = lapply( positions, function(x){
+#    ix = min( df[df$position > x, which =TRUE ] )
+#    return(df[ix])
+#  })
+#  #return datatable
+#  positions.adj = bind_rows(positions.adj)
+#}
+
+sample.variant <- function(df) {
+  return(sample_n(df,1))
 }
-
-sample.variant=function(df){
-  min_pos = roundDw(as.numeric(df[1,3])) + 1e5
-  max_pos = roundDw(as.numeric(tail(df,1)[1,3])) + 1e5
-
-  position1 = as.numeric(dplyr::sample_n(df[position < min_pos, 'position' ], 1))
-  positions = position1 + seq(0,(max_pos/1e5 - 1))*1e5
-
-  #pick variants that are further than these
-  positions.adj = lapply( positions, function(x){
-    ix = min( df[df$position > x, which =TRUE ] )
-    return(df[ix])
-  })
-  #return datatable
-  positions.adj = bind_rows(positions.adj)
-}
-
 
 #carry this out grouped by chromosome
 df = p %>% filter(CHROM == 1)

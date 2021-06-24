@@ -156,7 +156,6 @@ main <- function(beta_file, Va) {
   # Calculate empirical p-values
   all_strat <- redraws[,1]
   p_strat_en <- length(all_strat[all_strat > qx[1,1]])/length(all_strat)
-  print(var(all_strat))
 
   # Calculate p-value from chi-square
   p_strat <- pchisq(qx[1,1], df=1, lower.tail=FALSE)

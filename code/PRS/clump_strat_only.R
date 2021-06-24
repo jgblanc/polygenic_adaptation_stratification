@@ -12,9 +12,9 @@ suppressWarnings(suppressMessages({
 }))
 
 geffects_file=args[1]
-#geffects_file="~/polygenic_adaptation_stratification/output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/genos-gwas_common.effects.txt"
+#geffects_file="~/polygenic_adaptation_stratification/output/Simulate_Phenotypes/4PopSplit/E1/C1/h2-0/genos-gwas_common.effects.txt"
 gwas_file_prefix=args[2]
-#gwas_file_prefix="~/polygenic_adaptation_stratification/output/Run_GWAS/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common"
+#gwas_file_prefix="~/polygenic_adaptation_stratification/output/Run_GWAS/4PopSplit/E1/C1/h2-0/env-0.0/genos-gwas_common"
 pval_threshold=as.numeric(args[3])
 output_file_prefix=args[4]
 #output_file_prefix="~/polygenic_adaptation_stratification/output/PRS/4PopSplit/V1/C1/genos-gwas_common"
@@ -96,26 +96,39 @@ fwrite(gwas.causal.p,
 
 print("ld clumping")
 
+#fclump <- function(df, pt, CHR) {
+#
+#  df <-  gwas1 %>% filter(P < pt) %>% filter(CHROM == CHR)
+#  min_p <- df %>% slice_min(P, with_ties = F)
+#  clumped <- min_p
+#  min_pos <- min_p$POS - 5e5
+#  max_pos <- min_p$POS + 5e5
+#  df <- df %>% filter(!(POS > min_pos & POS < max_pos))
+#
+#  while (nrow(df) > 0) {
+#    min_p <- df %>% slice_min(P, with_ties = F)
+#    clumped <- rbind(clumped, min_p)
+#    min_pos <- min_p$POS - 5e5
+#    max_pos <- min_p$POS + 5e5
+#    df <- df %>% filter(!(POS > min_pos & POS < max_pos))
+#    nrow(df)
+#  }
+#  return(clumped)
+#}
+
 fclump <- function(df, pt, CHR) {
 
+  # Select only SNPS under threshold
   df <-  gwas1 %>% filter(P < pt) %>% filter(CHROM == CHR)
-  min_p <- df %>% slice_min(P, with_ties = F)
-  clumped <- min_p
-  min_pos <- min_p$POS - 5e5
-  max_pos <- min_p$POS + 5e5
-  df <- df %>% filter(!(POS > min_pos & POS < max_pos))
 
-  while (nrow(df) > 0) {
-    min_p <- df %>% slice_min(P, with_ties = F)
-    clumped <- rbind(clumped, min_p)
-    min_pos <- min_p$POS - 5e5
-    max_pos <- min_p$POS + 5e5
-    df <- df %>% filter(!(POS > min_pos & POS < max_pos))
-    nrow(df)
-  }
-  return(clumped)
+  # Select lowest p-value
+  min_p <- df %>% slice_min(P, with_ties = F)
+
+  return(min_p)
 }
 
+tmp = gwas1 %>% mutate(ID2 = ID) %>% separate(ID2, c("chr", "pos", "a1", "a2"), "_")
+gwas1= tmp %>% mutate(CHROM = chr) %>% select("CHROM", "POS", "ID", "A1", "BETA1", "P")
 nchrms = unique(gwas1$CHROM)
 gwas.red = fclump(gwas1, pval_threshold, 1)
 gwas.red = gwas.red[order(gwas.red), ]
