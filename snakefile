@@ -3,11 +3,11 @@ for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
-REP = ["E1", "E2"]
-#for i in range(1, 11):
-#  REP.append("K"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("K"+str(i))
 HERITABILITY = ["h2-0"]
-ENV = ["env-0.0", "env-0.10", "env-0.50", "env-1.00"]
+ENV = ["env-0.0", "env-1.00"]
 SIZE=400
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
