@@ -123,6 +123,7 @@ fclump <- function(df, pt, CHR) {
 
   # Select lowest p-value
   min_p <- df %>% slice_min(P, with_ties = F)
+  #min_p <- sample_n(df,1)
 
   return(min_p)
 }
