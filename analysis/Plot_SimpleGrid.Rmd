@@ -29,12 +29,12 @@ library(latex2exp)
 
 
 ```{r}
-Mod <- read.plink("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common.cmpruned.b")
+Mod <- read.plink("../output/Simulate_Genotypes/SimpleGrid/E5/C1/genos-gwas_common.cmpruned.b")
 M <- as.matrix(Mod$genotypes) 
 cov_mat <- xxt(M)
 myE <- eigen(cov_mat)
 
-pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E2/genos.pop")
+pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E5/genos.pop")
 colnames(pops) <- c("IID", "#FID", "Pop", "Lat", "Long")
 
 df <- as.data.frame(cbind(myE$vectors[,1], myE$vectors[,2], Mod$fam[,1]))
@@ -49,9 +49,9 @@ ggplot(df, aes(x=PC1, y=PC2, color = Lat)) + geom_point() + theme_classic()
 
 No phenotypic difference across Latitude 
 ```{r}
-phenos <- fread("../output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/env-0.0/genos-gwas_common.phenos.txt")
+phenos <- fread("../output/Simulate_Phenotypes/SimpleGrid/E5/C1/h2-0/env-0.0/genos-gwas_common.phenos.txt")
 df <- suppressMessages(inner_join(phenos, pops))
-ggplot(data = df, aes(Lat, pheno_strat)) + geom_point() + geom_smooth() + theme_bw() + ylab("Phenotype")
+ggplot(data = df, aes(Lat, pheno_strat)) + geom_point() + stat_summary(fun.y=mean, colour="red", geom="line", size = 1)+ theme_bw() + ylab("Phenotype")
 ```
 
 ```{r}
@@ -60,9 +60,9 @@ ggplot(df, aes(x = Lat, y = Long, fill = pheno_strat)) + geom_tile() + theme_cla
 
 2 unit phenotypic difference across Latitude
 ```{r}
-phenos <- fread("../output/Simulate_Phenotypes/SimpleGrid/E1/C1/h2-0/env-0.5/genos-gwas_common.phenos.txt")
+phenos <- fread("../output/Simulate_Phenotypes/SimpleGrid/E5/C1/h2-0/env-0.1/genos-gwas_common.phenos.txt")
 df <- suppressMessages(inner_join(phenos, pops))
-ggplot(data = df, aes(Lat, pheno_strat)) + geom_point() + geom_smooth() + theme_bw() + ylab("Phenotype")
+ggplot(data = df, aes(Lat, pheno_strat)) + geom_point() +stat_summary(fun.y=mean, colour="red", geom="line", size = 3) + theme_bw() + ylab("Phenotype")
 ```
 
 ```{r}
@@ -74,7 +74,7 @@ ggplot(df, aes(x = Lat, y = Long, fill = pheno_strat)) + geom_tile() + theme_cla
 
 No stratification
 ```{r}
-pgs <- fread("../output/PRS/SimpleGrid/E1/C1/h2-0/env-0.0/PGS.txt")
+pgs <- fread("../output/PRS/SimpleGrid/E5/C1/h2-0/env-0.0/PGS.txt")
 df <- inner_join(pgs, pops) %>% gather(key = "Type", value = "PRS" , c, c.p, nc, c_Tm, c.p_Tm, nc_Tm)
 df <- arrange(transform(df,Type=factor(Type,levels=c("c", "c.p", "nc", "c_Tm", "c.p_Tm", "nc_Tm"))),Type)
 ggplot(data = df, aes(Lat, PRS)) + geom_point() + geom_smooth() + theme_bw()  + facet_wrap(~Type)
@@ -86,14 +86,14 @@ ggplot(df_pop, aes(x = Lat, y = Long, fill = avg_PRS)) + geom_tile() + facet_wra
 ```
 
 ```{r}
-Qx <- fread("../output/PGA_test/SimpleGrid/E1/C1/h2-0/env-0.0/Qx.txt")
+Qx <- fread("../output/PGA_test/SimpleGrid/E5/C1/h2-0/env-0.0/Qx.txt")
 Qx
 ```
 
 
 Stratification
 ```{r}
-pgs <- fread("../output/PRS/SimpleGrid/E1/C1/h2-0/env-0.5/PGS.txt")
+pgs <- fread("../output/PRS/SimpleGrid/E5/C1/h2-0/env-0.1/PGS.txt")
 df <- inner_join(pgs, pops) %>% gather(key = "Type", value = "PRS" , c, c.p, nc, c_Tm, c.p_Tm, nc_Tm)
 df <- arrange(transform(df,Type=factor(Type,levels=c("c", "c.p", "nc", "c_Tm", "c.p_Tm", "nc_Tm"))),Type)
 ggplot(data = df, aes(Lat, PRS)) + geom_point() + geom_smooth() + theme_bw()  + facet_wrap(~Type)
