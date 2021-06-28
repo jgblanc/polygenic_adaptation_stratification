@@ -1,14 +1,14 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1", "C2"]
+CONFIG=["C1"]
 MODEL=["4PopSplit"]
 REP = []
 for i in range(1, 101):
-  REP.append("K"+str(i))
+  REP.append("T"+str(i))
 HERITABILITY = ["h2-0"]
-ENV = ["env-0.0", "env-1.00"]
-SIZE=400
+ENV = ["env-0.005", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.06"]
+SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
 
@@ -42,14 +42,13 @@ rule simulate_genotypes_4popsplit:
 	       --NB 10000 \
 	       --NC 10000 \
 	       --ND 10000 \
-  	     -a 400 \
-	       -b 400 \
-	       -c 400 \
-	       -d 400 \
+  	     -a 2000 \
+	       -b 2000 \
+	       -c 2000 \
+	       -d 2000 \
          -s1 22000 \
           -s2 11000 \
-          -L 100000 \
-	       -r 0"
+          -L 100000"
 
 rule format_VCF:
     input:

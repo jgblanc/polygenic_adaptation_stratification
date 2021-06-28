@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_K100
-#SBATCH --output=logs/4PopSplit_K100.out
-#SBATCH --error=logs/4PopSplit_K100.err
+#SBATCH --job-name=4PopSplit_T100_envs2
+#SBATCH --output=logs/4PopSplit_T100_envs2.out
+#SBATCH --error=logs/4PopSplit_T100_envs2.err
 #SBATCH --time=02:00:00
 #SBATCH --partition=broadwl
-#SBATCH --nodes=8
-#SBATCH --mem=4G
+#SBATCH --nodes=5
+#SBATCH --mem=5G
 
 module load python/cpython-3.7.0
 module load R
@@ -15,4 +15,4 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake --cores 4
+snakemake --cores 5 --rerun-incomplete 
