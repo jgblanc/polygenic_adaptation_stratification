@@ -1,11 +1,11 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1", "C2"]
+CONFIG=["C1"]
 MODEL=["4PopSplit"]
 REP = []
-for i in range(1, 101):
-  REP.append("K"+str(i))
+for i in range(11, 21):
+  REP.append("E"+str(i))
 HERITABILITY = ["h2-0"]
 ENV = ["env-0.0", "env-1.00"]
 SIZE=400
@@ -48,8 +48,7 @@ rule simulate_genotypes_4popsplit:
 	       -d 400 \
          -s1 22000 \
           -s2 11000 \
-          -L 100000 \
-	       -r 0"
+          -L 100000"
 
 rule format_VCF:
     input:
@@ -334,7 +333,7 @@ rule gwas_no_correction:
         "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --read-freq {input.freq} \
-        --glm  allow-no-covars \
+        --glm \
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
         --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
@@ -424,12 +423,12 @@ rule proj_T:
         "output/Calculate_Tm/{model}/{rep}/{config}/projection.sscore"
     shell:
         """
-        plink2 \
+        ~/Desktop/plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
        --pca allele-wts {params.n_minus_1} \
        --out output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/pca
 
-        plink2 \
+        ~/Desktop/plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
        --score output/Calculate_Tm/{wildcards.model}/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
        --score-col-nums {params.col_start}-{params.col_end} \

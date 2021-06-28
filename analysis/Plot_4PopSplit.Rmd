@@ -127,12 +127,14 @@ Clumping
 - Always results in 200 sites included in PRS   
 
 ```{r}
-df <- fread("../code/plot/F100.txt")
+df <- fread("../code/plot/K100_chrs.txt")
 nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
 kable(nc[1:2,1:5])
 nc$diff <- as.numeric(nc$diff)
 
-ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_smooth(method = "loess", se = FALSE) 
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") 
+#+ geom_smooth(method = "loess", se = FALSE) 
 ```
 
 New Clumping Procedure  
@@ -167,6 +169,8 @@ df <- fread("../code/plot/J100.txt")
 nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
 kable(nc[1:2,1:5])
 nc$diff <- as.numeric(nc$diff)
+
+test <- df %>% filter(type == "nc") %>% filter(case == "C1" & env == "env-0.0")
 
 ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red")
 ```
@@ -254,6 +258,63 @@ fwrite(mat, file = "~/Desktop/convert_chr.txt", row.names = F, col.names = F, qu
 ```
 
 
+# Looking at LD 
+
+```{r}
+read_genos <- function(geno_prefix, betas) {
+
+  pvar <- NewPvar(paste0(geno_prefix, ".pvar"))
+  d1 <- NewPgen(paste0(geno_prefix, ".pgen"))
+  var.ids <- betas$ID
+  var.indx <- rep(0, length(var.ids))
+  for (i in 1:length(var.indx)) {
+    var.indx[i] <- pgenlibr::GetVariantsById(pvar,var.ids[i])
+  }
+  X <- ReadList(d1,var.indx, meanimpute=F)
+
+  return(X)
+}
+```
+
+```{r}
+betas_nc <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E1/C1/h2-0/env-0.0/genos-gwas_common.nc.betas")
+Mnc <- read_genos("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/E1/C1/genos-gwas_common", betas_nc)
+
+betas_c <- fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E1/C1/h2-0/env-0.0/genos-gwas_common.c.betas")
+Mc <- read_genos("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/E1/C1/genos-gwas_common", betas_c)
+```
+
+
+
+```{r}
+X_nc <- read_genos("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/E4/C1/genos-test_common",  betas = fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E4/C1/h2-0/env-0.0/genos-gwas_common.nc.betas"))
+
+frq_nc <- colMeans(X_nc) /2
+LD_nc <- rep(NA, length(frq_nc))
+for (i in 1:(length(frq_nc) -1)) {
+  LD_nc[i+1] <- cor(X_nc[,i], X_nc[,i+1]) 
+}
+
+X_c <- read_genos("/Users/jenniferblanc/polygenic_adaptation_stratification/output/Simulate_Genotypes/4PopSplit/E4/C1/genos-test_common",  betas = fread("~/polygenic_adaptation_stratification/output/PRS/4PopSplit/E4/C1/h2-0/env-0.0/genos-gwas_common.c.betas"))
+
+frq_c <- colMeans(X_c) /2
+LD_c <- rep(NA, length(frq_c))
+for (i in 1:(length(frq_c) -1)) {
+  LD_c[i+1] <- cor(X_c[,i], X_c[,i+1]) 
+}
+
+hist(LD_c)
+hist(LD_nc)
+
+plot(sort(LD_c), sort(LD_nc))
+abline(a=0, b=1)
+
+hist(frq_c)
+hist(frq_nc)
+
+plot(sort(frq_c), sort(frq_nc))
+abline(a=0, b=1)
+```
 
 
 
