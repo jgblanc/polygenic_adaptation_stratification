@@ -1,9 +1,9 @@
 CHR =[]
-for i in range(0, 200):
+for i in range(0, 10):
   CHR.append(str(i))
-REP = []
-for i in range(1, 101):
-  REP.append("T"+str(i))
+REP = ["E7"]
+#for i in range(1, 101):
+#  REP.append("T"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 ENV = ["env-0.0", "env-0.1"]
@@ -39,7 +39,7 @@ rule simulate_genotypes_SimpleGrid:
 	       --outpre output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/genos \
 	       --chr {params.chr_num} \
 	       --sample_size 80 \
-	       --length 100000 \
+	       --length 10000 \
 	       --Ne 1000 \
 	       --mu 1e-07 \
 	       --rho 1e-07 \
