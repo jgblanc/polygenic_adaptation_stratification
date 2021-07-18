@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_T100_envs2
-#SBATCH --output=logs/4PopSplit_T100_envs2.out
-#SBATCH --error=logs/4PopSplit_T100_envs2.err
-#SBATCH --time=02:00:00
+#SBATCH --job-name=SimpleGrid_T100_envs
+#SBATCH --output=logs/SimpleGrid_T100_envs.out
+#SBATCH --error=logs/SimpleGrid_T100_envs.err
+#SBATCH --time=24:00:00
 #SBATCH --partition=broadwl
-#SBATCH --nodes=5
-#SBATCH --mem=5G
+#SBATCH --nodes=4
+#SBATCH --mem-per-cpu=4GB
 
 module load python/cpython-3.7.0
 module load R
@@ -15,4 +15,4 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake --cores 5 --rerun-incomplete 
+snakemake --cores 4 --rerun-incomplete  
