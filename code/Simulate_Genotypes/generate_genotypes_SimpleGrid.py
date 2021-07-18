@@ -150,13 +150,13 @@ print("simulating genotypes under demographic model")
 #simulate!
 for i in range(0,int(args.chr)):
     
-    print(i)
+    #print(i)
     
     # Simulate
     ts=step_geno(N=args.npop,ss_each=2*ss,l=args.length,tmove=args.tmove)
     
     # Save to VCF
-    print("writing genotype to vcf file")
+    #print("writing genotype to vcf file")
 
     with open(args.outpre+"_"+str(i)+".vcf","w") as vcf_file:
         ts.write_vcf(vcf_file,ploidy=2,contig_id=i+1)

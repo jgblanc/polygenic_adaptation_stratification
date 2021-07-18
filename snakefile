@@ -6,7 +6,7 @@ REP = ["E7"]
 #  REP.append("T"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
-ENV = ["env-0.0", "env-0.1"]
+ENV = ["env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05"]
 SS_TEST =20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 PVALUE_THRESHOLD = 1
@@ -24,7 +24,7 @@ def get_seed(rep, h2):
 
 rule all:
     input:
-        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Qx.txt", rep=REP, config=CONFIG, h2 = HERITABILITY, env = ENV)
+        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Qx.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV)
 
 # Simluate Genotypes
 
