@@ -29,12 +29,12 @@ library(latex2exp)
 
 
 ```{r}
-Mod <- read.plink("../output/Simulate_Genotypes/SimpleGrid/E5/C1/genos-gwas_common.cmpruned.b")
+Mod <- read.plink("../output/Simulate_Genotypes/SimpleGrid/E6/C1/genos-gwas_common.cmpruned.b")
 M <- as.matrix(Mod$genotypes) 
 cov_mat <- xxt(M)
 myE <- eigen(cov_mat)
 
-pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E5/genos.pop")
+pops <- fread("~/polygenic_adaptation_stratification/output/Simulate_Genotypes/SimpleGrid/E6/genos.pop")
 colnames(pops) <- c("IID", "#FID", "Pop", "Lat", "Long")
 
 df <- as.data.frame(cbind(myE$vectors[,1], myE$vectors[,2], Mod$fam[,1]))
