@@ -283,3 +283,38 @@ qx5 <- sum(cov_c * prod)
 ```{r}
 plot(c(qx2, qx3, qx4, qx5))
 ```
+
+
+
+## Concatenate cluster results 
+
+```{r}
+n <- 4
+reps <- rep(NA, n)
+for (i in 1:n){reps[i] <- paste0("E", i)}
+print(reps)
+h2 <- "h2-0"
+envs <- c("env-0.0", "env-0.5")
+cases <- c("C1")
+dat <- expand.grid(reps, cases, h2, envs)
+colnames(dat) <- c("rep", "case", "h2", "env")
+
+agg_all_data <- function(rep, dir_path, case, type, h2, env) {
+  
+  PGS <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", env, "/", "PGS.txt"))
+  pop <- fread(paste0('../output/Simulate_Genotypes/SimpleGrid/', rep,"/", "genos.pop"))
+  colnames(pop) <- c("IID", "#FID", "POP", "LAT", "LONG" )
+  
+  df <- inner_join(PGS, pop)%>% select("nc", "nc_Tm", "POP", "LAT", "LONG")
+  return(df)
+}
+df <- plyr::mdply(dat, agg_all_data, dir_path = '../output/PRS/SimpleGrid/' )
+
+```
+
+
+
+
+
+
+

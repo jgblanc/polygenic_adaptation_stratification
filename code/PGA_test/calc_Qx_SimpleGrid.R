@@ -85,7 +85,7 @@ stand_PGS <- function(prs, gv_file) {
   df <- as.data.frame(cbind(prs, gvalue$GV))
   colnames(df) <- c("STRAT", "GV")
 
-  # Standardize
+  # Substract true GV
   mprs.adj = df%>%
     mutate(strat.adjusted = STRAT-GV) %>%
     ungroup() %>% select("strat.adjusted")
