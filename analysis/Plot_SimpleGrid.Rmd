@@ -312,6 +312,39 @@ df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PRS/SimpleGrid/' )
 
 ```
 
+
+```{r}
+n <- 100
+reps <- rep(NA, n)
+for (i in 1:n){reps[i] <- paste0("T", i)}
+print(reps)
+h2 <- "h2-0"
+envs <- c("env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.1")
+cases <- c("C1")
+dat <- expand.grid(reps, cases, h2, envs)
+colnames(dat) <- c("rep", "case", "h2", "env")
+
+agg_all_data <- function(rep, dir_path, case, type, h2, env) {
+  
+  pheno <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", env, "/", "genos-gwas_common.phenos.txt"))
+  pop <- fread(paste0('../../output/Simulate_Genotypes/SimpleGrid/', rep,"/", "genos.pop"))
+  colnames(pop) <- c("IID", "FID", "POP", "LAT", "LONG" )
+  
+  df <- inner_join(pheno, pop)%>% select("IID", "pheno_strat", "POP", "LAT", "LONG")
+  return(df)
+}
+df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Simulate_Phenotypes/SimpleGrid/' )
+```
+
+
+
+
+
+
+
+
+
+
 ```{r}
 df <- fread("~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_pgs.txt")
 df2 <- df %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = LAT, LONG = LONG)
@@ -323,13 +356,23 @@ ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS_Tm)) + geom_tile() + facet_wra
 
 
 ```{r}
-df0 <- subset(df, df$env == "env-0.0") 
-df0 <- df0 %>% group_by(rep) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% group_by(LAT, LONG) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan), c = n())
+df0 <- subset(df, df$env == "env-0.0" & df$rep == "T6") 
+df0 <- df0%>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% group_by(LAT, LONG) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan), c = n())
 
-ggplot(df0, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile()  + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1))
+ggplot(df0, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile()  + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
 
 ```
 
 
+```{r}
+df_pheno <- fread("~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_phenos.txt")
+df_pheno <- subset(df_pheno, df_pheno$rep == "T6")
+df_pheno <- df_pheno %>% group_by(POP) %>% summarise(avg_pheno = mean(pheno_strat))
+
+
+ggplot(df_pheno, aes(x = LONG, y = LAT, fill = avg_pheno)) + geom_tile()  + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
+
+ggplot(df_pheno, aes(x = LAT, y = avg_pheno)) +geom_point()
+```
 
 
