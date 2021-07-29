@@ -1,9 +1,9 @@
 CHR =[]
-for i in range(0, 10):
+for i in range(0, 200):
   CHR.append(str(i))
-REP = ["E7"]
-#for i in range(1, 101):
-#  REP.append("T"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("T"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["cell-0"]
 ENV = ["env-0.0"]

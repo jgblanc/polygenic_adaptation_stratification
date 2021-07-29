@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrid_T100_envs_2
-#SBATCH --output=logs/SimpleGrid_T100_envs_2.out
-#SBATCH --error=logs/SimpleGrid_T100_envs_2.err
-#SBATCH --time=24:00:00
+#SBATCH --job-name=SimpleGrid_T100_cell
+#SBATCH --output=logs/SimpleGrid_T100_cell.out
+#SBATCH --error=logs/SimpleGrid_T100_cell.err
+#SBATCH --time=04:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=6
 #SBATCH --mem-per-cpu=4GB
