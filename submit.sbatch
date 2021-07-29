@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrid_T100_cell
-#SBATCH --output=logs/SimpleGrid_T100_cell.out
-#SBATCH --error=logs/SimpleGrid_T100_cell.err
+#SBATCH --job-name=SimpleGrid_T100_cell_2
+#SBATCH --output=logs/SimpleGrid_T100_cell_2.out
+#SBATCH --error=logs/SimpleGrid_T100_cell_2.err
 #SBATCH --time=04:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=6
