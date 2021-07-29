@@ -98,7 +98,7 @@ calc_Qx <- function(mprs, tvec, Va, lambda_T) {
 
   # Compute Qx Strat
   Ztest <- t(tvec) %*% mprs$strat.adjusted
-  Qx_strat <- (t(Ztest) %*% Ztest) / (Va*lambda_T)
+  Qx_strat <- (t(Ztest) %*% Ztest) / (2 * Va*lambda_T)
 
   return(Qx_strat)
 }

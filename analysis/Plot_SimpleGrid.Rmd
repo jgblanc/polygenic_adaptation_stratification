@@ -376,3 +376,34 @@ ggplot(df_pheno, aes(x = LAT, y = avg_pheno)) +geom_point()
 ```
 
 
+
+```{r}
+df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100_pgs.txt")
+df2 <- df %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = LAT, LONG = LONG)
+
+#ind <- df %>% filter(rep == "T47")
+#ggplot(ind, aes(x = LONG, y = LAT, fill = nc)) + geom_tile() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
+
+ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1))
+
+ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS_Tm)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1)) 
+```
+
+```{r}
+df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100.txt") 
+
+nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+
+nc
+```
+
+
+```{r}
+phenos <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100_phenos.txt")
+phenos <- phenos %>% group_by(POP) %>% summarise(avg_pheno = mean(pheno_strat), LAT = LAT, LONG = LONG)
+
+ggplot(phenos, aes(x = LONG, y = LAT, fill = avg_pheno)) + geom_tile()  + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
+
+```
+
