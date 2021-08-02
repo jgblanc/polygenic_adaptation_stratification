@@ -4,8 +4,8 @@ library(data.table)
 tp <- fread(snakemake@input[[1]], header = T)
 gp <- fread(snakemake@input[[2]], header = T)
 
-t <- subset(tp, tp$ALT_FREQS > 0.05 & tp$ALT_FREQS < 0.95)
-g <- subset(gp, gp$ALT_FREQS > 0.05 & gp$ALT_FREQS < 0.95)
+t <- subset(tp, tp$ALT_FREQS > 0 & tp$ALT_FREQS < 1)
+g <- subset(gp, gp$ALT_FREQS > 0 & gp$ALT_FREQS < 1)
 
 dat <- merge(t,g, by=c("#CHROM","ID"))
 

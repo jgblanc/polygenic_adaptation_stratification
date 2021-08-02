@@ -45,11 +45,12 @@ print(shifts)
 
 # Shift environment for individuals in each deme
 prs$env = rnorm(sample_size,0, sqrt(1 - h2))
-#prs <- prs %>% group_by(Lat) %>% mutate(env = env-mean(env))
-prs <- prs %>% group_by(Pop) %>% mutate(env = env-mean(env))
+prs <- prs %>% group_by(Lat) %>% mutate(env = env-mean(env))
+#prs <- prs %>% group_by(Pop) %>% mutate(env = env-mean(env))
 for (i in 1:num_lat_demes) {
   prs <- prs %>% group_by(Lat) %>% mutate(env = ifelse(Lat == (i-1), env + shifts[i], env))
 }
+
 
 #add prs to each of the environmental effects
 prs = prs %>%

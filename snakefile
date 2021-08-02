@@ -4,8 +4,8 @@ for i in range(0, 200):
 REP = []
 for i in range(1, 101):
   REP.append("T"+str(i))
-CONFIG = ["C1"]
-HERITABILITY = ["cell-0"]
+CONFIG = ["C2"]
+HERITABILITY = ["h2-0"]
 ENV = ["env-0.0", "env-0.05"]
 SS_TEST =20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
@@ -24,6 +24,7 @@ def get_seed(rep, h2):
 
 rule all:
     input:
+#         expand("output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.afreq", rep=REP, config=CONFIG)
         expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Qx.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV)
 
 # Simluate Genotypes
