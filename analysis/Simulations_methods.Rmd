@@ -18,11 +18,70 @@ Here I will reccord the details for the simulations presented in the main text a
 
 ## 4PopSplit 
 
+### Msprime simulation 
+
+Generate diplois individuals according to the demographic model below 
+
+* T2 = 11000  
+* T1 (deeper split) = 22000 
+* Ne (ancestral = A = B = C = D)  = 10000
+* sample size = 1000 diploids per population  
+* chromosome length = 100000  
+* 200 chromosomes  
+* $\mu$ = 1e-08  
+* $\rho$ = 1e-08  
+
+The simulation was run 100 times total. 
+
+### Create genotypes panels and filter SNPs
+
+1. Set up 2 parallel sets of 2  
+  1. C1: GWAS panel has the 1000 individuals from populations A and C (2000 total), test panel has the 1000 inidividuals from B and D (2000 total)
+  2. C2: GWAS panel has the 1000 individuals from populations A and B (2000 total), test panel has the 1000 inidividuals from C and D (2000 total)
+2. Filter snps to sites segregating at greater than 5% frequency within each panel  
+
+### Draw phenotype 
+
+Notes:  
+
+* All simulations have $h^2 = 0$  
+
+1. Sample random phenotype $N(0,1)$ for all GWAS indviduals 
+2. Mean center the phenotype within each 
+3. For all individuals in population A shift the mean phenotype by a variable amount 
+
+### Project Test Vector  
+
+1. Set test vector as a standardized, mean-centered $n \times 1$ vector with each entry as the test panel individuals population ID (1 vs 0) encoding   
+2. Project test vector in GWAS panel, resulting in an $m \times 1$ (see ___ for more detail)
+
+### Run GWASs  
+
+1. Use plink to run GWAS with and without including projected test vector 
+
+### Calculate PGS and Qx 
+
+1. Pick the SNP with lowest p-value per chromosome to include in PGS (200 SNPs total)  
+2. Compute PGS in test panel individuals 
+3. Calculate $V_a$ 
+4. Calculate the amount of variance explained by the test vector ($\lambda_T$; note that we used a test vector with $1/2*n_{pop}$,$ -1/2 *n_{pop}$ encoding)  
+5. Calculate empirical null p-value by permuting the signs of the SNP effect sizes 1,000 times and computing the proportion of permutations greater than the true $Q_x$ value.  
+
+### Figures  
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+df <- fread("../code/plot/Simple_Grid_T100.txt")
+nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_smooth(method = "loess", se = FALSE)  + scale_x_continuous(breaks = c(0, 0.03, 0.06, 0.09))
+```
+
 ## Simple Grid 
 
 ### Msprime simulation 
 
-Generate diploid individuals living on a 6x6 grid with the parameters below: 
+Generate diploid individuals using a stepping stone model on a 6x6 grid with the parameters below: 
 
 Parameters: 
 
