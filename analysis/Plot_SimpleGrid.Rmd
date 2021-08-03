@@ -313,10 +313,20 @@ df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PRS/SimpleGrid/' )
 
 
 
+
+
+
+
+
+
+
+
+
+
 ## Why is this happening? 
 
 See Simulations_methods page for methods details.  
-Key: the test vector is the latitude   
+Key: the test vector is the latitude + PRS SNPs are ascertained on lowest p-value     
 
 ### Everything is great! 
 
@@ -429,7 +439,7 @@ ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS_Tm)) + geom_tile() + facet_wra
 So far so good, including $T_m$ (visually) controls for the stratification.  
 
 Here is the problem:  
-```{r}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100.txt") 
 
 nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
@@ -440,8 +450,59 @@ ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =
 
 WHY!!! Doing this caused the false positive rate to double to 10%. All I changed was mean centering the phenotype within demes instead of within latitude. I'm so confused :(   
 
+## Ascertained vs Random sites 
 
+For every PGS I calculate I always have 2 versions, one created with ascertained SNPs (picking the SNP with the lowest p-value per chromosome) and another random SNPs (one per chromosome picked randomly). I thought comparing some of the plots above created with ascertained SNPs with ones created with random SNPs might help diagnose the problem.  
 
+### Standardizing within Latitude 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+df <- fread("~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_pgs_c.txt")
+df2 <- df %>% group_by(rep, case, env) %>% mutate(c_stan = (c - mean(c)) / sd(c), c_Tm_stan = (c_Tm - mean(c_Tm)) / sd(c_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(c_stan), avg_PRS_Tm = mean(c_Tm_stan), LAT = mean(LAT), LONG = mean(LONG))
+
+ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1))
+```
+
+Even with the random sites there is a longitudinal gradients when there is no stratification. It seems whatever is going on here doesn't have to do with ascertainment strategy.  
+
+### Standardizing within deme 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100_pgs_c.txt")
+df2 <- df %>% group_by(rep, case, env) %>% mutate(c_stan = (c - mean(c)) / sd(c), c_Tm_stan = (c_Tm - mean(c_Tm)) / sd(c_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(c_stan), avg_PRS_Tm = mean(c_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
+
+ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1))
+```
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS_Tm)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1)) 
+```
+
+Similar to the ascertained PGSs there is not much of a visusal pattern with standardizing phenotype within deme instead of within latitude and including $T_m$ seems to visually control for stratification.  
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100.txt") 
+
+nc <- df %>% filter(type == "c"| type == "c-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") 
+```
+
+However, with random sites the false postive rate < 5% whereas the same experiment with ascertained sites with ascertained sites was 10%. 
+
+## Conclusion 
+
+The way I see it there are 2 main questions:  
+
+1. Why does mean centering the phenotype create a visual longitudinal gradient when there is no stratification?  
+2. Why does mean centering the phenotype within demes double the false positive rate? 
+
+Based on what I've tried, it seems the answer to question 1 does not depend on SNP ascertainment, the gradient is there with both ascertained and random SNPs. My first thought was that within a given latitude, individuals at a high longitude are stochastically drawing larger phenotypes. But there there is no longitudinal phenotypic gradient. My next thought is that maybe the individuals latitudes and longitudes are mislabeled. I've check the code and I don't think I'm mislabelling anything but even if I was and the labels were wrong, there is no phenotype gradient in the GWAS panels so how could be there one in the Test panel (even if labels are wrong, everything is still random)? Given that there is no phenotypic gradient, I honestly have no theories at the moment right now about why this happening. 
+
+Mean centering the phenotype within the deme seems to visually "fix" the longitudinal pattern - I can't really say why this is since I don't understand why there's a longitudinal gradient in the first place. But it doubles the false positive rate. However, this seems to depend on SNP ascertainment. The SNPs included are all on separate chromosome so they shouldn't be in strong LD with each other. I can't think of a reason why there would be strong cross chromosome LD since there's no true causal sites and no systematic environmental effects.   
+
+Random thought I had: I am filtering out sites at less than 5% frequency. When mean centering the phenotype within demes, the GWAS can only use within deme variation to estimate the effect size and within demes most variation should be rare, idk what the consequences of this filtering is in this case. I am rerunning the simulations without any frequency filtering right now but I have to re-project the test vectors so its taking a long time.     
 
 
 
