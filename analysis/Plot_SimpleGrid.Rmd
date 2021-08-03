@@ -284,10 +284,6 @@ qx5 <- sum(cov_c * prod)
 plot(c(qx2, qx3, qx4, qx5))
 ```
 
-
-
-## Concatenate cluster results 
-
 ```{r}
 n <- 100
 reps <- rep(NA, n)
@@ -313,97 +309,163 @@ df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PRS/SimpleGrid/' )
 ```
 
 
-```{r}
-n <- 100
-reps <- rep(NA, n)
-for (i in 1:n){reps[i] <- paste0("T", i)}
-print(reps)
-h2 <- "h2-0"
-envs <- c("env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.1")
-cases <- c("C1")
-dat <- expand.grid(reps, cases, h2, envs)
-colnames(dat) <- c("rep", "case", "h2", "env")
 
-agg_all_data <- function(rep, dir_path, case, type, h2, env) {
-  
-  pheno <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", env, "/", "genos-gwas_common.phenos.txt"))
-  pop <- fread(paste0('../../output/Simulate_Genotypes/SimpleGrid/', rep,"/", "genos.pop"))
-  colnames(pop) <- c("IID", "FID", "POP", "LAT", "LONG" )
-  
-  df <- inner_join(pheno, pop)%>% select("IID", "pheno_strat", "POP", "LAT", "LONG")
-  return(df)
-}
-df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Simulate_Phenotypes/SimpleGrid/' )
+
+
+
+## Why is this happening? 
+
+See Simulations_methods page for methods details.  
+Key: the test vector is the latitude   
+
+### Everything is great! 
+
+In these simulations I draw a random phenotype for each individual and then mean center within latitudes 
+```{r, eval = FALSE}
+prs$env = rnorm(sample_size,0, 1)
+prs <- prs %>% group_by(Lat) %>% mutate(env = env-mean(env))
 ```
 
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+df <- fread("../code/plot/Simple_Grid_T100.txt")
+nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+nc <- subset(nc, nc$diff < 0.1)
 
 
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + scale_x_continuous(breaks = c(0, 0.03, 0.06, 0.09))+ geom_smooth(method = "loess", se = FALSE) 
+```
 
+The false positive rate is near 5% and including $T_m$ is contolling for increased stratification 
 
+## Wait no it's not? 
 
+Now I take the PGS from all 100 replicated from the simulations above and within each replicate/environment pair I standardize the PGS to have mean 0 and variance 1. I then calculate the average PGS in each deme and plot. 
 
-
-
-
-```{r}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 df <- fread("~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_pgs.txt")
-df2 <- df %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = LAT, LONG = LONG)
+df2 <- df %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan), LAT = mean(LAT), LONG = mean(LONG))
 
 ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1))
+```
 
+I don't understand why this is happening??? It's true that as I'm increasing the stratification along the latitude gradient that I'm creating a gradient but its not even across longitudes and more concerninly when there is no environmental stratification there in a slight longitudinal gradient. Below are the same simulations including $T_m$, which controls for stratification but keeps the longitudinal gradient.   
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS_Tm)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1)) 
 ```
 
+### Sanity checks 
 
-```{r}
-df0 <- subset(df, df$env == "env-0.0" & df$rep == "T6") 
-df0 <- df0%>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% group_by(LAT, LONG) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan), c = n())
+These are just looking at simulations with no environmental gradient (i.e env-0.0)
 
-ggplot(df0, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile()  + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
+#### Phenotype distribution  
 
-```
-
-
-```{r}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 df_pheno <- fread("~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_phenos.txt")
-df_pheno <- subset(df_pheno, df_pheno$rep == "T6")
-df_pheno <- df_pheno %>% group_by(POP) %>% summarise(avg_pheno = mean(pheno_strat))
+df_pheno <- df_pheno %>% group_by(POP) %>% summarise(avg_pheno = mean(pheno_strat), LAT =mean(LAT), LONG=mean(LONG))
 
-
-ggplot(df_pheno, aes(x = LONG, y = LAT, fill = avg_pheno)) + geom_tile()  + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
-
-ggplot(df_pheno, aes(x = LAT, y = avg_pheno)) +geom_point()
+ggplot(df_pheno, aes(x = LONG, y = LAT, fill = avg_pheno)) + geom_tile()  + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "green", high = "orange", mid = "white", limits = c(-1,1))
 ```
 
+Averaging across all replicates there is no phenotypic gradient. 
 
+#### Individual replicates  
 
-```{r}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+df <- fread("~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_pgs.txt")
+df2 <- df %>% filter(env == "env-0.0") %>% group_by(rep, case) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup()
+
+reps <- rep(NA, 20)
+for (i in 1:20){reps[i] <- paste0("T", i)}
+df3 <- df2 %>% filter(rep %in% reps)
+ggplot(df3, aes(x = LONG, y = LAT, fill = nc_stan)) + geom_tile() + facet_wrap(~rep) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white",limits=c(-5,5))
+
+reps <- rep(NA, 20)
+for (i in 21:40){reps[i] <- paste0("T", i)}
+df4 <- df2 %>% filter(rep %in% reps)
+ggplot(df4, aes(x = LONG, y = LAT, fill = nc_stan)) + geom_tile() + facet_wrap(~rep) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white",limits=c(-5,5))
+
+reps <- rep(NA, 20)
+for (i in 41:60){reps[i] <- paste0("T", i)}
+df5 <- df2 %>% filter(rep %in% reps)
+ggplot(df5, aes(x = LONG, y = LAT, fill = nc_stan)) + geom_tile() + facet_wrap(~rep) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white",limits=c(-5,5))
+
+reps <- rep(NA, 20)
+for (i in 61:80){reps[i] <- paste0("T", i)}
+df6 <- df2 %>% filter(rep %in% reps)
+ggplot(df6, aes(x = LONG, y = LAT, fill = nc_stan)) + geom_tile() + facet_wrap(~rep) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white",limits=c(-5,5))
+
+reps <- rep(NA, 20)
+for (i in 81:100){reps[i] <- paste0("T", i)}
+df7 <- df2 %>% filter(rep %in% reps)
+ggplot(df7, aes(x = LONG, y = LAT, fill = nc_stan)) + geom_tile() + facet_wrap(~rep) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white",limits=c(-5,5))
+```
+
+Not sure what this tells me. Some replicates like T6 or T56 have a longitudinal spatial pattern but the vast majority 
+don't seem to have a visual pattern. 
+
+## Making the problem worse 
+
+I have no idea why the overall longitudinal pattern is happening so I started changing things to see if I could figure out what is going on. 
+
+### Force each deme to have the same phenotype  
+
+Instead of mean centering the phenotype within each latitude, I mean centered the phenotype of each deme and repeated the entire process, just looking at one environmental gradient. Here are the simulations with no correction.     
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100_pgs.txt")
-df2 <- df %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = LAT, LONG = LONG)
-
-#ind <- df %>% filter(rep == "T47")
-#ggplot(ind, aes(x = LONG, y = LAT, fill = nc)) + geom_tile() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
+df2 <- df %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
 
 ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1))
+```
 
+This looks good and is what I expected when I originally started. Below are the same plots when including $T_m$ 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS_Tm)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1)) 
 ```
 
+So far so good, including $T_m$ (visually) controls for the stratification.  
+
+Here is the problem:  
 ```{r}
 df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100.txt") 
 
 nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
 nc$diff <- as.numeric(nc$diff)
 
-nc
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") 
 ```
 
+WHY!!! Doing this caused the false positive rate to double to 10%. All I changed was mean centering the phenotype within demes instead of within latitude. I'm so confused :(   
 
-```{r}
-phenos <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100_phenos.txt")
-phenos <- phenos %>% group_by(POP) %>% summarise(avg_pheno = mean(pheno_strat), LAT = LAT, LONG = LONG)
 
-ggplot(phenos, aes(x = LONG, y = LAT, fill = avg_pheno)) + geom_tile()  + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white")
 
-```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

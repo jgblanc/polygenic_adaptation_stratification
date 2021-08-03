@@ -381,7 +381,7 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-07-23
+<strong>Last updated:</strong> 2021-08-02
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
@@ -396,16 +396,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <hr>
 </div>
 <div id="checks" class="tab-pane fade">
-<div id="workflowr-checks" class="panel-group">
+<div class="panel-group" id="workflowr-checks">
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted changes </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown is untracked by Git. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
 </div>
 </div>
 </div>
@@ -460,28 +460,92 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongabsolute"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>File paths:</strong> absolute </a>
 </p>
 </div>
-<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div id="strongFilepathsstrongabsolute" class="panel-collapse collapse">
 <div class="panel-body">
-<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+<p>
+Using absolute paths to the files within your workflowr project makes it difficult for you and others to run your code on a different machine. Change the absolute path(s) below to the suggested relative path(s) to make your code more reproducible.
+</p>
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th style="text-align:left;">
+absolute
+</th>
+<th style="text-align:left;">
+relative
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_pgs.txt
+</td>
+<td style="text-align:left;">
+../code/plot/Simple_Grid_T100_pgs.txt
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_phenos.txt
+</td>
+<td style="text-align:left;">
+../code/plot/Simple_Grid_T100_phenos.txt
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100_pgs.txt
+</td>
+<td style="text-align:left;">
+../code/plot/SimpleGrid_cell_T100_pgs.txt
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100.txt
+</td>
+<td style="text-align:left;">
+../code/plot/SimpleGrid_cell_T100.txt
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_pgs_c.txt
+</td>
+<td style="text-align:left;">
+../code/plot/Simple_Grid_T100_pgs_c.txt
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100_pgs_c.txt
+</td>
+<td style="text-align:left;">
+../code/plot/SimpleGrid_cell_T100_pgs_c.txt
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree42a11e432d3cf828fcd6e0afcc42a286c12d0ef7targetblank42a11e4a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/42a11e432d3cf828fcd6e0afcc42a286c12d0ef7" target="_blank">42a11e4</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsghp4cDy5kA2lPnCtnPihEW21CzS9o5yui10kpmLgithubcomjgblancpolygenicadaptationstratificationtree232441493341493932304b8bebe801b37e17f6ddtargetblank2324414a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/tree/232441493341493932304b8bebe801b37e17f6dd" target="_blank">2324414</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree42a11e432d3cf828fcd6e0afcc42a286c12d0ef7targetblank42a11e4a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsghp4cDy5kA2lPnCtnPihEW21CzS9o5yui10kpmLgithubcomjgblancpolygenicadaptationstratificationtree232441493341493932304b8bebe801b37e17f6ddtargetblank2324414a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/42a11e432d3cf828fcd6e0afcc42a286c12d0ef7" target="_blank">42a11e4</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/tree/232441493341493932304b8bebe801b37e17f6dd" target="_blank">2324414</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -530,7 +594,15 @@ Ignored files:
     Ignored:    output/PRS/4PopSplit/E9/
     Ignored:    output/PRS/SimpleGrid/
     Ignored:    output/Run_GWAS/
-    Ignored:    output/Simulate_Genotypes/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E1/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E2/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E3/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E4/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E5/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E6/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E7/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E8/
     Ignored:    output/Simulate_Phenotypes/4PopSplit/E2/
     Ignored:    output/Simulate_Phenotypes/4PopSplit/E20/
     Ignored:    output/Simulate_Phenotypes/4PopSplit/E3/
@@ -542,12 +614,8 @@ Ignored files:
     Ignored:    output/Simulate_Phenotypes/4PopSplit/E9/
     Ignored:    output/Simulate_Phenotypes/SimpleGrid/
 
-Untracked files:
-    Untracked:  analysis/Simulations_methods.Rmd
-
 Unstaged changes:
-    Modified:   analysis/Plot_4PopSplit.Rmd
-    Modified:   code/PGA_test/calc_Qx_SimpleGrid.R
+    Modified:   analysis/Plot_SimpleGrid.Rmd
 
 </code></pre>
 <p>
@@ -560,9 +628,137 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
+
 <p>
-There are no past versions. Publish this analysis with <code>wflow_publish()</code> to start tracking its development.
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/Simulations_methods.Rmd</code>) and HTML (<code>docs/Simulations_methods.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
 </p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/232441493341493932304b8bebe801b37e17f6dd/analysis/Simulations_methods.Rmd" target="_blank">2324414</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+<td>
+wflow_publish(“analysis/Simulations_methods.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/Simulations_methods.html" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/3f17ad7e08262766b5ec7df99202ce429477e959/analysis/Simulations_methods.Rmd" target="_blank">3f17ad7</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+<td>
+wflow_publish(c(“analysis/index.Rmd”, “analysis/Simulations_methods.Rmd”))
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/c0a669bbb54096073dc6aca7aa848b49b76c964a/analysis/Simulations_methods.Rmd" target="_blank">c0a669b</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+<td>
+merging
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/eca5c293ed0b90db4d9b64a840cdbde2ed23536b/analysis/Simulations_methods.Rmd" target="_blank">eca5c29</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-07-23
+</td>
+<td>
+plotting stuff
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/eca5c293ed0b90db4d9b64a840cdbde2ed23536b/docs/Simulations_methods.html" target="_blank">eca5c29</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-07-23
+</td>
+<td>
+plotting stuff
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <hr>
 </div>
 </div>
@@ -573,55 +769,52 @@ There are no past versions. Publish this analysis with <code>wflow_publish()</co
 </div>
 <div id="popsplit" class="section level2">
 <h2>4PopSplit</h2>
-</div>
-<div id="simple-grid" class="section level2">
-<h2>Simple Grid</h2>
 <div id="msprime-simulation" class="section level3">
 <h3>Msprime simulation</h3>
-<p>Generate diploid individuals living on a 6x6 grid with the parameters below:</p>
-<p>Parameters:</p>
+<p>Generate diplois individuals according to the demographic model below</p>
 <ul>
+<li>T2 = 11000<br />
+</li>
+<li>T1 (deeper split) = 22000</li>
+<li>Ne (ancestral = A = B = C = D) = 10000</li>
+<li>sample size = 1000 diploids per population<br />
+</li>
+<li>chromosome length = 100000<br />
+</li>
 <li>200 chromosomes<br />
 </li>
-<li>sample size = 80 diploids<br />
+<li><span class="math inline">\(\mu\)</span> = 1e-08<br />
 </li>
-<li>Ne = 1000</li>
-<li><span class="math inline">\(\mu\)</span> = 1e-07<br />
-</li>
-<li><span class="math inline">\(\rho\)</span> = 1e-07</li>
-<li>m = 0.01<br />
-</li>
-<li>chromosome length = 100000</li>
-<li>tmove = -9 (perpetual structure)</li>
+<li><span class="math inline">\(\rho\)</span> = 1e-08</li>
 </ul>
 <p>The simulation was run 100 times total.</p>
 </div>
 <div id="create-genotypes-panels-and-filter-snps" class="section level3">
 <h3>Create genotypes panels and filter SNPs</h3>
 <ol style="list-style-type: decimal">
-<li>Sample 20 individuals per deme for test panels (36 * 20 individuals total)</li>
-<li>Remaining individuals (60 per deme) become the GWAS panel<br />
+<li>Set up 2 parallel sets of 2<br />
 </li>
-<li>Restrict snps to sites segregating at greater than 5% frequency within each panel</li>
+<li>C1: GWAS panel has the 1000 individuals from populations A and C (2000 total), test panel has the 1000 inidividuals from B and D (2000 total)</li>
+<li>C2: GWAS panel has the 1000 individuals from populations A and B (2000 total), test panel has the 1000 inidividuals from C and D (2000 total)</li>
+<li>Filter snps to sites segregating at greater than 5% frequency within each panel</li>
 </ol>
 </div>
 <div id="draw-phenotype" class="section level3">
 <h3>Draw phenotype</h3>
 <p>Notes:</p>
 <ul>
-<li>All simulations have <span class="math inline">\(h^2 = 0\)</span><br />
-</li>
-<li>ENV is the magnitude of the phenotype shift</li>
+<li>All simulations have <span class="math inline">\(h^2 = 0\)</span></li>
 </ul>
 <ol style="list-style-type: decimal">
 <li>Sample random phenotype <span class="math inline">\(N(0,1)\)</span> for all GWAS indviduals</li>
-<li>For all individuals within a given latitude add (Latitude * (ENV / 5)) to their phenotype values</li>
+<li>Mean center the phenotype within each</li>
+<li>For all individuals in population A shift the mean phenotype by a variable amount</li>
 </ol>
 </div>
 <div id="project-test-vector" class="section level3">
 <h3>Project Test Vector</h3>
 <ol style="list-style-type: decimal">
-<li>Set test vector as a mean centered <span class="math inline">\(n \times 1\)</span> vector with each entry as the test panel individuals latitude<br />
+<li>Set test vector as a standardized, mean-centered <span class="math inline">\(n \times 1\)</span> vector with each entry as the test panel individuals population ID (1 vs 0) encoding<br />
 </li>
 <li>Project test vector in GWAS panel, resulting in an <span class="math inline">\(m \times 1\)</span> (see ___ for more detail)</li>
 </ol>
@@ -639,7 +832,7 @@ There are no past versions. Publish this analysis with <code>wflow_publish()</co
 </li>
 <li>Compute PGS in test panel individuals</li>
 <li>Calculate <span class="math inline">\(V_a\)</span></li>
-<li>Calculate the amount of variance explained by the test vector (<span class="math inline">\(\lambda_T\)</span>; note that we used the mean-centered test vector to compute this)<br />
+<li>Calculate the amount of variance explained by the test vector (<span class="math inline">\(\lambda_T\)</span>; note that we used a test vector with <span class="math inline">\(1/2*n_{pop}\)</span>,$ -1/2 *n_{pop}$ encoding)<br />
 </li>
 <li>Calculate empirical null p-value by permuting the signs of the SNP effect sizes 1,000 times and computing the proportion of permutations greater than the true <span class="math inline">\(Q_x\)</span> value.</li>
 </ol>
@@ -647,7 +840,840 @@ There are no past versions. Publish this analysis with <code>wflow_publish()</co
 <div id="figures" class="section level3">
 <h3>Figures</h3>
 <p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Filtered out sites at less than 5% frequency</p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-1-1">
+Past versions of unnamed-chunk-1-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-1-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-1-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/eca5c293ed0b90db4d9b64a840cdbde2ed23536b/docs/figure/Simulations_methods.Rmd/unnamed-chunk-1-1.png" target="_blank">eca5c29</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-07-23
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="simple-grid" class="section level2">
+<h2>Simple Grid</h2>
+<div id="msprime-simulation-1" class="section level3">
+<h3>Msprime simulation</h3>
+<p>Generate diploid individuals using a stepping stone model on a 6x6 grid with the parameters below:</p>
+<p>Parameters:</p>
+<ul>
+<li>200 chromosomes<br />
+</li>
+<li>sample size = 80 diploids<br />
+</li>
+<li>Ne = 1000</li>
+<li><span class="math inline">\(\mu\)</span> = 1e-07<br />
+</li>
+<li><span class="math inline">\(\rho\)</span> = 1e-07</li>
+<li>m = 0.01<br />
+</li>
+<li>chromosome length = 100000</li>
+<li>tmove = -9 (perpetual structure)</li>
+</ul>
+<p>The simulation was run 100 times total.</p>
+</div>
+<div id="create-genotypes-panels-and-filter-snps-1" class="section level3">
+<h3>Create genotypes panels and filter SNPs</h3>
+<ol style="list-style-type: decimal">
+<li>Sample 20 individuals per deme for test panels (36 * 20 individuals total)</li>
+<li>Remaining individuals (60 per deme) become the GWAS panel<br />
+</li>
+<li>Restrict snps to sites segregating at greater than 5% frequency within each panel</li>
+</ol>
+</div>
+<div id="draw-phenotype-1" class="section level3">
+<h3>Draw phenotype</h3>
+<p>Notes:</p>
+<ul>
+<li>All simulations have <span class="math inline">\(h^2 = 0\)</span><br />
+</li>
+<li>ENV is the magnitude of the phenotype shift</li>
+</ul>
+<ol style="list-style-type: decimal">
+<li>Sample random phenotype <span class="math inline">\(N(0,1)\)</span> for all GWAS indviduals</li>
+<li>For all individuals within a given latitude add (Latitude * (ENV / 5)) to their phenotype values</li>
+</ol>
+</div>
+<div id="project-test-vector-1" class="section level3">
+<h3>Project Test Vector</h3>
+<ol style="list-style-type: decimal">
+<li>Set test vector as a mean centered <span class="math inline">\(n \times 1\)</span> vector with each entry as the test panel individuals latitude<br />
+</li>
+<li>Project test vector in GWAS panel, resulting in an <span class="math inline">\(m \times 1\)</span> (see ___ for more detail)</li>
+</ol>
+</div>
+<div id="run-gwass-1" class="section level3">
+<h3>Run GWASs</h3>
+<ol style="list-style-type: decimal">
+<li>Use plink to run GWAS with and without including projected test vector</li>
+</ol>
+</div>
+<div id="calculate-pgs-and-qx-1" class="section level3">
+<h3>Calculate PGS and Qx</h3>
+<ol style="list-style-type: decimal">
+<li>Pick the SNP with lowest p-value per chromosome to include in PGS (200 SNPs total)<br />
+</li>
+<li>Compute PGS in test panel individuals</li>
+<li>Calculate <span class="math inline">\(V_a\)</span></li>
+<li>Calculate the amount of variance explained by the test vector (<span class="math inline">\(\lambda_T\)</span>; note that we used the mean-centered test vector to compute this)<br />
+</li>
+<li>Calculate empirical null p-value by permuting the signs of the SNP effect sizes 1,000 times and computing the proportion of permutations greater than the true <span class="math inline">\(Q_x\)</span> value.</li>
+</ol>
+</div>
+<div id="figures-1" class="section level3">
+<h3>Figures</h3>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-1">
+Past versions of unnamed-chunk-2-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-2-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-2-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="august-3rd-meeting---why-is-this-happening" class="section level1">
+<h1>August 3rd meeting - Why is this happening?</h1>
+<p>See Simulations_methods page for methods details.<br />
+Key: the test vector is the latitude + PRS SNPs are ascertained on lowest p-value</p>
+<div id="everything-is-great" class="section level2">
+<h2>Everything is great!</h2>
+<p>In these simulations I draw a random phenotype for each individual and then mean center within latitudes</p>
+<pre class="r"><code>prs$env = rnorm(sample_size,0, 1)
+prs &lt;- prs %&gt;% group_by(Lat) %&gt;% mutate(env = env-mean(env))</code></pre>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-4-1">
+Past versions of unnamed-chunk-4-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-4-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-4-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The false positive rate is near 5% and including <span class="math inline">\(T_m\)</span> is contolling for increased stratification</p>
+</div>
+<div id="wait-no-its-not" class="section level2">
+<h2>Wait no it’s not?</h2>
+<p>Now I take the PGS from all 100 replicated from the simulations above and within each replicate/environment pair I standardize the PGS to have mean 0 and variance 1. I then calculate the average PGS in each deme and plot.</p>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
+Past versions of unnamed-chunk-5-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-5-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-5-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>I don’t understand why this is happening??? It’s true that as I’m increasing the stratification along the latitude gradient that I’m creating a gradient but its not even across longitudes and more concerninly when there is no environmental stratification there in a slight longitudinal gradient. Below are the same simulations including <span class="math inline">\(T_m\)</span>, which controls for stratification but keeps the longitudinal gradient.</p>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
+Past versions of unnamed-chunk-6-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-6-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-6-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="sanity-checks" class="section level3">
+<h3>Sanity checks</h3>
+<p>These are just looking at simulations with no environmental gradient (i.e env-0.0)</p>
+<div id="phenotype-distribution" class="section level4">
+<h4>Phenotype distribution</h4>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-7-1">
+Past versions of unnamed-chunk-7-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-7-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-7-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Averaging across all replicates there is no phenotypic gradient.</p>
+</div>
+<div id="individual-replicates" class="section level4">
+<h4>Individual replicates</h4>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-1">
+Past versions of unnamed-chunk-8-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-8-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-8-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-2">
+Past versions of unnamed-chunk-8-2.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-8-2.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-8-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-3">
+Past versions of unnamed-chunk-8-3.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-8-3.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-8-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-4">
+Past versions of unnamed-chunk-8-4.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-8-4.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-8-5.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-8-5">
+Past versions of unnamed-chunk-8-5.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-8-5" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-8-5.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Not sure what this tells me. Some replicates like T6 or T56 have a longitudinal spatial pattern but the vast majority don’t seem to have a visual pattern.</p>
+</div>
+</div>
+</div>
+<div id="making-the-problem-worse" class="section level2">
+<h2>Making the problem worse</h2>
+<p>I have no idea why the overall longitudinal pattern is happening so I started changing things to see if I could figure out what is going on.</p>
+<div id="force-each-deme-to-have-the-same-mean-phenotype" class="section level3">
+<h3>Force each deme to have the same mean phenotype</h3>
+<p>Instead of mean centering the phenotype within each latitude, I mean centered the phenotype of each deme and repeated the entire process, just looking at one environmental gradient. Here are the simulations with no correction.</p>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-9-1">
+Past versions of unnamed-chunk-9-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-9-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-9-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>This looks good and is what I expected when I originally started. Below are the same plots when including <span class="math inline">\(T_m\)</span></p>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-10-1">
+Past versions of unnamed-chunk-10-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-10-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-10-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>So far so good, including <span class="math inline">\(T_m\)</span> (visually) controls for the stratification.</p>
+<p>Here is the problem:<br />
+<img src="figure/Simulations_methods.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-11-1">
+Past versions of unnamed-chunk-11-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-11-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-11-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>WHY!!! Doing this caused the false positive rate to double to 10%. All I changed was mean centering the phenotype within demes instead of within latitude. I’m so confused :(</p>
+</div>
+</div>
+<div id="ascertained-vs-random-sites" class="section level2">
+<h2>Ascertained vs Random sites</h2>
+<p>For every PGS I calculate I always have 2 versions, one created with ascertained SNPs (picking the SNP with the lowest p-value per chromosome) and another random SNPs (one per chromosome picked randomly). I thought comparing some of the plots above created with ascertained SNPs with ones created with random SNPs might help diagnose the problem.</p>
+<div id="mean-center-within-latitude" class="section level3">
+<h3>Mean center within Latitude</h3>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-12-1">
+Past versions of unnamed-chunk-12-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-12-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-12-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Even with the random sites there is a longitudinal gradients when there is no stratification. It seems whatever is going on here doesn’t have to do with ascertainment strategy.</p>
+</div>
+<div id="mean-center-within-deme" class="section level3">
+<h3>Mean center within deme</h3>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-13-1">
+Past versions of unnamed-chunk-13-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-13-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-13-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-14-1">
+Past versions of unnamed-chunk-14-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-14-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-14-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Similar to the ascertained PGSs there is not much of a visusal pattern with mean centering the phenotype within deme instead of within latitude and including <span class="math inline">\(T_m\)</span> seems to visually control for stratification.</p>
+<p><img src="figure/Simulations_methods.Rmd/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-15-1">
+Past versions of unnamed-chunk-15-1.png
+</button>
+</p>
+<div id="fig-unnamed-chunk-15-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://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@github.com/jgblanc/polygenic_adaptation_stratification/blob/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/figure/Simulations_methods.Rmd/unnamed-chunk-15-1.png" target="_blank">35227cc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-08-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>However, with random sites the false postive rate &lt; 5% whereas the same experiment with ascertained sites with ascertained sites was 10%.</p>
+</div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>The way I see it there are 2 main questions:</p>
+<ol style="list-style-type: decimal">
+<li>Why does mean centering the phenotype create a visual longitudinal gradient when there is no stratification?<br />
+</li>
+<li>Why does mean centering the phenotype within demes double the false positive rate?</li>
+</ol>
+<p>Based on what I’ve tried, it seems the answer to question 1 does not depend on SNP ascertainment, the gradient is there with both ascertained and random SNPs. My first thought was that within a given latitude, individuals at a high longitude are stochastically drawing larger phenotypes. But there there is no longitudinal phenotypic gradient. My next thought is that maybe the individuals latitudes and longitudes are mislabeled. I’ve check the code and I don’t think I’m mislabelling anything but even if I was and the labels were wrong, there is no phenotype gradient in the GWAS panels so how could be there one in the Test panel (even if labels are wrong, everything is still random)? Given that there is no phenotypic gradient, I honestly have no theories at the moment right now about why this happening.</p>
+<p>Mean centering the phenotype within the deme seems to visually “fix” the longitudinal pattern - I can’t really say why this is since I don’t understand why there’s a longitudinal gradient in the first place. But it doubles the false positive rate. However, this seems to depend on SNP ascertainment. The SNPs included are all on separate chromosome so they shouldn’t be in strong LD with each other. I can’t think of a reason why there would be strong cross chromosome LD since there’s no true causal sites and no systematic environmental effects.</p>
+<p>Random thought I had: I am filtering out sites at less than 5% frequency. When mean centering the phenotype within demes, the GWAS can only use within deme variation to estimate the effect size and within demes most variation should be rare, idk what the consequences of this filtering is in this case. I am rerunning the simulations without any frequency filtering right now but I have to re-project the test vectors so its taking a long time.</p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -673,18 +1699,18 @@ attached base packages:
 other attached packages:
  [1] latex2exp_0.4.0   forcats_0.5.1     stringr_1.4.0     dplyr_1.0.4      
  [5] purrr_0.3.4       readr_1.4.0       tidyr_1.1.2       tibble_3.1.0     
- [9] ggplot2_3.3.3     tidyverse_1.3.0   data.table_1.14.0
+ [9] ggplot2_3.3.3     tidyverse_1.3.0   data.table_1.14.0 workflowr_1.6.2  
 
 loaded via a namespace (and not attached):
  [1] Rcpp_1.0.6        lattice_0.20-41   lubridate_1.7.9.2 assertthat_0.2.1 
  [5] rprojroot_2.0.2   digest_0.6.27     utf8_1.1.4        R6_2.5.0         
  [9] cellranger_1.1.0  backports_1.2.1   reprex_1.0.0      evaluate_0.14    
-[13] highr_0.8         httr_1.4.2        pillar_1.5.0      rlang_0.4.10     
-[17] readxl_1.3.1      rstudioapi_0.13   jquerylib_0.1.4   Matrix_1.3-2     
-[21] rmarkdown_2.7     labeling_0.4.2    splines_3.6.2     munsell_0.5.0    
-[25] broom_0.7.5       compiler_3.6.2    httpuv_1.5.5      modelr_0.1.8     
-[29] xfun_0.21         pkgconfig_2.0.3   mgcv_1.8-34       htmltools_0.5.1.1
-[33] tidyselect_1.1.0  workflowr_1.6.2   fansi_0.4.2       crayon_1.4.1     
+[13] httr_1.4.2        highr_0.8         pillar_1.5.0      rlang_0.4.10     
+[17] readxl_1.3.1      rstudioapi_0.13   whisker_0.4       jquerylib_0.1.4  
+[21] Matrix_1.3-2      rmarkdown_2.7     labeling_0.4.2    splines_3.6.2    
+[25] munsell_0.5.0     broom_0.7.5       compiler_3.6.2    httpuv_1.5.5     
+[29] modelr_0.1.8      xfun_0.21         pkgconfig_2.0.3   mgcv_1.8-34      
+[33] htmltools_0.5.1.1 tidyselect_1.1.0  fansi_0.4.2       crayon_1.4.1     
 [37] dbplyr_2.1.0      withr_2.4.1       later_1.1.0.1     grid_3.6.2       
 [41] nlme_3.1-152      jsonlite_1.7.2    gtable_0.3.0      lifecycle_1.0.0  
 [45] DBI_1.1.1         git2r_0.28.0      magrittr_2.0.1    scales_1.1.1     
