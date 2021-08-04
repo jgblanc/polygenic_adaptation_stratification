@@ -4,8 +4,8 @@ for i in range(0, 200):
 REP = []
 for i in range(1, 101):
   REP.append("T"+str(i))
-CONFIG = ["C2"]
-HERITABILITY = ["h2-0"]
+CONFIG = ["C1"]
+HERITABILITY = ["seed-0"]
 ENV = ["env-0.0", "env-0.05"]
 SS_TEST =20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
@@ -16,7 +16,15 @@ def get_params(x):
   out = x.split("-")[1]
   return out
 
-def get_seed(rep, h2):
+def get_seed(rep, h2, env):
+  out1 = list(rep)[1]
+  out2 = h2.split("-")[1]
+  tmp = env.split("-")[1].split(".")[1]
+  tmp_list = [int(i) for i in tmp]
+  out3 = sum(tmp_list)
+  return out1 + out2 + str(out3)
+
+def get_seed1(rep, h2):
   out1 = list(rep)[1]
   out2 = h2.split("-")[1]
   return out1 + out2
@@ -250,7 +258,7 @@ rule draw_effect_sizes:
         "output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/genos-gwas_common.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
-        seed = lambda wildcards: get_seed(wildcards.rep, wildcards.h2)
+        seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2)
     shell:
         "Rscript code/Simulate_Phenotypes/simgeffects.R {input} {output} {params.her} 0.4 {params.seed}"
 
@@ -277,7 +285,7 @@ rule simulate_phenotype_SimpleGrid:
     params:
         her = lambda wildcards: get_params(wildcards.h2),
         en = lambda wildcards: get_params(wildcards.env),
-        seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2)
+        seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2,wildcards.env)
     shell:
         "Rscript code/Simulate_Phenotypes/simulate_phenotypes_SimpleGrid.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
 
