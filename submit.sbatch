@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrid_T100_seed_deme
-#SBATCH --output=logs/SimpleGrid_T100_seed_deme.out
-#SBATCH --error=logs/SimpleGrid_T100_seed_deme.err
-#SBATCH --time=08:00:00
+#SBATCH --job-name=4PopSplit_S100_env
+#SBATCH --output=logs/4PopSplit_S100_env.out
+#SBATCH --error=logs/4PopSplit_S100_env.err
+#SBATCH --time=12:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=6
 #SBATCH --mem-per-cpu=4GB
@@ -15,4 +15,4 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake --cores 6 --rerun-incomplete  
+snakemake --cores 6 --rerun-incomplete   
