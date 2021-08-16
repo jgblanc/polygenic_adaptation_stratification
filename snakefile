@@ -5,9 +5,9 @@ CONFIG=["C1","C2"]
 MODEL=["4PopSplit"]
 REP = []
 for i in range(1, 101):
-  REP.append("S"+str(i))
+  REP.append("F"+str(i))
 HERITABILITY = ["seed-0"]
-ENV = ["env-0.005", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.06"]
+ENV = ["env-0.0","env-0.005", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.06"]
 #ENV = ["env-0.0"]
 SIZE=2000
 NUM_RESAMPLE=1000
