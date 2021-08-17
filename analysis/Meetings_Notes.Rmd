@@ -258,7 +258,7 @@ ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =
 
 Including all sites increases the False positive rate.  
 
-#### Mean center phenotype within latitude 
+#### Mean center phenotype within deme 
 
 Latitude is still the test vector but I forced the phenotype to be same within each deme. 
 
