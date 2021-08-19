@@ -510,7 +510,26 @@ Random thought I had: I am filtering out sites at less than 5% frequency. When m
 
 
 
+```{r}
+df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_seed_deme_T100_pgs.txt")
 
+df2 <- df %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
+
+ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1))
+
+ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS_Tm)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1)) 
+
+```
+
+
+```{r}
+df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_seed_deme_T100.txt") 
+
+nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") 
+```
 
 
 

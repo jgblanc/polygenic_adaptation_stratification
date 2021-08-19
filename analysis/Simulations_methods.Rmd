@@ -78,6 +78,15 @@ nc <- subset(nc, nc$diff < 0.07)
 ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_smooth(method = "loess", se = FALSE) 
 ```
 
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+df <- fread("../code/plot/4PopSplit_F100.txt")
+nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+
+nc <- subset(nc, nc$diff < 0.07)
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_smooth(method = "loess", se = FALSE) 
+```
+
 ## Simple Grid 
 
 ### Msprime simulation 
@@ -144,187 +153,79 @@ ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =
 ```
 
 
+## Conference figures 
 
-# August 3rd meeting - Why is this happening? 
+```{r}
+A <- rnorm(10000, 0, 1)
+C <- rnorm(10000, 3, 1)
 
-See Simulations_methods page for methods details.  
-Key: the test vector is the latitude + PRS SNPs are ascertained on lowest p-value     
+df <- cbind(A,C)
+df <- melt(df)
+ggplot(df, aes(x = value, fill = Var2)) + geom_density(alpha=0.5) + theme_classic(base_size = 14) + xlab("Phenotype")+ ylab("") + scale_fill_manual(values = c("darkred", "goldenrod")) + theme(axis.ticks = element_blank(), axis.text = element_blank(), axis.line.y=element_blank(), , axis.title.x = element_text(size = 20)) + geom_vline(xintercept = 0, color = "darkred", size = 1.5)+ geom_vline(xintercept = 3, color = "goldenrod", size = 1.5)  + scale_y_continuous(expand = c(0, 0))
+```
 
-## Everything is great! 
+```{r}
+D <- rnorm(1000, 3, 1)
+C <- rnorm(1000, 0, 1)
 
-In these simulations I draw a random phenotype for each individual and then mean center within latitudes 
-```{r, eval = FALSE}
-prs$env = rnorm(sample_size,0, 1)
-prs <- prs %>% group_by(Lat) %>% mutate(env = env-mean(env))
+df <- cbind(C,D)
+df <- melt(df)
+ggplot(df, aes(x = value, fill = Var2)) + geom_density(alpha=0.5) + theme_classic(base_size = 14) + xlab("Polygenic Score")+ ylab("") + scale_fill_manual(values = c("darkblue","forestgreen")) + theme(axis.ticks = element_blank(), axis.text = element_blank(), axis.line.y=element_blank(), axis.title.x = element_text(size = 20)) + geom_vline(xintercept = 0, color = "darkblue", size = 1.5)+ geom_vline(xintercept = 0, color = "forestgreen", size = 1.5)  + scale_y_continuous(expand = c(0, 0))
+
+ggplot(df, aes(x =Var2,y=value, color = Var2)) + geom_jitter() + theme_classic(base_size = 16) + scale_color_manual(values = c("darkblue","forestgreen")) + xlab("Population") + ylab("Polygenic Score") + stat_summary(fun.y=mean, colour="black", geom="line", aes(group = 1), size = 3) + stat_summary(fun.y=mean, colour="black", geom="point", aes(group = 1), size = 3)
+```
+
+```{r}
+Latitude <- seq(0, 100, 1)
+PGS <- Latitude + rnorm(length(Latitude), 0, 10)
+
+df <- as.data.frame(cbind(PGS, Latitude))
+ggplot(df, aes(x = Latitude, y = PGS)) + geom_point(size = 2, color = "darkmagenta") + theme_classic(base_size = 16) +geom_smooth(method='lm', se = FALSE, color = "black", linetype = "dashed") + ylab("Polygenic Score") + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title.x = element_text(size = 22))
+```
+
+```{r}
+Temperature <- rep(0, 100)
+PGS <- Temperature + rnorm(length(Temperature), 0, 5)
+
+df <- as.data.frame(cbind(PGS, seq(37, 46.9, 0.1)))
+ggplot(df, aes(x = V2, y = PGS)) + geom_point(size = 2, color = "deeppink3") + theme_classic(base_size = 16) +geom_smooth(method='lm', se = FALSE, color = "black", linetype = "dashed") + ylab("Polygenic Score") + xlab("Temperature") +theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title.x = element_text(size = 22))
+```
+
+```{r}
+Time <-  seq(0, 10000, 100)
+PGS <- Time + rnorm(length(Time), 0, 1000)
+
+df <- as.data.frame(cbind(PGS, Time))
+ggplot(df, aes(x = -1*Time, y = PGS)) + geom_point(size = 2, color = "slateblue4") + theme_classic(base_size = 16) +geom_smooth(method='lm', se = FALSE, color = "black", linetype = "dashed") + ylab("Polygenic Score") + xlab("Time") +theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title.x = element_text(size = 22))
+```
+
+```{r}
+pop <-  rep(seq(1,8, 1),10)
+PGS <- pop + rnorm(length(pop), 0, 1)
+
+df <- as.data.frame(cbind(PGS, pop))
+ggplot(df, aes(x = pop, y = PGS, color = pop)) + geom_point(size = 2) + theme_classic(base_size = 16) +geom_smooth(method='lm', se = FALSE, color = "black", linetype = "dashed") + ylab("Polygenic Score") + xlab("Population ID") +theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.title.x = element_text(size = 22))
+```
+
+
+```{r}
+df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_seed_T100_pgs.txt")
+
+df2 <- df %>% filter(env == "env-0.05") %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
+df3 <- df2[,3:6] %>%  gather(variable, value, -c(LAT, LONG))
+
+df3$variable <- factor(df3$variable ,labels=c('A'=parse(text=TeX('No covariate')),
+                                               'B'=parse(text=TeX('Including $T^{GWAS}$'))))
+
+ggplot(df3, aes(x = LONG, y = LAT, fill = value)) + geom_tile() + facet_wrap(~variable, labeller=label_parsed) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 20), axis.text = element_text(size = 12), legend.title = element_text(size = 16), strip.text.x = element_text(size = 16)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-0.5, 0.5), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
 ```
 
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df <- fread("../code/plot/Simple_Grid_T100.txt")
-nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
-nc$diff <- as.numeric(nc$diff)
-nc <- subset(nc, nc$diff < 0.1)
-
-
-ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + scale_x_continuous(breaks = c(0, 0.03, 0.06, 0.09))+ geom_smooth(method = "loess", se = FALSE) 
-```
-
-The false positive rate is near 5% and including $T_m$ is contolling for increased stratification 
-
-## Wait no it's not? 
-
-Now I take the PGS from all 100 replicated from the simulations above and within each replicate/environment pair I standardize the PGS to have mean 0 and variance 1. I then calculate the average PGS in each deme and plot. 
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df <- fread("~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_pgs.txt")
-df2 <- df %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan), LAT = mean(LAT), LONG = mean(LONG))
-
-ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1))
-```
-
-I don't understand why this is happening??? It's true that as I'm increasing the stratification along the latitude gradient that I'm creating a gradient but its not even across longitudes and more concerninly when there is no environmental stratification there in a slight longitudinal gradient. Below are the same simulations including $T_m$, which controls for stratification but keeps the longitudinal gradient.   
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS_Tm)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1)) 
-```
-
-### Sanity checks 
-
-These are just looking at simulations with no environmental gradient (i.e env-0.0)
-
-#### Phenotype distribution  
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df_pheno <- fread("~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_phenos.txt")
-df_pheno <- df_pheno %>% group_by(POP) %>% summarise(avg_pheno = mean(pheno_strat), LAT =mean(LAT), LONG=mean(LONG))
-
-ggplot(df_pheno, aes(x = LONG, y = LAT, fill = avg_pheno)) + geom_tile()  + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "green", high = "orange", mid = "white", limits = c(-1,1))
-```
-
-Averaging across all replicates there is no phenotypic gradient. 
-
-#### Individual replicates  
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df <- fread("~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_pgs.txt")
-df2 <- df %>% filter(env == "env-0.0") %>% group_by(rep, case) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup()
-
-reps <- rep(NA, 20)
-for (i in 1:20){reps[i] <- paste0("T", i)}
-df3 <- df2 %>% filter(rep %in% reps)
-ggplot(df3, aes(x = LONG, y = LAT, fill = nc_stan)) + geom_tile() + facet_wrap(~rep) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white",limits=c(-5,5))
-
-reps <- rep(NA, 20)
-for (i in 21:40){reps[i] <- paste0("T", i)}
-df4 <- df2 %>% filter(rep %in% reps)
-ggplot(df4, aes(x = LONG, y = LAT, fill = nc_stan)) + geom_tile() + facet_wrap(~rep) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white",limits=c(-5,5))
-
-reps <- rep(NA, 20)
-for (i in 41:60){reps[i] <- paste0("T", i)}
-df5 <- df2 %>% filter(rep %in% reps)
-ggplot(df5, aes(x = LONG, y = LAT, fill = nc_stan)) + geom_tile() + facet_wrap(~rep) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white",limits=c(-5,5))
-
-reps <- rep(NA, 20)
-for (i in 61:80){reps[i] <- paste0("T", i)}
-df6 <- df2 %>% filter(rep %in% reps)
-ggplot(df6, aes(x = LONG, y = LAT, fill = nc_stan)) + geom_tile() + facet_wrap(~rep) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white",limits=c(-5,5))
-
-reps <- rep(NA, 20)
-for (i in 81:100){reps[i] <- paste0("T", i)}
-df7 <- df2 %>% filter(rep %in% reps)
-ggplot(df7, aes(x = LONG, y = LAT, fill = nc_stan)) + geom_tile() + facet_wrap(~rep) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white",limits=c(-5,5))
-```
-
-Not sure what this tells me. Some replicates like T6 or T56 have a longitudinal spatial pattern but the vast majority 
-don't seem to have a visual pattern. 
-
-## Making the problem worse 
-
-I have no idea why the overall longitudinal pattern is happening so I started changing things to see if I could figure out what is going on. 
-
-### Force each deme to have the same mean phenotype  
-
-Instead of mean centering the phenotype within each latitude, I mean centered the phenotype of each deme and repeated the entire process, just looking at one environmental gradient. Here are the simulations with no correction.     
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100_pgs.txt")
-df2 <- df %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
-
-ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1))
-```
-
-This looks good and is what I expected when I originally started. Below are the same plots when including $T_m$ 
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS_Tm)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1)) 
-```
-
-So far so good, including $T_m$ (visually) controls for the stratification.  
-
-Here is the problem:  
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100.txt") 
-
-nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+df <- fread("../code/plot/4PopSplit_F100.txt")
+nc <- df %>% filter(type == "nc") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
 nc$diff <- as.numeric(nc$diff)
 
-ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") 
+nc <- subset(nc, nc$diff < 0.07)
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = case)) + geom_point(size =3)+ xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("darkorchid4", "dodgerblue"), labels = unname(TeX(c("Biased", "Unbiased")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) 
 ```
-
-WHY!!! Doing this caused the false positive rate to double to 10%. All I changed was mean centering the phenotype within demes instead of within latitude. I'm so confused :(   
-
-## Ascertained vs Random sites 
-
-For every PGS I calculate I always have 2 versions, one created with ascertained SNPs (picking the SNP with the lowest p-value per chromosome) and another random SNPs (one per chromosome picked randomly). I thought comparing some of the plots above created with ascertained SNPs with ones created with random SNPs might help diagnose the problem.  
-
-### Mean center within Latitude 
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df <- fread("~/polygenic_adaptation_stratification/code/plot/Simple_Grid_T100_pgs_c.txt")
-df2 <- df %>% group_by(rep, case, env) %>% mutate(c_stan = (c - mean(c)) / sd(c), c_Tm_stan = (c_Tm - mean(c_Tm)) / sd(c_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(c_stan), avg_PRS_Tm = mean(c_Tm_stan), LAT = mean(LAT), LONG = mean(LONG))
-
-ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1))
-```
-
-Even with the random sites there is a longitudinal gradients when there is no stratification. It seems whatever is going on here doesn't have to do with ascertainment strategy.  
-
-### Mean center within deme 
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100_pgs_c.txt")
-df2 <- df %>% group_by(rep, case, env) %>% mutate(c_stan = (c - mean(c)) / sd(c), c_Tm_stan = (c_Tm - mean(c_Tm)) / sd(c_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(c_stan), avg_PRS_Tm = mean(c_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
-
-ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1))
-```
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-ggplot(df2, aes(x = LONG, y = LAT, fill = avg_PRS_Tm)) + geom_tile() + facet_wrap(~env) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-1,1)) 
-```
-
-Similar to the ascertained PGSs there is not much of a visusal pattern with mean centering the phenotype within deme instead of within latitude and including $T_m$ seems to visually control for stratification.  
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_cell_T100.txt") 
-
-nc <- df %>% filter(type == "c"| type == "c-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
-nc$diff <- as.numeric(nc$diff)
-
-ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") 
-```
-
-However, with random sites the false postive rate < 5% whereas the same experiment with ascertained sites with ascertained sites was 10%. 
-
-## Conclusion 
-
-The way I see it there are 2 main questions:  
-
-1. Why does mean centering the phenotype create a visual longitudinal gradient when there is no stratification?  
-2. Why does mean centering the phenotype within demes double the false positive rate? 
-
-Based on what I've tried, it seems the answer to question 1 does not depend on SNP ascertainment, the gradient is there with both ascertained and random SNPs. My first thought was that within a given latitude, individuals at a high longitude are stochastically drawing larger phenotypes. But there there is no longitudinal phenotypic gradient. My next thought is that maybe the individuals latitudes and longitudes are mislabeled. I've check the code and I don't think I'm mislabelling anything but even if I was and the labels were wrong, there is no phenotype gradient in the GWAS panels so how could be there one in the Test panel (even if labels are wrong, everything is still random)? Given that there is no phenotypic gradient, I honestly have no theories at the moment right now about why this happening. 
-
-Mean centering the phenotype within the deme seems to visually "fix" the longitudinal pattern - I can't really say why this is since I don't understand why there's a longitudinal gradient in the first place. But it doubles the false positive rate. However, this seems to depend on SNP ascertainment. The SNPs included are all on separate chromosome so they shouldn't be in strong LD with each other. I can't think of a reason why there would be strong cross chromosome LD since there's no true causal sites and no systematic environmental effects.   
-
-Random thought I had: I am filtering out sites at less than 5% frequency. When mean centering the phenotype within demes, the GWAS can only use within deme variation to estimate the effect size and within demes most variation should be rare, idk what the consequences of this filtering is in this case. I am rerunning the simulations without any frequency filtering right now but I have to re-project the test vectors so its taking a long time.  
-
-
 

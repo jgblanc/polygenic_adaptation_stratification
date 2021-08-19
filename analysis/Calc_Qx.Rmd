@@ -34,6 +34,22 @@ In the two population case:
 $$F = \frac{1}{4*(L-1)} \sum_{l=1}^L \frac{(f_{1,l} - f_{2,l})^2}{\bar{f_l} (1-\bar{f})}$$
 
 ```{r}
+# Set number of alleles
+L <- 100
+
+# Randomly draw starting allele frequencies from a beta distribution 
+allele_freq_start <- rbeta(L, 1,3)
+  
+# Evolve alleles forward in time under model of genetic drift 
+allele_freq <- allele_freq_start + rnorm(L, 0, sqrt((allele_freq_start)*(1-allele_freq_start)* 0.01))
+
+# Remove alleles that have fixed in the population 
+rm <- which(allele_freq <= 0 | allele_freq >= 1)
+allele_freq <- allele_freq[-rm]
+```
+
+
+```{r}
 calc_Qx <- function(ms, k, L, L_gwas) {
   
   # Draw alleles from Beta
