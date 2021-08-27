@@ -17,6 +17,7 @@ vals_file = args[2] # eigenvalues
 proj_file = args[3] # .sscore (project of all test eigenvectors into eigenvalues)
 tvec_file = args[4] # standardized test vector
 out_file = args[5] # Name for Tm file
+out_file_weight=args[6] # Name for wieghts file
 
 # Load test eigen vecs
 vecs <- fread(vecs_file)
@@ -29,6 +30,7 @@ std.tvec <- std.tvec$V1
 
 # Get the weights of each eigenvector
 B <- t(vecs) %*% std.tvec
+fwrite(B, out_file,row.names=F,quote=F,sep="\t", col.names = T)
 
 # Load Projected eigenvectors
 proj_vecs <- fread(proj_file)

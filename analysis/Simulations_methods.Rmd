@@ -79,7 +79,7 @@ ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =
 ```
 
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df <- fread("../code/plot/4PopSplit_F100.txt")
+df <- fread("../code/plot/4PopSplit_F100_rescale.txt")
 nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
 nc$diff <- as.numeric(nc$diff)
 
@@ -209,7 +209,7 @@ ggplot(df, aes(x = pop, y = PGS, color = pop)) + geom_point(size = 2) + theme_cl
 
 
 ```{r}
-df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_seed_T100_pgs.txt")
+df <- fread("~/polygenic_adaptation_stratification/code/plot/SimpleGrid_C1_scale_T100_pgs.txt")
 
 df2 <- df %>% filter(env == "env-0.05") %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
 df3 <- df2[,3:6] %>%  gather(variable, value, -c(LAT, LONG))
@@ -221,7 +221,7 @@ ggplot(df3, aes(x = LONG, y = LAT, fill = value)) + geom_tile() + facet_wrap(~va
 ```
 
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df <- fread("../code/plot/4PopSplit_F100.txt")
+df <- fread("../code/plot/4PopSplit_F100_rescale.txt")
 nc <- df %>% filter(type == "nc") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
 nc$diff <- as.numeric(nc$diff)
 

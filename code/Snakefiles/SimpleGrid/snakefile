@@ -5,7 +5,7 @@ REP = []
 for i in range(1, 101):
   REP.append("T"+str(i))
 CONFIG = ["C1"]
-HERITABILITY = ["stratD-0"]
+HERITABILITY = ["scale-0"]
 ENV = ["env-0.0", "env-0.05"]
 SS_TEST =20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
@@ -287,7 +287,7 @@ rule simulate_phenotype_SimpleGrid:
         en = lambda wildcards: get_params(wildcards.env),
         seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2,wildcards.env)
     shell:
-        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_SimpleGrid_stratD.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
+        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_SimpleGrid.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
 
 # Run GWAS
 
@@ -345,18 +345,18 @@ rule calc_true_gv:
 
 # Generate Test Vector
 
-# note this test vector is mean centered but not standardized
+# note this test vector is not mean centered or standardized
 rule make_test_vector:
     input:
         pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
         fam="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam"
     output:
-        lat="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tvec.txt"
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tvec.txt"
     shell:
-        "Rscript code/Calculate_Tm/make_tvec_SimpleGrid.R {input.pops} {input.fam} {output.lat} {output.long}"
+        "Rscript code/Calculate_Tm/make_tvec_SimpleGrid.R {input.pops} {input.fam} {output}"
 
 
-# Project latitude T using Plink2
+# Project T using Plink2
 
 rule proj_T:
     input:
@@ -400,11 +400,10 @@ rule calc_Tm:
         tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tvec.txt",
 	allele="output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenvec.allele"
     output:
-        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm.txt"
-        weights="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm.txt"
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm.txt"
     shell:
         """
-	Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} {input.proj} {input.tvec} {output.Tm} {output.weights}
+	Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} {input.proj} {input.tvec} {output}
 
 	rm {input.allele}
 	"""
@@ -514,14 +513,13 @@ rule Calc_Qx:
         Tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tvec.txt",
         pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop"
     output:
-        qx_lat="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Qx_Lat.txt",
-        qx_long="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Qx_Long.txt",
+        qx="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Qx.txt",
         pgs="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/PGS.txt"
     params:
         num=NUM_RESAMPLE
     shell:
       """
-          Rscript code/PGA_test/calc_Qx_SimpleGrid_latlong.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx_lat} {output.qx_long} {output.pgs}
+          Rscript code/PGA_test/calc_Qx_SimpleGrid.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx} {output.pgs}
 	      """
 
 # Rule to calculate Fst across demes in GWAS panel
