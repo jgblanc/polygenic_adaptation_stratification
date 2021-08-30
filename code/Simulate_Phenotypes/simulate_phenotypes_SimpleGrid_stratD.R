@@ -17,7 +17,7 @@ output_file = args[3] #name of output file
 h2 = as.numeric(args[4])
 env_s=as.numeric(args[5])
 print(env_s)
-set.seed(as.numeric(args[6]))
+#set.seed(as.numeric(args[6]))
 
 
 prs=fread(gvalue_file)
@@ -71,7 +71,7 @@ for (i in 1:length(delta)) {
 
 # Add stratification along diagnoal Latitude
 id_diag <- c(0,7,14, 21, 28, 35)
-for (i in 1:length(id_lat)) {
+for (i in 1:length(id_diag)) {
   prs <- prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == id_diag[i], env + shifts[i], env))
 }
 

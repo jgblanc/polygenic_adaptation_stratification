@@ -189,7 +189,7 @@ out[6, ] <- main(nc_Tm_file, Va_Tm_all[3,])
 
 # Save output
 colnames(out) <- c("Qx", "P-Chi", "P-EN", "Ax", "P-Ax")
-fwrite(out, out_pre,row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(out, out_pre_lat,row.names=F,quote=F,sep="\t", col.names = T)
 
 # Calculate longitude test vector
 pops <- fread(pops_file)
@@ -211,7 +211,7 @@ out[6, ] <- main(nc_Tm_file, Va_Tm_all[3,])
 
 # Save output
 colnames(out) <- c("Qx", "P-Chi", "P-EN", "Ax", "P-Ax")
-fwrite(out, out_pre,row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(out, out_pre_long,row.names=F,quote=F,sep="\t", col.names = T)
 
 
 # Function to just output PGS

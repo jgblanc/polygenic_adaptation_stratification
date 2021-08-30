@@ -6,7 +6,7 @@ for i in range(1, 101):
   REP.append("T"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["stratD-0"]
-ENV = ["env-0.0", "env-0.05"]
+ENV = ["env-0.0", "env-0.5"]
 SS_TEST =20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 PVALUE_THRESHOLD = 1
@@ -33,7 +33,7 @@ def get_seed1(rep, h2):
 rule all:
     input:
 #         expand("output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.afreq", rep=REP, config=CONFIG)
-        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Qx.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV)
+        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Qx_Lat.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV)
 
 # Simluate Genotypes
 
@@ -400,8 +400,8 @@ rule calc_Tm:
         tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tvec.txt",
 	allele="output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenvec.allele"
     output:
-        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm.txt"
-        weights="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm.txt"
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm.txt",
+        weights="output/Calculate_Tm/SimpleGrid/{rep}/{config}/weights.txt"
     shell:
         """
 	Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} {input.proj} {input.tvec} {output.Tm} {output.weights}
