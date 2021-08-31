@@ -183,7 +183,7 @@ nc_long$test <- "Longitude"
 df <- rbind(nc_lat, nc_long)
 df2 <- df[,c(2,3,5,7)] %>%  gather(variable, value, -c(fp_strat, test, diff))
 
-ggplot(data = df, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3) + facet_wrap(~test) + xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") 
+ggplot(data = df, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3) + facet_wrap(~test) + xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) 
 ```
 
 
