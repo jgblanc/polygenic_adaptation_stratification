@@ -6,7 +6,7 @@ for i in range(1, 101):
   REP.append("T"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["stratD-0"]
-ENV = ["env-0.0", "env-0.5"]
+ENV = ["env-0.0","env-0.1", "env-0.2", "env-0.3", "env-0.4" ,"env-0.5"]
 SS_TEST =20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 PVALUE_THRESHOLD = 1
