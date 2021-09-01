@@ -15,7 +15,7 @@ output_file = args[3] #name of output file
 h2 = as.numeric(args[4])
 env_s=as.numeric(args[5])
 print(env_s)
-set.seed(as.numeric(args[6]))
+#set.seed(as.numeric(args[6]))
 
 
 prs=fread(gvalue_file)

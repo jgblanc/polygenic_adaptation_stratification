@@ -22,12 +22,12 @@ fam <- fread(fam_file)
 
 # Read in Tm
 Tm <- fread(Tm_file)
-Tm <- Tm$V1
+#Tm <- Tm$V1
 
 # Format datafile
 tmp <- dplyr::inner_join(pops, fam, by = c("V1"= "IID")) %>% select("V2", "V3")
 df <- as.data.frame(cbind(tmp$V2, tmp$V2, Tm))
-colnames(df) <- c("FID","IID", "Tm")
+colnames(df) <- c("FID","IID", colnames(Tm))
 
 # Write Tm to file
 fwrite(df, output_file,row.names=F,quote=F,sep="\t", col.names = T)
