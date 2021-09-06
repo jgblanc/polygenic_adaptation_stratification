@@ -3,6 +3,5 @@
 for i in {3..100}
 do
    echo "$i"
-   cp -r output/Simulate_Genotypes/4PopSplit/S${i}/ output/Simulate_Genotypes/4PopSplit/F${i}/
-   rm output/Simulate_Genotypes/4PopSplit/F${i}/C*/*_common*
+   cp -r output/Simulate_Genotypes/SimpleGrid/T${i}/C1/ output/Simulate_Genotypes/SimpleGrid/T${i}/C3/
 done
