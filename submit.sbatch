@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrid_T100_3Pop
-#SBATCH --output=logs/SimpleGrid_T100_3Pop.out
-#SBATCH --error=logs/SimpleGrid_T100_3Pop.err
-#SBATCH --time=36:00:00
+#SBATCH --job-name=4PopSplit_F100_grid
+#SBATCH --output=logs/4PopSplit_F100_grid.out
+#SBATCH --error=logs/4PopSplit_F100_grid.err
+#SBATCH --time=24:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=10
 #SBATCH --mem-per-cpu=6GB
