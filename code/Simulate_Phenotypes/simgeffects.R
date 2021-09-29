@@ -97,6 +97,7 @@ sigma2_l = h2 / sum( sapply( causal.variants$ALT_FREQS,function(x){
 #sample maf-dependent effects using the model above
 causal.variants$beta = sapply( causal.variants$ALT_FREQS , function(x){
   beta = rnorm( 1 , mean = 0, sd = sqrt(sigma2_l * (2*x*(1-x))^-alpha ))
+  #beta = beta * sample(c(-1,1), 1, prob = c(0.25, 0.75))
 })
 
 #let's calculate sigma2_g to confirm that the total genetic variance is indeed 0.8
