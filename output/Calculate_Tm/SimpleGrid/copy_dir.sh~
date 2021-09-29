@@ -1,0 +1,9 @@
+#!/bin/sh
+
+for i in {68..100}
+do
+   echo "$i"
+   bgzip T${i}/C3/pca.eigenvec.allele
+   bgzip T${i}/C3/projection.sscore
+   
+done

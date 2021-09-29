@@ -1,11 +1,12 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_F100_grid
-#SBATCH --output=logs/4PopSplit_F100_grid.out
-#SBATCH --error=logs/4PopSplit_F100_grid.err
-#SBATCH --time=24:00:00
+#SBATCH --job-name=3Pop_C2
+#SBATCH --output=logs/3Pop_C2.out
+#SBATCH --error=logs/3Pop_C2.err
+#SBATCH --time=12:00:00
 #SBATCH --partition=broadwl
-#SBATCH --nodes=10
-#SBATCH --mem-per-cpu=6GB
+#SBATCH --nodes=5
+#SBATCH --ntasks-per-node=4
+#SBATCH --mem-per-cpu=10GB
 
 module load python/cpython-3.7.0
 module load R
@@ -15,4 +16,5 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake --cores 10 --rerun-incomplete    
+snakemake -j 20 --rerun-incomplete    
+#sh copy_dir.sh

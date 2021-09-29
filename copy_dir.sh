@@ -1,7 +1,8 @@
 #!/bin/sh
 
-for i in {3..100}
+for i in {51..100}
 do
    echo "$i"
-   cp -r output/Simulate_Genotypes/SimpleGrid/T${i}/C1/ output/Simulate_Genotypes/SimpleGrid/T${i}/C3/
+   bgzip output/Calculate_Tm/SimpleGrid/T${i}/C2/pca.eigenvec.allele
+   bgzip output/Calculate_Tm/SimpleGrid/T${i}/C2/projection.sscore
 done
