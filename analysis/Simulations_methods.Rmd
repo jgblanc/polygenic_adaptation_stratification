@@ -6,10 +6,11 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(data.table)
 library(tidyverse)
 library(latex2exp)
+library(ggpubr)
 ```
 
 ## Introduction 
@@ -69,13 +70,39 @@ Notes:
 
 ### Figures  
 
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-df <- fread("../code/plot/4PopSplit_F100_rescale.txt")
-nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
-nc$diff <- as.numeric(nc$diff)
+```{r,eval = TRUE, echo=FALSE, warning=FALSE}
+plot_data <- function(data, color_name) {
+  
+  pl <- ggplot(data = data, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+   xlab(TeX("$\\Delta_{AB}$")) + ylab("False Postive Rate") + theme_classic(base_size = 12) + scale_color_manual(values = c(color_name)) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) + theme( axis.title = element_text(size = 12),legend.position = "none")
+  
+  return(pl)
+}
+```
 
-nc <- subset(nc, nc$diff < 0.07)
-ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+ xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("goldenrod2", "navy"), labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_smooth(method = "loess", se = FALSE) 
+```{r,eval = TRUE, echo=FALSE, warning=FALSE}
+df <- fread("../code/plot/4PopSplit_F100_fullgrid.txt")
+
+# C1 - no correction
+nc <- df %>% filter(type == "nc") %>% filter(case == "C1") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+pl1 <- plot_data(nc, "goldenrod2")
+
+# C1 - correction 
+nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+pl2 <- plot_data(nc, "navy")
+
+# C2 - No correction 
+nc <- df %>% filter(type == "nc") %>% filter(case == "C2") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+pl3 <- plot_data(nc, "goldenrod2")
+
+# C2 - correction 
+nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C2") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+pl4 <- plot_data(nc, "navy")
+
+ggarrange(pl1, pl2, pl3, pl4)
 ```
 
 ## Simple Grid 
@@ -197,6 +224,65 @@ ggplot(df3, aes(x = LONG, y = LAT, fill = value)) + geom_tile() + facet_wrap(env
 ```
 
 
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+df <- fread("../code/plot/SimpleGrid_C3_T100_pgs.txt")
+df2 <- df %>% filter(env == "env-0.1"| env == "env-0.0") %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
+df3 <- df2[,2:6] %>%  gather(variable, value, -c(LAT, LONG,env))
+
+ggplot(df3, aes(x = LONG, y = LAT, fill = value)) + geom_tile() + facet_wrap(env~variable) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+```
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+df <- fread("../code/plot/SimpleGrid_T100_C2_One.txt")
+nc_one <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C2")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc_one$diff <- as.numeric(nc_one$diff)
+nc_one$test <- "One"
+
+df <- fread("../code/plot/SimpleGrid_T100_C2_Two.txt")
+nc_two <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C2")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc_two$diff <- as.numeric(nc_two$diff)
+nc_two$test <- "Two"
+
+df <- fread("../code/plot/SimpleGrid_T100_C2_Three.txt")
+nc_three <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C2")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc_three$diff <- as.numeric(nc_three$diff)
+nc_three$test <- "Three"
+
+df <- rbind(nc_one, nc_two, nc_three)
+df2 <- df[,c(2,3,5,7)] %>%  gather(variable, value, -c(fp_strat, test, diff))
+df2$variants <- "all"
+```
+
+
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+df <- fread("../code/plot/SimpleGrid_T100_C3_One.txt")
+nc_one <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C3")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc_one$diff <- as.numeric(nc_one$diff)
+nc_one$test <- "One"
+
+df <- fread("../code/plot/SimpleGrid_T100_C3_Two.txt")
+nc_two <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C3")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc_two$diff <- as.numeric(nc_two$diff)
+nc_two$test <- "Two"
+
+df <- fread("../code/plot/SimpleGrid_T100_C3_Three.txt")
+nc_three <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C3")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc_three$diff <- as.numeric(nc_three$diff)
+nc_three$test <- "Three"
+
+df <- rbind(nc_one, nc_two, nc_three)
+df2_all <- df[,c(2,3,5,7)] %>%  gather(variable, value, -c(fp_strat, test, diff))
+df2_all$variants <- "common"
+df2_all <- rbind(df2, df2_all)
+
+
+df3 <- df2_all %>% filter(value == "nc-Tm") %>% filter(diff == 0 | diff == 0.3) 
+ggplot(data = df3, aes(x = diff, y = fp_strat, color = variants)) + geom_point(size =3) + facet_wrap(~test) + xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("darkred", "forestgreen")) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="Variants") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) 
+```
+
+
 ## Conference figures 
 
 ```{r,eval = FALSE, echo=FALSE}
@@ -205,19 +291,32 @@ C <- rnorm(10000, 3, 1)
 
 df <- cbind(A,C)
 df <- melt(df)
-ggplot(df, aes(x = value, fill = Var2)) + geom_density(alpha=0.5) + theme_classic(base_size = 14) + xlab("Phenotype")+ ylab("") + scale_fill_manual(values = c("darkred", "goldenrod")) + theme(axis.ticks = element_blank(), axis.text = element_blank(), axis.line.y=element_blank(), , axis.title.x = element_text(size = 20)) + geom_vline(xintercept = 0, color = "darkred", size = 1.5)+ geom_vline(xintercept = 3, color = "goldenrod", size = 1.5)  + scale_y_continuous(expand = c(0, 0))
+ggplot(df, aes(x = value, fill = Var2)) + geom_density(alpha=0.5) + theme_classic(base_size = 14) + xlab("Phenotype")+ ylab("") + scale_fill_manual(values = c("darkred", "goldenrod")) + theme(axis.ticks = element_blank(), axis.text = element_blank(), axis.line.y=element_blank(), , axis.title.x = element_text(size = 25)) + geom_vline(xintercept = 0, color = "darkred", size = 1.5)+ geom_vline(xintercept = 3, color = "goldenrod", size = 1.5)+ scale_y_continuous(expand = c(0, 0)) + theme(legend.position = "none")+ scale_y_continuous(expand = c(0, 0))
+ggsave("~/Desktop/gwas.png", height = 5, width = 7)
 ```
 
 ```{r,eval = FALSE, echo=FALSE}
-D <- rnorm(1000, 3, 1)
-C <- rnorm(1000, 0, 1)
+D <- rnorm(10000, 3, 1)
+C <- rnorm(10000, 0, 1)
 
 df <- cbind(C,D)
 df <- melt(df)
-ggplot(df, aes(x = value, fill = Var2)) + geom_density(alpha=0.5) + theme_classic(base_size = 14) + xlab("Polygenic Score")+ ylab("") + scale_fill_manual(values = c("darkblue","forestgreen")) + theme(axis.ticks = element_blank(), axis.text = element_blank(), axis.line.y=element_blank(), axis.title.x = element_text(size = 20)) + geom_vline(xintercept = 0, color = "darkblue", size = 1.5)+ geom_vline(xintercept = 0, color = "forestgreen", size = 1.5)  + scale_y_continuous(expand = c(0, 0))
+ggplot(df, aes(x = value, fill = Var2)) + geom_density(alpha=0.5) + theme_classic(base_size = 14) + xlab("Polygenic Score")+ ylab("") + scale_fill_manual(values = c("darkblue","forestgreen")) + theme(axis.ticks = element_blank(), axis.text = element_blank(), axis.line.y=element_blank(), axis.title.x = element_text(size = 25)) + geom_vline(xintercept = 0, color = "darkblue", size = 1.5)+ geom_vline(xintercept = 3, color = "forestgreen", size = 1.5)  + scale_y_continuous(expand = c(0, 0)) + theme(legend.position = "none")
+ggsave("~/Desktop/pgs_sep.png", height = 5, width = 7)
 
-ggplot(df, aes(x =Var2,y=value, color = Var2)) + geom_jitter() + theme_classic(base_size = 16) + scale_color_manual(values = c("darkblue","forestgreen")) + xlab("Population") + ylab("Polygenic Score") + stat_summary(fun.y=mean, colour="black", geom="line", aes(group = 1), size = 3) + stat_summary(fun.y=mean, colour="black", geom="point", aes(group = 1), size = 3)
+#ggplot(df, aes(x =Var2,y=value, color = Var2)) + geom_jitter() + theme_classic(base_size = 16) + scale_color_manual(values = c("darkblue","forestgreen")) + xlab("Population") + ylab("Polygenic Score") + stat_summary(fun.y=mean, colour="black", geom="line", aes(group = 1), size = 3) + stat_summary(fun.y=mean, colour="black", geom="point", aes(group = 1), size = 3)
 ```
+
+```{r}
+D <- rnorm(10000, 0, 1)
+C <- rnorm(10000, 0, 1)
+
+df <- cbind(C,D)
+df <- melt(df)
+ggplot(df, aes(x = value, fill = Var2)) + geom_density(alpha=0.5) + theme_classic(base_size = 14) + xlab("Polygenic Score")+ ylab("") + scale_fill_manual(values = c("darkblue","forestgreen")) + theme(axis.ticks = element_blank(), axis.text = element_blank(), axis.line.y=element_blank(), axis.title.x = element_text(size = 25)) + geom_vline(xintercept = 0, color = "darkblue", size = 1.5)+ geom_vline(xintercept = 0, color = "forestgreen", size = 1.5)  + scale_y_continuous(expand = c(0, 0)) + theme(legend.position = "none")
+ggsave("~/Desktop/pgs_sep.png", height = 5, width = 7)
+```
+
 
 ```{r,eval = FALSE, echo=FALSE}
 Latitude <- seq(0, 100, 1)
@@ -264,12 +363,16 @@ df3$variable <- factor(df3$variable ,labels=c('A'=parse(text=TeX('No covariate')
 ggplot(df3, aes(x = LONG, y = LAT, fill = value)) + geom_tile() + facet_wrap(~variable, labeller=label_parsed) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 20), axis.text = element_text(size = 12), legend.title = element_text(size = 16), strip.text.x = element_text(size = 16)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-0.5, 0.5), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
 ```
 
-```{r,eval = FALSE, echo=FALSE}
-df <- fread("../code/plot/4PopSplit_F100_rescale.txt")
-nc <- df %>% filter(type == "nc") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
-nc$diff <- as.numeric(nc$diff)
 
-nc <- subset(nc, nc$diff < 0.07)
-ggplot(data = nc, aes(x = diff, y = fp_strat, color = case)) + geom_point(size =3)+ xlab("Mean(A) - Mean(C)") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("darkorchid4", "dodgerblue"), labels = unname(TeX(c("Biased", "Unbiased")))) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) 
-```
+
+
+
+
+
+
+
+
+
+
+
 

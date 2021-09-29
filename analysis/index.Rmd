@@ -8,8 +8,37 @@ editor_options:
   chunk_output_type: console
 ---
 
-  
+## Guaranteeing unbiasedness in selection tests based on polygenic scores
 
+Link to manuscript: https://www.overleaf.com/project/5ff4eec3e5325e0db841f6eb 
+
+## Introduction 
+
+This website contains all the code used for the analysis.  
+
+## Simulation Pipeline 
+
+This pipline is written in snakemake. To run the entire simulation pipeline you simply need to swap in the correct snakefile.   
+
+* `code/Snakefiles/4PopSplit/snakefile` is the correct file to run the 4 population toy model from figure 1  
+* `code/Snakefiles/SimpleGrid/snakefile/Lat/snakefile` runs the stepping stone grid simulations, simulates a latitudinal gradient, and uses latitude as the test vector   
+* `code/Snakefiles/SimpleGrid/snakefile/StratD/snakefile` runs the stepping stone grid simultations, simulates stratifcation along the diagonal, uses latitude as the test vector, and does a PGA test along latitude and longitude  
+
+The detailed methods and results for each simulation can be found [here](Simulations_methods.html).  
+
+The pages below explain the 5 major steps of the pipeline:  
+
+* [Simulate Genotypes](Simulate_Genotypes.html) 
+* Simulate Phenotypes 
+* Project Test Vector 
+* Run GWAS 
+* Polygenic Adaptation Test 
+
+
+
+
+  
+WIP links  
 Theory [link](Theory.html)  
 4popslit [link](4Popsplit.html)  
 scratch [link](scratch.html)  
@@ -22,4 +51,3 @@ Plot_SimpleGrid [link](Plot_SimpleGrid.html)
 methods [link](Simulations_methods.html)  
 Meeting Notes [link](Meetings_Notes.html)
 
-Test

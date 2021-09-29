@@ -1,0 +1,251 @@
+---
+title: "Simulate Genotypes"
+author: "Jennifer Blanc"
+date: "9/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+## Simulate Genotypes
+
+Here we outline the steps of the snakemake pipeline that generate the genotypes used for stratification simulations (Fig 1 and 2).
+
+### Msprime simulations 
+
+The example below is for the 4 population split toy model but the snakefiles for the stepping-stone grid model use the same code but swap `code/Simulate_Genotypes/generate_genotypes_4PopSplit.py` for `code/Simulate_Genotypes/generate_genotypes_SimpleGrid.py`.  
+
+Here we are calling a python script that runs a separate msprime demographic simulation for `chr_num` chromosomes. `-NA`, `NB`, `NC`, and `ND` are the population sizes for each of the 4 populations while `-a`, `-b`, `-c`, and `d` are the sample sizes. `-Nac` is the ancestral popultaion size while `-L` is the length of the chromosom. The rest of the parameters are set to their default values as defined in the script itself. The output of this rule is `chr_num` separate vcf files. We also output a text file that indicates which population (or deme) each individuals belongs to.   
+
+```{python}
+rule simulate_genotypes_4popsplit:
+  output:
+    expand("output/Simulate_Genotypes/4PopSplit/{{rep}}/genos_{chr}.vcf", chr=CHR),
+"output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
+  params:
+    chr_num = len(CHR)
+  shell:
+    "python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
+    --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
+    --chr {params.chr_num} \
+    --Nanc 10000 \
+    --NA 10000 \
+    --NB 10000 \
+    --NC 10000 \
+    --ND 10000 \
+    -a 2000 \   
+    -b 2000 \
+    -c 2000 \
+    -d 2000 \
+    -s1 22000 \
+    -s2 11000 \
+    -L 100000"
+```
+
+### Formating vcfs 
+
+The fist rule below takes each individual .vcf file and reformats it so the SNP ID is  "chr_genomic-location_A_T" and the reference allele is always A and the alternate allele is T. The second rule uses bcftools to first convert all the CHR in the .vcfs to say "1". We are simulating 200 separate chromosome but plink does not allow for that many chromosomes so we relabel all of them "1" and retain the true chromosome info in the SNP ID. We then concatenate all chromosome .vcf files into a single .vcf.  
+
+```{python}
+rule format_VCF:
+  input:
+    "output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.vcf"
+  output:
+    gz="output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz"
+    #csi="output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz.csi"
+  shell:
+    """
+    head -n6 {input} > output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt
+    cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt <(cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos_{wildcards.chr}.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
+    rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt
+    """
+
+rule concat_vcfs:
+  input:
+    expand("output/Simulate_Genotypes/{{model}}/{{rep}}/genos_{chr}.ids.vcf.gz", chr=CHR)
+  output:
+    "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
+  shell:
+    """
+    bcftools concat {input} -o output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/temp.vcf.gz -O z
+    bcftools annotate --rename-chrs code/Simulate_Genotypes/convert_chr.txt
+    output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/temp.vcf.gz -o {output} -O z
+    rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/temp.vcf.gz
+    """
+```
+
+### Convert to plink2 format  
+
+The code below converts the .vcf file into the plink2 file format (.psam, .pgen, .pgen).  
+
+```{python}
+rule convert_vcf_to_plink:
+  input:
+    "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
+  output:
+    "output/Simulate_Genotypes/{model}/{rep}/genos.psam",
+    "output/Simulate_Genotypes/{model}/{rep}/genos.pgen",
+    "output/Simulate_Genotypes/{model}/{rep}/genos.pvar"
+  shell:
+    "plink2 \
+    --double-id \
+    --make-pgen \
+    --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
+    --vcf {input}"
+```
+
+### Create test/GWAS panels 
+
+We first use a custom R script to split to individuals into GWAS and test panels. In one configuration "C1" inviduals from A and C are the GWAS panel and B and D are the test. In "C2" A and B are the GWAS panel and C and D are the test. `config` becomes a wildcard and all subsequent code is run on both configurations. In the next we rule we use plink to create two sets of plink files for each panel. We then have an optional rule that downsamples the number of individuals in the test panel - we did not use this rule in our analysis.     
+
+```{python}
+rule create_panels_4PopSplit:
+  input:
+    "output/Simulate_Genotypes/{model}/{rep}/genos.pop"
+  output:
+    "output/Simulate_Genotypes/{model}/{rep}/C1/ids.gwas",
+    "output/Simulate_Genotypes/{model}/{rep}/C1/ids.test",
+    "output/Simulate_Genotypes/{model}/{rep}/C2/ids.gwas",
+    "output/Simulate_Genotypes/{model}/{rep}/C2/ids.test"
+  script:
+    "code/Simulate_Genotypes/split_gwas-test_4PopSplit.R"
+
+rule split_into_test_gwas:
+  input:
+    gwas="output/Simulate_Genotypes/{model}/{rep}/{config}/ids.gwas",
+    test="output/Simulate_Genotypes/{model}/{rep}/{config}/ids.test",
+    psam="output/Simulate_Genotypes/{model}/{rep}/genos.psam",
+    pvar="output/Simulate_Genotypes/{model}/{rep}/genos.pvar",
+    pgen="output/Simulate_Genotypes/{model}/{rep}/genos.pgen"
+  output:
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.psam",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.pgen",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.pvar",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pgen",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pvar"
+  shell:
+    """
+    plink2 \
+    --keep {input.gwas} \
+    --make-pgen \
+    --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas \
+    --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
+    --rm-dup exclude-all
+
+    plink2 \
+    --keep {input.test} \
+    --make-pgen \
+    --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test-big \
+    --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos \
+    --rm-dup exclude-all
+    """
+
+rule downsample_test:
+  input:
+    psam="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.psam",
+    pgen="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.pgen",
+    pvar="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test-big.pvar"
+  output:
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/downsample.id"
+  params:
+    size = SIZE
+  shell:
+    """
+    set +o pipefail;
+    awk 'NR > 1' {input.psam} | cut -f 1,2 | sort -R | head -n {params.size} > output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/downsample.id
+
+    plink2 \
+    --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test-big \
+    --keep output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/downsample.id \
+    --make-pgen \
+    --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test
+    """
+```
+
+### Filter on variant frequency 
+
+Finally we need to filter the variants included in our downstream analysis. First we use plink to get the frequency of every SNP in both panels. In the second rule, we use a custom R script to get a list of SNPs that are at least 5% frequency in both panels. Then we use this list to remake the plink files for each panel only including these SNPs. Finally, we use plink to get the frequency of these SNPs in each panel which we will use in subsequent steps.  
+
+```{python}
+rule get_variant_freq:
+  input:
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen"
+  output:
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.afreq",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.afreq"
+  shell:
+    """
+    plink2 \
+    --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test \
+    --freq \
+    --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test
+
+    plink2 \
+    --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas \
+    --freq \
+    --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas
+    """
+
+rule get_common_snp_list:
+  input:
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.afreq",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.afreq"
+  output:
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/common_snp_ids.txt"
+  script:
+    "code/Simulate_Genotypes/get_common_snp_list.R"
+
+rule remake_panels_with_common_snps:
+  input:
+    common_id="output/Simulate_Genotypes/{model}/{rep}/{config}/common_snp_ids.txt",
+    test_psam="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.psam",
+    test_pvar="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pvar",
+    test_pgen="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test.pgen",
+    gwas_psam="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.psam",
+    gwas_pvar="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pvar",
+    gwas_pgen="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas.pgen"
+  output:
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.pvar",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.pgen",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen"
+  shell:
+    """
+    plink2 \
+    --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test \
+    --extract {input.common_id} \
+    --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
+    --make-pgen
+
+    plink2 \
+    --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas \
+    --extract {input.common_id} \
+    --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+    --make-pgen
+    """
+
+rule common_snp_freq:
+  input:
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar",
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen"
+  output:
+    "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq"
+  shell:
+    "plink2 \
+    --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+    --out output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+    --freq"
+```
+
+

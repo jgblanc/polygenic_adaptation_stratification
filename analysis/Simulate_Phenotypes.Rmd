@@ -1,0 +1,44 @@
+---
+title: "Simulate_Phenotypes"
+author: "Jennifer Blanc"
+date: "9/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+## Simulate Phenotypes 
+
+### Draw effect sizes 
+
+```{python}
+rule draw_effect_sizes:
+    input:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq"
+    output:
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt"
+    params:
+        her = lambda wildcards: get_params(wildcards.h2),
+        seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2)
+    shell:
+        "Rscript code/Simulate_Phenotypes/simgeffects.R {input} {output} {params.her} 0.4 {params.seed}"
+```
+
+
+```{bash}
+rule simulate_phenotype_4PopSplit:
+    input:
+        gvalues="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore",
+        pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
+    output:
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.phenos.txt"
+    params:
+        her = lambda wildcards: get_params(wildcards.h2),
+        en = lambda wildcards: get_params(wildcards.env),
+        seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2,wildcards.env)
+    shell:
+        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit_meanshift.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
+```
+
