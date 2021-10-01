@@ -381,7 +381,7 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-09-28
+<strong>Last updated:</strong> 2021-10-01
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
@@ -405,7 +405,7 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 </div>
 <div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown is untracked by Git. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+<p>The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
 </div>
 </div>
 </div>
@@ -472,16 +472,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree46643795d64aa485af977ac28904734dd1d2d5d9targetblank4664379a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/46643795d64aa485af977ac28904734dd1d2d5d9" target="_blank">4664379</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree171f6ba55a2933e5b08fe4e5d1b5db155efd860dtargetblank171f6baa"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/171f6ba55a2933e5b08fe4e5d1b5db155efd860d" target="_blank">171f6ba</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree46643795d64aa485af977ac28904734dd1d2d5d9targetblank4664379a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree171f6ba55a2933e5b08fe4e5d1b5db155efd860dtargetblank171f6baa" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/46643795d64aa485af977ac28904734dd1d2d5d9" target="_blank">4664379</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/171f6ba55a2933e5b08fe4e5d1b5db155efd860d" target="_blank">171f6ba</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -510,7 +510,11 @@ Ignored files:
     Ignored:    output/Calculate_Tm/4PopSplit/E7/
     Ignored:    output/Calculate_Tm/4PopSplit/E8/
     Ignored:    output/Calculate_Tm/4PopSplit/E9/
-    Ignored:    output/Calculate_Tm/SimpleGrid/
+    Ignored:    output/Calculate_Tm/SimpleGrid/E1/
+    Ignored:    output/Calculate_Tm/SimpleGrid/E2/
+    Ignored:    output/Calculate_Tm/SimpleGrid/E3/
+    Ignored:    output/Calculate_Tm/SimpleGrid/E4/
+    Ignored:    output/Calculate_Tm/SimpleGrid/E5/
     Ignored:    output/PGA_test/4PopSplit/E2/
     Ignored:    output/PGA_test/4PopSplit/E20/
     Ignored:    output/PGA_test/4PopSplit/E3/
@@ -552,13 +556,8 @@ Ignored files:
     Ignored:    output/Simulate_Phenotypes/4PopSplit/E9/
     Ignored:    output/Simulate_Phenotypes/SimpleGrid/
 
-Untracked files:
-    Untracked:  analysis/Simulate_Genotypes.Rmd
-    Untracked:  analysis/Simulate_Phenotypes.Rmd
-
 Unstaged changes:
-    Modified:   analysis/Simulations_methods.Rmd
-    Modified:   analysis/index.Rmd
+    Modified:   analysis/Simulate_Phenotypes.Rmd
 
 </code></pre>
 <p>
@@ -571,27 +570,79 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
+
 <p>
-There are no past versions. Publish this analysis with <code>wflow_publish()</code> to start tracking its development.
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/Simulate_Phenotypes.Rmd</code>) and HTML (<code>docs/Simulate_Phenotypes.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
 </p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/4a478051738fc7e6fb2d027da74d1a0b02c9722c/analysis/Simulate_Phenotypes.Rmd" target="_blank">4a47805</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-09-29
+</td>
+<td>
+organizing website
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/4a478051738fc7e6fb2d027da74d1a0b02c9722c/docs/Simulate_Phenotypes.html" target="_blank">4a47805</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-09-29
+</td>
+<td>
+organizing website
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <hr>
 </div>
 </div>
 </div>
 <div id="simulate-phenotypes" class="section level2">
 <h2>Simulate Phenotypes</h2>
+<p>Please see (<a href="https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html" class="uri">https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html</a>) for an explanation of the orginal code which we modified for our models.</p>
 <div id="draw-effect-sizes" class="section level3">
 <h3>Draw effect sizes</h3>
-<pre class="bash"><code>rule draw_effect_sizes:
-    input:
-        &quot;output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq&quot;
-    output:
-        &quot;output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt&quot;
-    params:
-        her = lambda wildcards: get_params(wildcards.h2),
-        seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2)
-    shell:
-        &quot;Rscript code/Simulate_Phenotypes/simgeffects.R {input} {output} {params.her} 0.4 {params.seed}&quot;</code></pre>
+<p>This rule takes the target heritability as a parameter and will select a single site per chromosome and randomly draw its “true” effect size. If the heritability is set to zero then all sites will have an effect size of zero. Below we walk through an example to demonstrate how effect sizes are draw.</p>
 <pre class="python"><code>rule draw_effect_sizes:
     input:
         &quot;output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq&quot;
@@ -602,6 +653,36 @@ There are no past versions. Publish this analysis with <code>wflow_publish()</co
         seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2)
     shell:
         &quot;Rscript code/Simulate_Phenotypes/simgeffects.R {input} {output} {params.her} 0.4 {params.seed}&quot;</code></pre>
+<p>Frist we need to read in the frequency of all variants included in our GWAS panel. Here we are looking at variants of a scaled down simulation of the model depicted in Figure 1A. We also set the heritability to be 0.8.</p>
+<pre class="r"><code># Read in allele frequencies and format data frame 
+p &lt;- fread(&quot;../output/Simulate_Genotypes/4PopSplit/E2/C1/genos-gwas_common.afreq&quot;)
+colnames(p)=c(&quot;chr&quot;,&quot;ID&quot;,&quot;REF&quot;,&quot;ALT&quot;,&quot;ALT_pS&quot;,&quot;COUNT&quot;)
+p=p[,c(&quot;chr&quot;,&quot;ID&quot;,&quot;ALT_pS&quot;)]
+p[, c(&quot;CHROM&quot;, &quot;position&quot;,&quot;ref&quot;,&quot;alt&quot;) := tstrsplit(ID, &quot;_&quot;, fixed=TRUE)]
+p = p[,c(&quot;CHROM&quot;,&quot;ID&quot;,&quot;position&quot;,&quot;ALT_pS&quot;)]
+p$position = as.numeric(p$position)
+
+# Choose heritability 
+h2 &lt;- 0.8</code></pre>
+<p>Next, we randomly sample 1 variant per chromosome to get the “causal” sites (note that these sites are not causal when the trait is non-heritable).</p>
+<pre class="r"><code>sample.variant &lt;- function(df) {
+  return(sample_n(df,1))
+}
+
+df = p %&gt;% filter(CHROM == 1)
+nchrms &lt;- length(unique(p$CHROM))
+causal.variants &lt;- sample.variant(as.data.table(df))
+for (i in 2:nchrms){
+  df = p %&gt;% filter(CHROM == i)
+  out &lt;- sample.variant(as.data.table(df))
+  causal.variants &lt;- rbind(causal.variants, out)
+}</code></pre>
+<p>We now have a single independent causal variant per site. The next step is to draw an effect size for each variant such that <span class="math inline">\(h^2 = 0.8\)</span>. Below we provide a brief explanation of the “alpha model” used to mimick the genetic architecture of height; please see <a href="https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html">Zaidi and Mathieson</a> for more detail.</p>
+<p>Under this model effect sizes are drawn according to:<br />
+<span class="math display">\[\beta_{\ell} \sim N(0, \sigma_{\ell} [p_{\ell} (1-p_{\ell})]^\alpha )\]</span></p>
+<p>where:</p>
+<p>$<em>{} = $ the frequency independent component of genetic variance asspciated with variant <span class="math inline">\(\ell\)</span><br />
+$p</em>{} = $ the frequency of the alternate allele at site <span class="math inline">\(\ell\)</span></p>
 <pre class="bash"><code>rule simulate_phenotype_4PopSplit:
     input:
         gvalues=&quot;output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore&quot;,

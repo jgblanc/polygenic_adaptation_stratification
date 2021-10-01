@@ -49,6 +49,7 @@ prs=merge(prs, pop, by="IID", sort=F)
 # Draw random environment
 pops <- unique(prs$pop)
 prs$env = rnorm(sample_size,0, sqrt(1 - h2))
+prs$env = rnorm(sample_size,0, sqrt(1 - h2))
 
 # Add stratification effect to environment
 prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env + env_s, env ))

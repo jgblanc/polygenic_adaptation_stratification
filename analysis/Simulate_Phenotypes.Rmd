@@ -7,11 +7,18 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+library(data.table)
+library(dplyr)
+library(ggplot2)
 ```
 
 ## Simulate Phenotypes 
 
-### Draw effect sizes 
+Please see (https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html) for an explanation of the orginal code which we modified for our models.  
+
+### Draw effect sizes  
+
+This rule takes the target heritability as a parameter and will select a single site per chromosome and randomly draw its "true" effect size. If the heritability is set to zero then all sites will have an effect size of zero. Below we walk through an example to demonstrate how effect sizes are draw. 
 
 ```{python}
 rule draw_effect_sizes:
@@ -25,6 +32,49 @@ rule draw_effect_sizes:
     shell:
         "Rscript code/Simulate_Phenotypes/simgeffects.R {input} {output} {params.her} 0.4 {params.seed}"
 ```
+
+Frist we need to read in the frequency of all variants included in our GWAS panel. Here we are looking at variants of a scaled down simulation of the model depicted in Figure 1A. We also set the heritability to be 0.8.  
+```{r}
+# Read in allele frequencies and format data frame 
+p <- fread("../output/Simulate_Genotypes/4PopSplit/E2/C1/genos-gwas_common.afreq")
+colnames(p)=c("chr","ID","REF","ALT","ALT_pS","COUNT")
+p=p[,c("chr","ID","ALT_pS")]
+p[, c("CHROM", "position","ref","alt") := tstrsplit(ID, "_", fixed=TRUE)]
+p = p[,c("CHROM","ID","position","ALT_pS")]
+p$position = as.numeric(p$position)
+
+# Choose heritability 
+h2 <- 0.8
+```
+
+Next, we randomly sample 1 variant per chromosome to get the "causal" sites (note that these sites are not causal when the trait is non-heritable).
+```{r}
+sample.variant <- function(df) {
+  return(sample_n(df,1))
+}
+
+df = p %>% filter(CHROM == 1)
+nchrms <- length(unique(p$CHROM))
+causal.variants <- sample.variant(as.data.table(df))
+for (i in 2:nchrms){
+  df = p %>% filter(CHROM == i)
+  out <- sample.variant(as.data.table(df))
+  causal.variants <- rbind(causal.variants, out)
+}
+```
+
+We now have a single independent causal variant per site. The next step is to draw an effect size for each variant such that $h^2 = 0.8$. Below we provide a brief explanation of the "alpha model" used to mimick the genetic architecture of height; please see [Zaidi and Mathieson](https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html) for more detail.
+
+Under this model effect sizes are drawn according to:  
+$$\beta_{\ell} \sim N(0, \sigma_{\ell} [p_{\ell} (1-p_{\ell})]^\alpha )$$
+
+where: 
+
+$\sigma_{\ell} = $ the frequency independent component of genetic variance asspciated with variant $\ell$  
+$p_{\ell} = $ the frequency of the alternate allele at site $\ell$  
+
+
+
 
 
 ```{bash}
