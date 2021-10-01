@@ -326,7 +326,7 @@ rule simulate_phenotype_4PopSplit:
         en = lambda wildcards: get_params(wildcards.env),
         seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2,wildcards.env)
     shell:
-        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit_TS.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
+        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
 
 
 # Run GWAS

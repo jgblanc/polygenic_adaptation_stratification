@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_h28_env
-#SBATCH --output=logs/4PopSplit_h28_env.out
-#SBATCH --error=logs/4PopSplit_h28_env.err
-#SBATCH --time=12:00:00
+#SBATCH --job-name=4PopSplit_true28
+#SBATCH --output=logs/4PopSplit_true28.out
+#SBATCH --error=logs/4PopSplit_true28.err
+#SBATCH --time=02:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=5
 #SBATCH --ntasks-per-node=4
