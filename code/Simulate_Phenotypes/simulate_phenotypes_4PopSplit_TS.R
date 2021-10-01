@@ -68,7 +68,7 @@ Z2_gwas = sqrt(N2/N2_gwas) * Z2
 # Recalulate individual phenotypes
 delta1 = Z1 - Z1_gwas
 delta2 = Z2 - Z2_gwas
-prs = prs %>% group_by(pop) %>% mutate(pheno_strat = ifelse(pop == pops[1], env - delta1, env - delta2))
+prs = prs %>% group_by(pop) %>% mutate(pheno_strat = ifelse(pop == pops[1], pheno_strat - delta1, pheno_strat - delta2))
 
 fwrite(
   prs%>%

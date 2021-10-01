@@ -32,7 +32,7 @@ alpha = as.numeric(args[4])
 print(paste("Alpha is", alpha))
 
 #random seed
-set.seed(args[5])
+#set.seed(args[5])
 
 # load variant frequency file
 p = fread(freq_file)
