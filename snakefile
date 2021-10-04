@@ -4,7 +4,7 @@ for i in range(0, 200):
 CONFIG=["C1","C2"]
 MODEL=["4PopSplit"]
 REP = []
-for i in range(1,101):
+for i in range(1,2):
   REP.append("F"+str(i))
 HERITABILITY = ["true-0.8"]
 #ENV = ["env-0.0","env-0.005", "env-0.01","env-0.015", "env-0.02","env-0.025", "env-0.03","env-0.035", "env-0.04","env-0.045", "env-0.05", "env-0.055","env-0.06"]
@@ -292,14 +292,15 @@ rule aggregate_genotypes:
 
 rule draw_effect_sizes:
     input:
-        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq"
+        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq",
+        pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:
         "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
         seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2)
     shell:
-        "Rscript code/Simulate_Phenotypes/simgeffects_TS.R {input} {output} {params.her} 0.4 {params.seed}"
+        "Rscript code/Simulate_Phenotypes/simgeffects_TS.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.pops}"
 
 rule generate_genetic_values:
     input:

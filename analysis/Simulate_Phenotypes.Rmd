@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
 library(data.table)
 library(dplyr)
 library(ggplot2)
@@ -20,7 +20,7 @@ Please see (https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phe
 
 This rule takes the target heritability as a parameter and will select a single site per chromosome and randomly draw its "true" effect size. If the heritability is set to zero then all sites will have an effect size of zero. Below we walk through an example to demonstrate how effect sizes are draw. 
 
-```{python}
+```{python, eval=FALSE}
 rule draw_effect_sizes:
     input:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq"
@@ -37,10 +37,10 @@ Frist we need to read in the frequency of all variants included in our GWAS pane
 ```{r}
 # Read in allele frequencies and format data frame 
 p <- fread("../output/Simulate_Genotypes/4PopSplit/E2/C1/genos-gwas_common.afreq")
-colnames(p)=c("chr","ID","REF","ALT","ALT_pS","COUNT")
-p=p[,c("chr","ID","ALT_pS")]
+colnames(p)=c("chr","ID","REF","ALT","ALT_FREQS","COUNT")
+p=p[,c("chr","ID","ALT_FREQS")]
 p[, c("CHROM", "position","ref","alt") := tstrsplit(ID, "_", fixed=TRUE)]
-p = p[,c("CHROM","ID","position","ALT_pS")]
+p = p[,c("CHROM","ID","position","ALT_FREQS")]
 p$position = as.numeric(p$position)
 
 # Choose heritability 
@@ -63,21 +63,66 @@ for (i in 2:nchrms){
 }
 ```
 
-We now have a single independent causal variant per site. The next step is to draw an effect size for each variant such that $h^2 = 0.8$. Below we provide a brief explanation of the "alpha model" used to mimick the genetic architecture of height; please see [Zaidi and Mathieson](https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html) for more detail.
+We now have a single independent causal variant per site. The next step is to draw an effect size for each variant such that $h^2 = 0.8$. Below we provide a brief explanation of the "alpha model" used to mimick the genetic architecture of height; please see for an explanation of the model and code [Zaidi and Mathieson](https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html) for more detail.
 
 Under this model effect sizes are drawn according to:  
-$$\beta_{\ell} \sim N(0, \sigma_{\ell} [p_{\ell} (1-p_{\ell})]^\alpha )$$
+$$\beta_{\ell} \sim N(0, \sigma_{i} [p_{\ell} (1-p_{\ell})]^\alpha )$$
 
 where: 
 
-$\sigma_{\ell} = $ the frequency independent component of genetic variance asspciated with variant $\ell$  
-$p_{\ell} = $ the frequency of the alternate allele at site $\ell$  
+$\sigma_{i} =$ the frequency independent component of genetic variance asspciated with variant $\ell$  
+$p_{\ell} =$ the frequency of the alternate allele at site $\ell$  
+$\alpha =$ a scaling factor that determines how effect size is related to frequency  
 
+First we calculate $\sigma_{i}$ based on the frequencies of the causal sites, the target heritability, and the chosen value of $\alphs$. Here we use $\alpha = 0.4$
+```{r}
+alpha = 0.4
+sigma2_l = h2 / sum( sapply( causal.variants$ALT_FREQS,function(x){
+  beta= ( 2*x*(1-x)) ^ (1-alpha)
+  return(beta)
+}))
+```
 
+Next, we use $\sigma_{i}$ and the individual variant allele frequncies to draw and effect size for each site. Here we plot the minor allele frequency vs. the absolute value of the effect size. There is a general relationship between frequency and effect size in that alleles at intermediate frequency are less likely to have larger effect sizes. This is meant to reflect the hypothesis that negative selection keeps large effect alleles at lower-frequency in the population (see Schoech et al. 2019). 
+```{r}
+causal.variants$beta = sapply( causal.variants$ALT_FREQS , function(x){
+  beta = rnorm( 1 , mean = 0, sd = sqrt(sigma2_l * (2*x*(1-x))^-alpha ))
+})
 
+df <- causal.variants %>% mutate(maf = case_when(ALT_FREQS > 0.5 ~ 1 - ALT_FREQS, ALT_FREQS <= 0.5 ~ ALT_FREQS))
+plot(df$maf, abs(causal.variants$beta), xlab = "Minor allele frequency", ylab = "|Effect Size|", pch = 19 , col = "navy") 
+```
 
+#### True signal
 
-```{bash}
+TBD
+
+### Calculate genetic values  
+
+Now that we have effect sizes, we can compute the genetic value for each individual in the GWAS panel as:  
+$$Z_{i} = \sum\limits_{\ell = 1}^L \beta_{\ell} g_{i,\ell}$$
+
+where $g_{i,\ell}$ is the genotype of the $i^{th}$ individual at site $\ell$ and $L$ is the total number of causal sites. We compute this value using the plink --score function as show below.  
+
+```{python, eval = FALSE}
+rule generate_genetic_values:
+    input:
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar",
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen",
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt"
+    output:
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore"
+    shell:
+        "plink2 \
+	     --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+        --out output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-gwas_common.gvalue \
+		--score output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-gwas_common.effects.txt cols=dosagesum,scoresums"
+```
+
+### Simulate Phenotype  
+
+```{python, eval = FALSE}
 rule simulate_phenotype_4PopSplit:
     input:
         gvalues="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore",

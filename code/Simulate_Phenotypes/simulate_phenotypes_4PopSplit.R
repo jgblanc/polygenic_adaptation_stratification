@@ -10,9 +10,9 @@ suppressWarnings(suppressMessages({
 }))
 
 gvalue_file = args[1] #genetic values
-#gvalue_file = 'output/Simulate_Phenotypes/SimpleGrid/E2/C1/h2-0/genos-gwas_common.gvalue.sscore'
+#gvalue_file = 'output/Simulate_Phenotypes/4PopSplit/E2/C1/h2-0/genos-gwas_common.gvalue.sscore'
 popfile = args[2] # pop file from msprime simulation
-#popfile = "output/Simulate_Genotypes/SimpleGrid/E2/genos.pop"
+#popfile = "output/Simulate_Genotypes/4PopSplit/E2/genos.pop"
 output_file = args[3] #name of output file
 h2 = as.numeric(args[4])
 env_s=as.numeric(args[5])
@@ -49,7 +49,7 @@ prs=merge(prs, pop, by="IID", sort=F)
 # Draw random environment
 pops <- unique(prs$pop)
 prs$env = rnorm(sample_size,0, sqrt(1 - h2))
-prs$env = rnorm(sample_size,0, sqrt(1 - h2))
+prs$env = scale(prs$env, scale = TRUE) * (sqrt(1 - h2))
 
 # Add stratification effect to environment
 prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env + env_s, env ))
@@ -71,6 +71,9 @@ delta1 = Z1 - Z1_gwas
 delta2 = Z2 - Z2_gwas
 prs = prs %>% group_by(pop) %>% mutate(pheno_strat = ifelse(pop == pops[1], pheno_strat - delta1, pheno_strat - delta2))
 
+print(paste("h2 :",
+            round(cor(prs$prs,
+                      prs$pheno_strat)^2,2)))
 fwrite(
   prs%>%
     mutate(FID=IID)%>%

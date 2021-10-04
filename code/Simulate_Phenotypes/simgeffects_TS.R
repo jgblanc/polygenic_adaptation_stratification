@@ -3,12 +3,12 @@ args=commandArgs(TRUE)
 if(length(args)<3){stop("Rscript simphenotype_ge_3.R <frequency file> <output_file> <seed>")}
 
 suppressWarnings(suppressMessages({
-library(data.table)
-library(dplyr)
-library(tidyr)
+  library(data.table)
+  library(dplyr)
+  library(Matrix)
+  library(pgenlibr)
+  library(tidyr)
 }))
-
-#set.seed(123)
 
 #frequency file
 freq_file=args[1]
@@ -28,6 +28,12 @@ print(paste("Alpha is", alpha))
 
 #random seed
 #set.seed(args[5])
+
+#genotypes prefix
+geno_prefix = args[6]
+
+# pop file
+popflie = args[7]
 
 # load variant frequency file
 p = fread(freq_file)
@@ -82,6 +88,7 @@ for (i in 2:nchrms){
 # drop duplicates - NOTE if there are not enough variants from the sim this will decrease the number of causal variants
 causal.variants = causal.variants%>%group_by(ID)%>%filter(row_number(ID) == 1)
 
+
 #Now generate the effect sizes from these variants
 #calculate the independent component of variance required
 sigma2_l = h2 / sum( sapply( causal.variants$ALT_FREQS,function(x){
@@ -92,12 +99,52 @@ sigma2_l = h2 / sum( sapply( causal.variants$ALT_FREQS,function(x){
 #sample maf-dependent effects using the model above
 causal.variants$beta = sapply( causal.variants$ALT_FREQS , function(x){
   beta = rnorm( 1 , mean = 0, sd = sqrt(sigma2_l * (2*x*(1-x))^-alpha ))
-  beta = beta * sample(c(-1,1), 1, prob = c(0.25, 0.75))
 })
 
 #let's calculate sigma2_g to confirm that the total genetic variance is indeed 0.8
 sigma2_g = sum( mapply(function(b,p){ b^2* 2*p*(1-p) }, causal.variants$beta, causal.variants$ALT_FREQS))
 
+
+# Function to read in genotype matrix for a set of variants
+read_genos <- function(geno_prefix, betas) {
+
+  pvar <- pgenlibr::NewPvar(paste0(geno_prefix, ".pvar"))
+  d1 <- pgenlibr::NewPgen(paste0(geno_prefix, ".pgen"))
+  var.ids <- betas$ID
+  var.indx <- rep(0, length(var.ids))
+  for (i in 1:length(var.indx)) {
+    var.indx[i] <- pgenlibr::GetVariantsById(pvar,var.ids[i])
+  }
+  X <- ReadList(d1,var.indx, meanimpute=F)
+  colnames(X) <- var.ids
+
+  return(X)
+}
+
+# Read in population ID info
+pop <- fread(popfile, header = F)
+
+# Get number of individuals in each population
+n1 <- as.numeric(count(pop,V3)[1,2])
+n2 <- as.numeric(count(pop,V3)[2,2])
+
+# Read in genotype matrix for causal variants
+G <- read_genos(geno_prefix, causal.variants[,"ID"])
+
+# Calculate population specific allele frequeny
+p1 <- colMeans(G[1:n1,])
+p2 <- colMeans(G[(n1+1):(n1+n2),])
+
+# Get allele frequency difference
+diff <- p1 - p2
+
+# Create correlation between effect size and pop ID
+for (i in 1:nrow(causal.variants)){
+  b <- causal.variants[i,"beta"]
+  if (diff[i] >= 0) {
+    causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c(0.25, 0.75)) * abs(b)
+  }
+}
 
 #save the effect sizes to file and use plink2 to generate PRS
 fwrite(causal.variants%>%

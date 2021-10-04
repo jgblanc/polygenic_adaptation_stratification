@@ -105,6 +105,18 @@ pl4 <- plot_data(nc, "navy")
 ggarrange(pl1, pl2, pl3, pl4)
 ```
 
+```{r}
+nc <- df %>% filter(type == "nc" | type == "nc-Tm") %>% filter(case == "C1") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+
+
+pl <- ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+   xlab(TeX("$\\Delta_{CD}$")) + ylab("False Postive Rate") + theme_classic(base_size = 12) + scale_color_manual(values = c("goldenrod2", "navy"), labels = c("No control for shared structure", "Controlling for shared structure")) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) + theme(axis.title = element_text(size = 18),legend.position = c(0.3, 0.85))
+pl
+ggsave("~/Desktop/plot.png", pl, height = 5, width = 5)
+```
+
+
+
 ## Simple Grid 
 
 ### Msprime simulation 

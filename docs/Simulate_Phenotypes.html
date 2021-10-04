@@ -472,16 +472,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree171f6ba55a2933e5b08fe4e5d1b5db155efd860dtargetblank171f6baa"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/171f6ba55a2933e5b08fe4e5d1b5db155efd860d" target="_blank">171f6ba</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree3f39fdcfdbabcb78f630b3e0d276167b7fd1568etargetblank3f39fdca"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/3f39fdcfdbabcb78f630b3e0d276167b7fd1568e" target="_blank">3f39fdc</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree171f6ba55a2933e5b08fe4e5d1b5db155efd860dtargetblank171f6baa" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree3f39fdcfdbabcb78f630b3e0d276167b7fd1568etargetblank3f39fdca" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/171f6ba55a2933e5b08fe4e5d1b5db155efd860d" target="_blank">171f6ba</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/3f39fdcfdbabcb78f630b3e0d276167b7fd1568e" target="_blank">3f39fdc</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -492,6 +492,7 @@ Ignored files:
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    .snakemake/
+    Ignored:    analysis/figure/
     Ignored:    code/.DS_Store
     Ignored:    code/Calculate_Tm/.DS_Store
     Ignored:    code/Debug/.DS_Store
@@ -601,6 +602,40 @@ Message
 Rmd
 </td>
 <td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/3f39fdcfdbabcb78f630b3e0d276167b7fd1568e/analysis/Simulate_Phenotypes.Rmd" target="_blank">3f39fdc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-10-01
+</td>
+<td>
+send up
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/3f39fdcfdbabcb78f630b3e0d276167b7fd1568e/docs/Simulate_Phenotypes.html" target="_blank">3f39fdc</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-10-01
+</td>
+<td>
+send up
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
 <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/4a478051738fc7e6fb2d027da74d1a0b02c9722c/analysis/Simulate_Phenotypes.Rmd" target="_blank">4a47805</a>
 </td>
 <td>
@@ -656,10 +691,10 @@ organizing website
 <p>Frist we need to read in the frequency of all variants included in our GWAS panel. Here we are looking at variants of a scaled down simulation of the model depicted in Figure 1A. We also set the heritability to be 0.8.</p>
 <pre class="r"><code># Read in allele frequencies and format data frame 
 p &lt;- fread(&quot;../output/Simulate_Genotypes/4PopSplit/E2/C1/genos-gwas_common.afreq&quot;)
-colnames(p)=c(&quot;chr&quot;,&quot;ID&quot;,&quot;REF&quot;,&quot;ALT&quot;,&quot;ALT_pS&quot;,&quot;COUNT&quot;)
-p=p[,c(&quot;chr&quot;,&quot;ID&quot;,&quot;ALT_pS&quot;)]
+colnames(p)=c(&quot;chr&quot;,&quot;ID&quot;,&quot;REF&quot;,&quot;ALT&quot;,&quot;ALT_FREQS&quot;,&quot;COUNT&quot;)
+p=p[,c(&quot;chr&quot;,&quot;ID&quot;,&quot;ALT_FREQS&quot;)]
 p[, c(&quot;CHROM&quot;, &quot;position&quot;,&quot;ref&quot;,&quot;alt&quot;) := tstrsplit(ID, &quot;_&quot;, fixed=TRUE)]
-p = p[,c(&quot;CHROM&quot;,&quot;ID&quot;,&quot;position&quot;,&quot;ALT_pS&quot;)]
+p = p[,c(&quot;CHROM&quot;,&quot;ID&quot;,&quot;position&quot;,&quot;ALT_FREQS&quot;)]
 p$position = as.numeric(p$position)
 
 # Choose heritability 
@@ -677,13 +712,52 @@ for (i in 2:nchrms){
   out &lt;- sample.variant(as.data.table(df))
   causal.variants &lt;- rbind(causal.variants, out)
 }</code></pre>
-<p>We now have a single independent causal variant per site. The next step is to draw an effect size for each variant such that <span class="math inline">\(h^2 = 0.8\)</span>. Below we provide a brief explanation of the “alpha model” used to mimick the genetic architecture of height; please see <a href="https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html">Zaidi and Mathieson</a> for more detail.</p>
+<p>We now have a single independent causal variant per site. The next step is to draw an effect size for each variant such that <span class="math inline">\(h^2 = 0.8\)</span>. Below we provide a brief explanation of the “alpha model” used to mimick the genetic architecture of height; please see for an explanation of the model and code <a href="https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html">Zaidi and Mathieson</a> for more detail.</p>
 <p>Under this model effect sizes are drawn according to:<br />
-<span class="math display">\[\beta_{\ell} \sim N(0, \sigma_{\ell} [p_{\ell} (1-p_{\ell})]^\alpha )\]</span></p>
+<span class="math display">\[\beta_{\ell} \sim N(0, \sigma_{i} [p_{\ell} (1-p_{\ell})]^\alpha )\]</span></p>
 <p>where:</p>
-<p>$<em>{} = $ the frequency independent component of genetic variance asspciated with variant <span class="math inline">\(\ell\)</span><br />
-$p</em>{} = $ the frequency of the alternate allele at site <span class="math inline">\(\ell\)</span></p>
-<pre class="bash"><code>rule simulate_phenotype_4PopSplit:
+<p><span class="math inline">\(\sigma_{i} =\)</span> the frequency independent component of genetic variance asspciated with variant <span class="math inline">\(\ell\)</span><br />
+<span class="math inline">\(p_{\ell} =\)</span> the frequency of the alternate allele at site <span class="math inline">\(\ell\)</span><br />
+<span class="math inline">\(\alpha =\)</span> a scaling factor that determines how effect size is related to frequency</p>
+<p>First we calculate <span class="math inline">\(\sigma_{i}\)</span> based on the frequencies of the causal sites, the target heritability, and the chosen value of <span class="math inline">\(\alphs\)</span>. Here we use <span class="math inline">\(\alpha = 0.4\)</span></p>
+<pre class="r"><code>alpha = 0.4
+sigma2_l = h2 / sum( sapply( causal.variants$ALT_FREQS,function(x){
+  beta= ( 2*x*(1-x)) ^ (1-alpha)
+  return(beta)
+}))</code></pre>
+<p>Next, we use <span class="math inline">\(\sigma_{i}\)</span> and the individual variant allele frequncies to draw and effect size for each site. Here we plot the minor allele frequency vs. the absolute value of the effect size. There is a general relationship between frequency and effect size in that alleles at intermediate frequency are less likely to have larger effect sizes. This is meant to reflect the hypothesis that negative selection keeps large effect alleles at lower-frequency in the population (see Schoech et al. 2019).</p>
+<pre class="r"><code>causal.variants$beta = sapply( causal.variants$ALT_FREQS , function(x){
+  beta = rnorm( 1 , mean = 0, sd = sqrt(sigma2_l * (2*x*(1-x))^-alpha ))
+  #beta = beta * sample(c(-1,1), 1, prob = c(0.25, 0.75))
+})
+
+df &lt;- causal.variants %&gt;% mutate(maf = case_when(ALT_FREQS &gt; 0.5 ~ 1 - ALT_FREQS, ALT_FREQS &lt;= 0.5 ~ ALT_FREQS))
+plot(df$maf, abs(causal.variants$beta), xlab = &quot;Minor allele frequency&quot;, ylab = &quot;|Effect Size|&quot;, pch = 19 , col = &quot;navy&quot;) </code></pre>
+<p><img src="figure/Simulate_Phenotypes.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div id="true-signal" class="section level4">
+<h4>True signal</h4>
+<p>TBD</p>
+</div>
+</div>
+<div id="calculate-genetic-values" class="section level3">
+<h3>Calculate genetic values</h3>
+<p>Now that we have effect sizes, we can compute the genetic value for each individual in the GWAS panel as:<br />
+<span class="math display">\[Z_{i} = \sum\limits_{\ell = 1}^L \beta_{\ell} g_{i,\ell}\]</span></p>
+<p>where <span class="math inline">\(g_{i,\ell}\)</span> is the genotype of the <span class="math inline">\(i^{th}\)</span> individual at site <span class="math inline">\(\ell\)</span> and <span class="math inline">\(L\)</span> is the total number of causal sites. We compute this value using the plink –score function as show below.</p>
+<pre class="python"><code>rule generate_genetic_values:
+    input:
+        &quot;output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam&quot;,
+        &quot;output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar&quot;,
+        &quot;output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen&quot;,
+        &quot;output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt&quot;
+    output:
+        &quot;output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore&quot;
+    shell:
+        &quot;plink2 \
+          --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+                --out output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-gwas_common.gvalue \
+                  --score output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-gwas_common.effects.txt cols=dosagesum,scoresums&quot;</code></pre>
+<pre class="python"><code>rule simulate_phenotype_4PopSplit:
     input:
         gvalues=&quot;output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore&quot;,
         pops=&quot;output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop&quot;
@@ -703,6 +777,38 @@ $p</em>{} = $ the frequency of the alternate allele at site <span class="math in
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
 <pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.6.2 (2019-12-12)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.6
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] ggplot2_3.3.5     dplyr_1.0.7       data.table_1.14.0
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_1.0.7       highr_0.9        pillar_1.6.2     compiler_3.6.2  
+ [5] bslib_0.3.0      later_1.3.0      jquerylib_0.1.4  git2r_0.28.0    
+ [9] workflowr_1.6.2  tools_3.6.2      digest_0.6.27    lattice_0.20-44 
+[13] gtable_0.3.0     jsonlite_1.7.2   evaluate_0.14    lifecycle_1.0.0 
+[17] tibble_3.1.4     png_0.1-7        pkgconfig_2.0.3  rlang_0.4.11    
+[21] Matrix_1.3-4     DBI_1.1.1        yaml_2.2.1       xfun_0.25       
+[25] fastmap_1.1.0    withr_2.4.2      stringr_1.4.0    knitr_1.33      
+[29] generics_0.1.0   fs_1.5.0         vctrs_0.3.8      sass_0.4.0      
+[33] grid_3.6.2       tidyselect_1.1.1 rprojroot_2.0.2  reticulate_1.20 
+[37] glue_1.4.2       R6_2.5.1         fansi_0.5.0      rmarkdown_2.10  
+[41] purrr_0.3.4      magrittr_2.0.1   whisker_0.4      scales_1.1.1    
+[45] promises_1.2.0.1 ellipsis_0.3.2   htmltools_0.5.2  assertthat_0.2.1
+[49] colorspace_2.0-2 httpuv_1.6.2     utf8_1.2.2       stringi_1.7.4   
+[53] munsell_0.5.0    crayon_1.4.1    </code></pre>
 </div>
 </div>
 </div>

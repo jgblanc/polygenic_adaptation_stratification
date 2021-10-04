@@ -284,7 +284,7 @@ $(document).ready(function () {
 
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
-<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
 </button>
 </p>
 <div id="workflowr-report" class="collapse">
@@ -293,7 +293,7 @@ $(document).ready(function () {
 <a data-toggle="tab" href="#summary">Summary</a>
 </li>
 <li>
-<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -305,7 +305,7 @@ $(document).ready(function () {
 <strong>Last updated:</strong> 2021-10-04
 </p>
 <p>
-<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 1 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
 </p>
 <p>
 <strong>Knit directory:</strong> <code>polygenic_adaptation_stratification/analysis/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
@@ -321,28 +321,28 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted changes </a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
 <div class="panel-body">
-<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+<p>The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
 </div>
 </div>
 </div>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreeb47db7e65401219f3095b0c4d0e71e5afe55cf20targetblankb47db7ea"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/b47db7e65401219f3095b0c4d0e71e5afe55cf20" target="_blank">b47db7e</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreec811553addf687a880dbfc099fc4b74459348796targetblankc811553a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/c811553addf687a880dbfc099fc4b74459348796" target="_blank">c811553</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreeb47db7e65401219f3095b0c4d0e71e5afe55cf20targetblankb47db7ea" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreec811553addf687a880dbfc099fc4b74459348796targetblankc811553a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/b47db7e65401219f3095b0c4d0e71e5afe55cf20" target="_blank">b47db7e</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/c811553addf687a880dbfc099fc4b74459348796" target="_blank">c811553</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -420,6 +420,7 @@ Ignored files:
 Unstaged changes:
     Modified:   analysis/Simulate_Phenotypes.Rmd
     Modified:   analysis/Simulations_methods.Rmd
+    Modified:   analysis/index.Rmd
     Modified:   code/Simulate_Phenotypes/simgeffects_TS.R
     Modified:   code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit.R
     Modified:   snakefile
@@ -461,6 +462,23 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/c811553addf687a880dbfc099fc4b74459348796/docs/index.html" target="_blank">c811553</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2021-10-04
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -1083,13 +1101,13 @@ Start workflowr project.
 </ul>
 <p>The detailed methods and results for each simulation can be found <a href="Simulations_methods.html">here</a>.</p>
 <p>The pages below explain the 5 major steps of the pipeline:</p>
-<ul>
+<ol style="list-style-type: decimal">
 <li><a href="Simulate_Genotypes.html">Simulate Genotypes</a></li>
 <li><a href="Simulate_Phenotypes.html">Simulate Phenotypes</a></li>
 <li>Project Test Vector</li>
 <li>Run GWAS</li>
 <li>Polygenic Adaptation Test</li>
-</ul>
+</ol>
 <p>WIP links<br />
 Theory <a href="Theory.html">link</a><br />
 4popslit <a href="4Popsplit.html">link</a><br />

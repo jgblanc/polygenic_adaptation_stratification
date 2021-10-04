@@ -8,7 +8,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-## Guaranteeing unbiasedness in selection tests based on polygenic scores
+# Guaranteeing unbiasedness in selection tests based on polygenic scores
 
 Link to manuscript: https://www.overleaf.com/project/5ff4eec3e5325e0db841f6eb 
 
@@ -28,11 +28,11 @@ The detailed methods and results for each simulation can be found [here](Simulat
 
 The pages below explain the 5 major steps of the pipeline:  
 
-* [Simulate Genotypes](Simulate_Genotypes.html) 
-* [Simulate Phenotypes](Simulate_Phenotypes.html) 
-* Project Test Vector 
-* Run GWAS 
-* Polygenic Adaptation Test 
+1. [Simulate Genotypes](Simulate_Genotypes.html) 
+2. [Simulate Phenotypes](Simulate_Phenotypes.html) 
+3. Project Test Vector 
+4. Run GWAS 
+5. Polygenic Adaptation Test 
 
 
 
