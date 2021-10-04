@@ -29,7 +29,7 @@ The detailed methods and results for each simulation can be found [here](Simulat
 The pages below explain the 5 major steps of the pipeline:  
 
 * [Simulate Genotypes](Simulate_Genotypes.html) 
-* Simulate Phenotypes 
+* [Simulate Phenotypes](Simulate_Phenotypes.html) 
 * Project Test Vector 
 * Run GWAS 
 * Polygenic Adaptation Test 
