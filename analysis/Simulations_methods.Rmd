@@ -105,17 +105,6 @@ pl4 <- plot_data(nc, "navy")
 ggarrange(pl1, pl2, pl3, pl4)
 ```
 
-```{r}
-nc <- df %>% filter(type == "nc" | type == "nc-Tm") %>% filter(case == "C1") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
-nc$diff <- as.numeric(nc$diff)
-
-
-pl <- ggplot(data = nc, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+   xlab(TeX("$\\Delta_{CD}$")) + ylab("False Postive Rate") + theme_classic(base_size = 12) + scale_color_manual(values = c("goldenrod2", "navy"), labels = c("No control for shared structure", "Controlling for shared structure")) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) + theme(axis.title = element_text(size = 18),legend.position = c(0.3, 0.85))
-pl
-ggsave("~/Desktop/plot.png", pl, height = 5, width = 5)
-```
-
-
 
 ## Simple Grid 
 
@@ -235,7 +224,7 @@ df3 <- df2[,2:6] %>%  gather(variable, value, -c(LAT, LONG,env))
 ggplot(df3, aes(x = LONG, y = LAT, fill = value)) + geom_tile() + facet_wrap(env~variable) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
 ```
 
-
+#### 3 Pops  
 
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
 df <- fread("../code/plot/SimpleGrid_C3_T100_pgs.txt")
@@ -266,8 +255,6 @@ df2 <- df[,c(2,3,5,7)] %>%  gather(variable, value, -c(fp_strat, test, diff))
 df2$variants <- "all"
 ```
 
-
-
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
 df <- fread("../code/plot/SimpleGrid_T100_C3_One.txt")
 nc_one <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C3")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
@@ -295,7 +282,7 @@ ggplot(data = df3, aes(x = diff, y = fp_strat, color = variants)) + geom_point(s
 ```
 
 
-## Conference figures 
+
 
 ```{r,eval = FALSE, echo=FALSE}
 A <- rnorm(10000, 0, 1)
@@ -319,7 +306,7 @@ ggsave("~/Desktop/pgs_sep.png", height = 5, width = 7)
 #ggplot(df, aes(x =Var2,y=value, color = Var2)) + geom_jitter() + theme_classic(base_size = 16) + scale_color_manual(values = c("darkblue","forestgreen")) + xlab("Population") + ylab("Polygenic Score") + stat_summary(fun.y=mean, colour="black", geom="line", aes(group = 1), size = 3) + stat_summary(fun.y=mean, colour="black", geom="point", aes(group = 1), size = 3)
 ```
 
-```{r}
+```{r,eval = FALSE, echo=FALSE}
 D <- rnorm(10000, 0, 1)
 C <- rnorm(10000, 0, 1)
 

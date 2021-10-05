@@ -18,9 +18,10 @@ Please see (https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phe
 
 ### Draw effect sizes  
 
-This rule takes the target heritability as a parameter and will select a single site per chromosome and randomly draw its "true" effect size. If the heritability is set to zero then all sites will have an effect size of zero. Below we walk through an example to demonstrate how effect sizes are draw. 
+This rule takes the target heritability as a parameter and will select a single site per chromosome and randomly draw its "true" effect size. If the heritability is set to zero then all sites will have an effect size of zero. Below we walk through an example to demonstrate how effect sizes are drawn. 
 
 ```{python, eval=FALSE}
+# Snakemake rule
 rule draw_effect_sizes:
     input:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq"
@@ -63,7 +64,7 @@ for (i in 2:nchrms){
 }
 ```
 
-We now have a single independent causal variant per site. The next step is to draw an effect size for each variant such that $h^2 = 0.8$. Below we provide a brief explanation of the "alpha model" used to mimick the genetic architecture of height; please see for an explanation of the model and code [Zaidi and Mathieson](https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html) for more detail.
+We now have a single independent causal variant per chromosome. The next step is to draw an effect size for each variant such that $h^2 = 0.8$. Below we provide a brief explanation of the "alpha model" used to mimick the genetic architecture of height; please see for an explanation of the model and code [Zaidi and Mathieson](https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html) for more detail.
 
 Under this model effect sizes are drawn according to:  
 $$\beta_{\ell} \sim N(0, \sigma_{i} [p_{\ell} (1-p_{\ell})]^\alpha )$$
@@ -74,7 +75,7 @@ $\sigma_{i} =$ the frequency independent component of genetic variance asspciate
 $p_{\ell} =$ the frequency of the alternate allele at site $\ell$  
 $\alpha =$ a scaling factor that determines how effect size is related to frequency  
 
-First we calculate $\sigma_{i}$ based on the frequencies of the causal sites, the target heritability, and the chosen value of $\alphs$. Here we use $\alpha = 0.4$
+First we calculate $\sigma_{i}$ based on the frequencies of the causal sites, the target heritability, and the chosen value of $\alpha$. Here we use $\alpha = 0.4$
 ```{r}
 alpha = 0.4
 sigma2_l = h2 / sum( sapply( causal.variants$ALT_FREQS,function(x){
@@ -95,7 +96,16 @@ plot(df$maf, abs(causal.variants$beta), xlab = "Minor allele frequency", ylab = 
 
 #### True signal
 
-TBD
+```{r, eval=FALSE}
+# Create correlation between effect size and pop ID
+for (i in 1:nrow(causal.variants)){
+  b <- causal.variants[i,"beta"]
+  if (diff[i] >= 0) {
+    causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c(0.25, 0.75)) * abs(b)
+  }
+}
+```
+
 
 ### Calculate genetic values  
 
