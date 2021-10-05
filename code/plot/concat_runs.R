@@ -24,6 +24,6 @@ df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/4PopSplit
 
 fwrite(df, "4PopSplit_F100_true.txt", row.names=F,quote=F,sep="\t", col.names = T)
 
-nc <- df %>% filter(type == "nc"| type == "nc-Tm")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax))
+nc <- df %>% filter(type == "c"| type == "c-Tm")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax))
 
 print(nc)

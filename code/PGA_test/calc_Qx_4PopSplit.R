@@ -71,9 +71,14 @@ stand_PGS <- function(prs, gv_file) {
   colnames(df) <- c("STRAT", "GV")
 
   # Standardize
+  #mprs.adj = df%>%
+  #  mutate(strat.adjusted = STRAT-GV) %>%
+  #  ungroup() %>% select("strat.adjusted")
+
   mprs.adj = df%>%
-    mutate(strat.adjusted = STRAT-GV) %>%
+    mutate(strat.adjusted = STRAT) %>%
     ungroup() %>% select("strat.adjusted")
+
 
   return(mprs.adj)
 }
@@ -174,6 +179,7 @@ out[3, ] <- main(nc_file, Va_all[3,])
 out[4, ] <- main(c_Tm_file, Va_Tm_all[1,])
 out[5, ] <- main(cp_Tm_file, Va_Tm_all[2,])
 out[6, ] <- main(nc_Tm_file, Va_Tm_all[3,])
+print(out)
 
 # Save output
 colnames(out) <- c("Qx", "P-Chi", "P-EN", "Ax", "P-Ax")

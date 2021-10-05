@@ -33,7 +33,7 @@ print(paste("Alpha is", alpha))
 geno_prefix = args[6]
 
 # pop file
-popflie = args[7]
+popfile = args[7]
 
 # load variant frequency file
 p = fread(freq_file)

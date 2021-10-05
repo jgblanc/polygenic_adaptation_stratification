@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_true28
-#SBATCH --output=logs/4PopSplit_true28.out
-#SBATCH --error=logs/4PopSplit_true28.err
-#SBATCH --time=02:00:00
+#SBATCH --job-name=4PopSplit_TS
+#SBATCH --output=logs/4PopSplit_TS.out
+#SBATCH --error=logs/4PopSplit_TS.err
+#SBATCH --time=04:00:00
 #SBATCH --partition=broadwl
-#SBATCH --nodes=5
-#SBATCH --ntasks-per-node=4
-#SBATCH --mem-per-cpu=2GB
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem-per-cpu=6GB
 
 module load python/cpython-3.7.0
 module load R
