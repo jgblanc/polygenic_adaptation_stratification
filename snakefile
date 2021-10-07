@@ -32,7 +32,8 @@ def get_seed1(rep, h2):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Qx.txt",rep=REP, model = MODEL, h2 = HERITABILITY, env=ENV, config=CONFIG)
+#        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Qx.txt",rep=REP, model = MODEL, h2 = #HERITABILITY, env=ENV, config=CONFIG)
+          expand("output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/causal_effects_freq.txt",rep=REP, model = MODEL, h2 = #HERITABILITY config=CONFIG)
 
 # Simluate Genotypes
 
@@ -328,6 +329,15 @@ rule simulate_phenotype_4PopSplit:
         seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2,wildcards.env)
     shell:
         "Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
+
+rule calc_freq_diff:
+    input:
+        effects="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt",
+        pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
+    output:
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/causal_effects_freq.txt"
+    shell:
+        "Rscript code/Simulate_Phenotypes/4PopSplit_freq_diff.R {input.effects} {input.pops} {output} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common"
 
 
 # Run GWAS

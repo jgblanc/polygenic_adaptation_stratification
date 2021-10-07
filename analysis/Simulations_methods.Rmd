@@ -281,6 +281,24 @@ df3 <- df2_all %>% filter(value == "nc-Tm") %>% filter(diff == 0 | diff == 0.3)
 ggplot(data = df3, aes(x = diff, y = fp_strat, color = variants)) + geom_point(size =3) + facet_wrap(~test) + xlab("Env") + ylab("False Postive Rate") + theme_classic(base_size = 14) + scale_color_manual(values = c("darkred", "forestgreen")) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="Variants") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) 
 ```
 
+### True Signal 
+
+
+```{r}
+df <- fread("../code/plot/4PopSplit_F100_true.txt")
+nc <- df %>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff) 
+
+ggplot(data = nc, aes(x = type, y = fp_strat, fill = type)) + geom_col() + facet_wrap(~case) + xlab("Type of GWAS") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS type") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) 
+```
+
+
+```{r}
+betas <- fread("../code/plot/4PopSplit_true_betas.txt")
+
+casual 
+```
+
 
 
 
