@@ -32,8 +32,8 @@ def get_seed1(rep, h2):
 
 rule all:
     input:
-#        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Qx.txt",rep=REP, model = MODEL, h2 = #HERITABILITY, env=ENV, config=CONFIG)
-          expand("output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/causal_effects_freq.txt",rep=REP, model = MODEL, h2 = #HERITABILITY config=CONFIG)
+         expand("output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/causal_effects_freq.txt",rep=REP, model = MODEL, h2 = HERITABILITY, config=CONFIG)
+
 
 # Simluate Genotypes
 

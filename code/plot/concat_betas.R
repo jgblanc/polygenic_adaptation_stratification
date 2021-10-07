@@ -26,8 +26,8 @@ agg_all_data <- function(rep, dir_path, case, h2, env) {
   c_Tm <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", env, "/", "genos-gwas_common-Tm.c.betas"))
   c_Tm$type <- "c-Tm"
  
-  true <- fread(paste0('../../output/Simulate_Phenotypes/4PopSplit/', rep, "/", case, "/", h2, "/", "genos-gwas_common.effects.txt"))
-  colnames(true) <- c("ID", "A1", "BETA_Strat")
+  true <- fread(paste0('../../output/Simulate_Phenotypes/4PopSplit/', rep, "/", case, "/", h2, "/", "causal_effects_freq.txt"))
+  colnames(true) <- c("ID", "A1", "BETA_Strat", "diff_test", "diff_gwas")
   true$type <- "true"
  
   df <- bind_rows(nc, c, nc_Tm, c_Tm, true)

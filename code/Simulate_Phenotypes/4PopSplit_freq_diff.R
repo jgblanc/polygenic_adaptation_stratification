@@ -1,6 +1,5 @@
 args=commandArgs(TRUE)
 
-if(length(args)<4){stop("Rscript simphenotype_ge_3.R <frequency file> <output_file> <seed>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -12,15 +11,15 @@ suppressWarnings(suppressMessages({
 
 #frequency file
 effects_file=args[1]
-print(paste("The effects file is",freq_file))
+print(paste("The effects file is",effects_file))
 
 #pop file
-effects_file=args[2]
-print(paste("The pop file is",freq_file))
+pop_file=args[2]
+print(paste("The pop file is",pop_file))
 
-#output file - genetic effects
-effects_file = args[3]
-print(paste("The output file is",effects_file))
+#output file 
+out_file = args[3]
+print(paste("The output file is",out_file))
 
 #test genotypes prefix
 geno_prefix_test = args[4]
@@ -49,7 +48,7 @@ beta_df <- fread(effects_file)
 colnames(beta_df) <- c("ID", "A1", "BETA")
 
 # Read in population ID info
-pop <- fread(popfile, header = F)
+pop <- fread(pop_file, header = F)
 
 # Get number of individuals in each test population
 n1 <- as.numeric(count(pop,V3)[3,2])
@@ -82,7 +81,7 @@ diff_gwas <- p1 - p2
 # Create output table
 df <- bind_cols(beta_df, diff_test, diff_gwas)
 colnames(df) <- c("ID", "A1", "BETA", "Diff_Test", "Diff_GWAS")
-fwrite(df, row.names=F,col.names=F,quote=F,sep="\t")
+fwrite(df, out_file,row.names=F,col.names=T,quote=F,sep="\t")
 
 
 
