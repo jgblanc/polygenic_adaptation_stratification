@@ -8,7 +8,7 @@ for i in range(1,101):
   REP.append("F"+str(i))
 HERITABILITY = ["true-0.8"]
 #ENV = ["env-0.0","env-0.005", "env-0.01","env-0.015", "env-0.02","env-0.025", "env-0.03","env-0.035", "env-0.04","env-0.045", "env-0.05", "env-0.055","env-0.06"]
-ENV = ["env-0.0"]
+ENV = ["env-0.0", "env-0.3"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -32,7 +32,7 @@ def get_seed1(rep, h2):
 
 rule all:
     input:
-         expand("output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/causal_effects_freq.txt",rep=REP, model = MODEL, h2 = HERITABILITY, config=CONFIG)
+         expand("output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx.txt",rep=REP, model = MODEL, h2 = HERITABILITY, config=CONFIG, env=ENV)
 
 
 # Simluate Genotypes

@@ -8,7 +8,7 @@ print(reps)
 h2 <- "true-0.8"
 #envs <- c("env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.1")
 #envs <- c("env-0.0","env-0.005", "env-0.01","env-0.015", "env-0.02","env-0.025", "env-0.03","env-0.035", "env-0.04","env-0.045", "env-0.05", "env-0.055","env-0.06")
-envs <- c('env-0.0')
+envs <- c('env-0.0', 'env-0.3')
 cases <- c("C1","C2")
 dat <- expand.grid(reps, cases, h2, envs)
 colnames(dat) <- c("rep", "case", "h2", "env")
