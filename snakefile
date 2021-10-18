@@ -6,9 +6,10 @@ MODEL=["4PopSplit"]
 REP = []
 for i in range(1,101):
   REP.append("F"+str(i))
-HERITABILITY = ["true-0.8"]
+HERITABILITY = ["rerunH2-0.8"]
 #ENV = ["env-0.0","env-0.005", "env-0.01","env-0.015", "env-0.02","env-0.025", "env-0.03","env-0.035", "env-0.04","env-0.045", "env-0.05", "env-0.055","env-0.06"]
-ENV = ["env-0.0", "env-0.3"]
+#ENV = ["env-0.0", "env-0.1", "env-0.2", "env-0.3", "env-0.4", "env-0.5","env-0.6","env-0.7", "env-0.8", "env-0.9", "env-1.0"]
+ENV=["env-0.0"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -32,8 +33,7 @@ def get_seed1(rep, h2):
 
 rule all:
     input:
-         expand("output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Qx.txt",rep=REP, model = MODEL, h2 = HERITABILITY, config=CONFIG, env=ENV)
-
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Qx.txt",rep=REP, model = MODEL, h2 = HERITABILITY, env=ENV, config=CONFIG)
 
 # Simluate Genotypes
 
@@ -293,15 +293,14 @@ rule aggregate_genotypes:
 
 rule draw_effect_sizes:
     input:
-        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq",
-        pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
+        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq"
     output:
         "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
         seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2)
     shell:
-        "Rscript code/Simulate_Phenotypes/simgeffects_TS.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops}"
+        "Rscript code/Simulate_Phenotypes/simgeffects.R {input} {output} {params.her} 0.4 {params.seed}"
 
 rule generate_genetic_values:
     input:
@@ -329,15 +328,6 @@ rule simulate_phenotype_4PopSplit:
         seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2,wildcards.env)
     shell:
         "Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
-
-rule calc_freq_diff:
-    input:
-        effects="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt",
-        pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
-    output:
-        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/causal_effects_freq.txt"
-    shell:
-        "Rscript code/Simulate_Phenotypes/4PopSplit_freq_diff.R {input.effects} {input.pops} {output} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common"
 
 
 # Run GWAS
@@ -585,7 +575,7 @@ rule Calc_Qx:
         num=NUM_RESAMPLE
     shell:
       """
-          Rscript code/PGA_test/calc_Qx_4PopSplit.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx} {output.pgs}
+          Rscript code/PGA_test/calc_Qx_4PopSplit.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx} {output.pgs} 
 	      """
 
 # Remove non-end files
