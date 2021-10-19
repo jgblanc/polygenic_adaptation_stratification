@@ -56,10 +56,8 @@ prs$env = scale(prs$env, scale = TRUE) * (sqrt(1 - h2))
 prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env + env_s, env ))
 
 # Calculate average phenotype
-prs = prs %>%
-  mutate(pheno_strat = prs + env)
-Z1 = prs %>% group_by(pop) %>% summarise(avg = mean(pheno_strat)) %>% filter(pop == pops[1]) %>% pull(avg)
-Z2 = prs %>% group_by(pop) %>% summarise(avg = mean(pheno_strat)) %>% filter(pop == pops[2]) %>% pull(avg)
+Z1 = prs %>% group_by(pop) %>% summarise(avg = mean(env)) %>% filter(pop == pops[1]) %>% pull(avg)
+Z2 = prs %>% group_by(pop) %>% summarise(avg = mean(env)) %>% filter(pop == pops[2]) %>% pull(avg)
 
 # Rescale averages
 N1 = nrow(prs %>% filter(pop == pops[1]))
@@ -70,7 +68,12 @@ Z2_gwas = sqrt(N2/N2_gwas) * Z2
 # Recalulate individual phenotypes
 delta1 = Z1 - Z1_gwas
 delta2 = Z2 - Z2_gwas
-prs = prs %>% group_by(pop) %>% mutate(pheno_strat = ifelse(pop == pops[1], pheno_strat - delta1, pheno_strat - delta2))
+prs = prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env - delta1, env - delta2))
+
+# Add environmental effect to
+prs = prs %>%
+  mutate(pheno_strat = prs + env)
+
 
 print(paste("h2 :",
             round(cor(prs$prs,
