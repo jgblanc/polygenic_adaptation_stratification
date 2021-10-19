@@ -1,12 +1,12 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1","C2"]
+CONFIG=["C1"]
 MODEL=["4PopSplit"]
 REP = []
 for i in range(1,101):
   REP.append("F"+str(i))
-HERITABILITY = ["rerunH2-0.8"]
+HERITABILITY = ["rerun5H2-0.8"]
 #ENV = ["env-0.0","env-0.005", "env-0.01","env-0.015", "env-0.02","env-0.025", "env-0.03","env-0.035", "env-0.04","env-0.045", "env-0.05", "env-0.055","env-0.06"]
 #ENV = ["env-0.0", "env-0.1", "env-0.2", "env-0.3", "env-0.4", "env-0.5","env-0.6","env-0.7", "env-0.8", "env-0.9", "env-1.0"]
 ENV=["env-0.0"]
