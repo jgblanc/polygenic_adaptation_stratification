@@ -286,7 +286,15 @@ ggplot(data = df3, aes(x = diff, y = fp_strat, color = variants)) + geom_point(s
 
 ```{r}
 df <- fread("../code/plot/4PopSplit_F100_true.txt")
-nc <- df %>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc <- df %>% filter(env == "env-0.0")%>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff) 
+
+ggplot(data = nc, aes(x = type, y = fp_strat, fill = type)) + geom_col() + facet_wrap(~case) + xlab("Type of GWAS") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS type") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) 
+```
+
+
+```{r}
+nc <- df %>% filter(env == "env-0.3")%>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
 nc$diff <- as.numeric(nc$diff) 
 
 ggplot(data = nc, aes(x = type, y = fp_strat, fill = type)) + geom_col() + facet_wrap(~case) + xlab("Type of GWAS") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + labs(colour="GWAS type") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) 
@@ -296,8 +304,47 @@ ggplot(data = nc, aes(x = type, y = fp_strat, fill = type)) + geom_col() + facet
 ```{r}
 betas <- fread("../code/plot/4PopSplit_true_betas.txt")
 
-casual 
+causal_estimates <- betas %>% filter(type == "c" | type == "c-Tm") %>% select(-c("diff_test", "diff_gwas"))
+true_es <- betas %>% filter(type == "true") %>% select(-"type")
+colnames(true_es)[7] <- "BETA_true"
+
+df <- right_join(true_es, causal_estimates)
 ```
+
+
+
+```{r}
+df %>% filter(type == "c") %>% ggplot(aes(x = diff_test, y = BETA_true)) + geom_point() + geom_smooth(method='lm', formula= y~x) + facet_wrap(~case) + xlab("freq(C) - freq(D)") + ylab("True Beta")+ stat_cor(method = "pearson", r.accuracy = 0.01)
+```
+
+```{r}
+df %>% ggplot(aes(x = diff_test, y = BETA_Strat - BETA_true)) + geom_point() + geom_smooth(method='lm', formula= y~x) + facet_grid(type~case)+ stat_cor(method = "pearson", r.accuracy = 0.01) + xlab("freq(C) - freq(D)") + ylab("BETA_est - BETA_true")
+```
+
+```{r}
+df %>% ggplot(aes(x = BETA_true, y = BETA_Strat)) + geom_point() + geom_smooth(method='lm', formula= y~x) + facet_grid(type~case) + stat_cor(method = "pearson", r.accuracy = 0.01) + xlab("BETA_true") + ylab("BETA_est")
+```
+
+```{r}
+b <- df %>% filter(type == "c") %>% select(ID,BETA_Strat, case, rep) %>% mutate(no_correction = BETA_Strat) %>% select(-BETA_Strat)
+b_tm <- df %>% filter(type == "c-Tm") %>% select(ID,BETA_Strat, case, rep) %>% mutate(Tm = BETA_Strat)%>% select(-BETA_Strat)
+df1 <- inner_join(b, b_tm)
+
+df1 %>% ggplot(aes(x = no_correction, y=Tm)) + geom_point() + geom_smooth(method='lm', formula= y~x) + facet_wrap(~case) + stat_cor(method = "pearson", r.accuracy = 0.0001) + xlab("BETA_no_correction") + ylab("BETA_Tm")
+```
+
+```{r}
+betas <- fread("../code/plot/4PopSplit_true_betas.txt")
+
+noncausal_estimates <- betas %>% filter(type == "nc" | type == "nc-Tm") %>% select(-c("diff_test", "diff_gwas")) %>% separate(ID, c("chr", "bp", "a1", "a2")) 
+colnames(noncausal_estimates)[10] <- "BETA"
+true_es <- betas %>% filter(type == "true") %>% separate(ID, c("chr", "bp", "a1", "a2")) 
+colnames(true_es)[10] <- "BETA"
+
+df <- bind_rows(true_es, noncausal_estimates)
+df %>% filter(case == "C1" & rep == "F1") %>% ggplot(aes(x = bp, y = BETA, color = type)) + geom_point() + facet_grid(~chr) 
+```
+
 
 
 
