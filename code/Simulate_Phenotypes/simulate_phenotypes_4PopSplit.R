@@ -16,7 +16,7 @@ popfile = args[2] # pop file from msprime simulation
 output_file = args[3] #name of output file
 h2 = as.numeric(args[4])
 env_s=as.numeric(args[5])
-set.seed(as.numeric(args[6]))
+#set.seed(as.numeric(args[6]))
 
 print(as.numeric(env_s))
 print(as.numeric(h2))
