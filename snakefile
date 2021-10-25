@@ -6,13 +6,14 @@ MODEL=["4PopSplit"]
 REP = []
 for i in range(1,101):
   REP.append("T"+str(i))
-HERITABILITY = ["h2-0.3"]
-#ENV = ["env-0.0","env-0.005", "env-0.01","env-0.015", "env-0.02","env-0.025", "env-0.03","env-0.035", "env-0.04","env-0.045", "env-0.05", "env-0.055","env-0.06"]
-ENV = ["env-0.0", "env-1.0", "env-2.0", "env-3.0", "env-4.0", "env-5.0","env-6.0","env-7.0", "env-8.0", "env-9.0", "env-10.0"]
-#ENV=["env-1.0"]
+HERITABILITY = ["true-0.3"]
+#ENV = ["env-0.0", "env-1.0", "env-2.0", "env-3.0", "env-4.0", "env-5.0","env-6.0","env-7.0", "env-8.0", "env-9.0", "env-10.0"]
+ENV=["env-0.0"]
+TS=["p-0.5", "p-1.0"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
+STRAT_A = 1
 
 def get_params(x):
   out = x.split("-")[1]
@@ -293,35 +294,38 @@ rule aggregate_genotypes:
 
 rule draw_effect_sizes:
     input:
-        "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq"
+        freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq",
+        pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:
-        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.effects.txt"
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{ts}/genos-gwas_common.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
         seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2)
+        prob = lambda wildcards: get_params(wildcards.ts)
+        direction = STRAT_A
     shell:
-        "Rscript code/Simulate_Phenotypes/simgeffects.R {input} {output} {params.her} 0.4 {params.seed}"
+        "Rscript code/Simulate_Phenotypes/simgeffects_TS.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob} {params.direction}"
 
 rule generate_genetic_values:
     input:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar",
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen",
-        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.effects.txt"
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt"
     output:
-        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.gvalue.sscore"
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.gvalue.sscore"
     shell:
         "plink2 \
 	      --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	            --out output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common.gvalue \
-		          --score output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common.effects.txt cols=dosagesum,scoresums"
+	            --out output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common.gvalue \
+		          --score output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common.effects.txt cols=dosagesum,scoresums"
 
 rule simulate_phenotype_4PopSplit:
     input:
-        gvalues="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{env}/genos-gwas_common.gvalue.sscore",
+        gvalues="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.gvalue.sscore",
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:
-        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.phenos.txt"
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
         en = lambda wildcards: get_params(wildcards.env),
@@ -336,9 +340,9 @@ rule gwas_no_correction:
     input:
         genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq",
-        pheno="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.phenos.txt"
+        pheno="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt"
     output:
-        "output/Run_GWAS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.pheno_strat.glm.linear"
+        "output/Run_GWAS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat.glm.linear"
     shell:
         "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
@@ -346,7 +350,7 @@ rule gwas_no_correction:
         --glm allow-no-covars\
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
-        --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
+        --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common"
 
 
 
@@ -354,16 +358,16 @@ rule gwas_no_correction:
 
 rule pick_SNPS:
     input:
-        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.effects.txt",
-        gwas_strat="output/Run_GWAS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.pheno_strat.glm.linear"
+        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
+        gwas_strat="output/Run_GWAS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat.glm.linear"
     output:
-        "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.betas",
-        "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.p.betas",
-        "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.nc.betas"
+        "output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.betas",
+        "output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.p.betas",
+        "output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.nc.betas"
     params:
         pt = PVALUE_THRESHOLD
     shell:
-        "Rscript code/PRS/clump_strat_only.R {input.causal_effect} output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common {params.pt} output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
+        "Rscript code/PRS/clump_strat_only.R {input.causal_effect} output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common {params.pt} output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common"
 
 # Get allele freq in test panel
 
@@ -385,17 +389,17 @@ rule test_snp_freq:
 rule calc_true_gv:
     input:
         genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
-        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.effects.txt",
+        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
         freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq"
     output:
-        "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.true.sscore",
+        "output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-test_common.true.sscore",
     shell:
         """
         plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
         --read-freq {input.freq} \
         --score {input.causal_effect} cols=dosagesum,scoresums \
-        --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-test_common.true \
+        --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-test_common.true \
         """
 
 ## Include Tm as a covariate
@@ -482,10 +486,10 @@ rule gwas_Tm:
     input:
         genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq",
-        pheno="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.phenos.txt",
+        pheno="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt",
         Tm="output/Calculate_Tm/{model}/{rep}/{config}/Tm_covars.txt"
     output:
-        "output/Run_GWAS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
+        "output/Run_GWAS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
     shell:
         "plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
@@ -495,22 +499,22 @@ rule gwas_Tm:
         --covar-col-nums 3 \
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
-        --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-Tm"
+        --out output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-Tm"
 
 # Remake PRS
 
 rule pick_SNPS_Tm:
     input:
-        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.effects.txt",
-        gwas_strat="output/Run_GWAS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
+        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
+        gwas_strat="output/Run_GWAS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
     output:
-        "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.betas",
-        "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.p.betas",
-        "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.nc.betas"
+        "output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.betas",
+        "output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.p.betas",
+        "output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.nc.betas"
     params:
         pt = PVALUE_THRESHOLD
     shell:
-        "Rscript code/PRS/clump_strat_only.R {input.causal_effect} output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-Tm {params.pt} output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-Tm"
+        "Rscript code/PRS/clump_strat_only.R {input.causal_effect} output/Run_GWAS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-Tm {params.pt} output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-Tm"
 
 
 # Do polygenic adaptation test
@@ -530,11 +534,11 @@ rule calc_lambdaT:
 rule calc_Va:
     input:
         freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq",
-        c="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.betas",
-        cp="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.p.betas",
-        nc="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.nc.betas"
+        c="output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.betas",
+        cp="output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.p.betas",
+        nc="output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.nc.betas"
     output:
-        "output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va.txt"
+        "output/PGA_test/{model}/{rep}/{config}/{h2}/{ts}/{env}/Va.txt"
     shell:
       """
           Rscript code/PGA_test/calc_Va_strat.R {input.freq} {input.c} {input.cp} {input.nc} {output}
@@ -543,11 +547,11 @@ rule calc_Va:
 rule calc_Va_Tm:
     input:
         freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq",
-        c="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.betas",
-        cp="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.p.betas",
-        nc="output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.nc.betas"
+        c="output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.betas",
+        cp="output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.p.betas",
+        nc="output/PRS/{model}/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.nc.betas"
     output:
-        "output/PGA_test/{model}/{rep}/{config}/{h2}/{env}/Va-Tm.txt"
+        "output/PGA_test/{model}/{rep}/{config}/{h2}/{ts}/{env}/Va-Tm.txt"
     shell:
       """
           Rscript code/PGA_test/calc_Va_strat.R {input.freq} {input.c} {input.cp} {input.nc} {output}
@@ -555,27 +559,27 @@ rule calc_Va_Tm:
 
 rule Calc_Qx:
     input:
-        c="output/PRS/4PopSplit/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.betas",
-        cp="output/PRS/4PopSplit/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.p.betas",
-        nc="output/PRS/4PopSplit/{rep}/{config}/{h2}/{env}/genos-gwas_common.nc.betas",
-        c_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.betas",
-        cp_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.p.betas",
-        nc_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.nc.betas",
+        c="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.betas",
+        cp="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.p.betas",
+        nc="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.nc.betas",
+        c_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.betas",
+        cp_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.p.betas",
+        nc_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.nc.betas",
         genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
         lambda_T="output/Calculate_Tm/4PopSplit/{rep}/{config}/Lambda_T.txt",
-        Va="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Va.txt",
-        Va_Tm="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Va-Tm.txt",
-        true="output/PRS/4PopSplit/{rep}/{config}/{h2}/{env}/genos-test_common.true.sscore",
+        Va="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Va.txt",
+        Va_Tm="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Va-Tm.txt",
+        true="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-test_common.true.sscore",
         Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:
-        qx="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Qx.txt",
-        pgs="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/PGS.txt"
+        qx="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",
+        pgs="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/PGS.txt"
     params:
         num=NUM_RESAMPLE
     shell:
       """
-          Rscript code/PGA_test/calc_Qx_4PopSplit.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx} {output.pgs} 
+          Rscript code/PGA_test/calc_Qx_4PopSplit.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx} {output.pgs}
 	      """
 
 # Remove non-end files

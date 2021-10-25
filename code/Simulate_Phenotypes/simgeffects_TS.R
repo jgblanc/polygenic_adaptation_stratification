@@ -1,6 +1,6 @@
 args=commandArgs(TRUE)
 
-if(length(args)<3){stop("Rscript simphenotype_ge_3.R <frequency file> <output_file> <seed>")}
+if(length(args)<9){stop("Rscript simphenotype_ge_3.R <frequency file> <output_file> <seed>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -34,6 +34,13 @@ geno_prefix = args[6]
 
 # pop file
 popfile = args[7]
+
+# probability effect size is positive given pC - pD is positive
+prob = as.numeric(args[8])
+print(paste("Prob is", prob))
+
+# Direction of true signal (1 = positive correlation between effect size and pC - pD; 0 = negative correlation between effect size and pC - pD)
+direction = as.numeric(args[9])
 
 # load variant frequency file
 p = fread(freq_file)
@@ -139,12 +146,29 @@ p2 <- colMeans(G[(n1+1):(n1+n2),])
 diff <- p1 - p2
 
 # Create correlation between effect size and pop ID
-for (i in 1:nrow(causal.variants)){
-  b <- causal.variants[i,"beta"]
-  if (diff[i] >= 0) {
-    causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c(0.25, 0.75)) * abs(b)
+if (direction == 1) {
+  for (i in 1:nrow(causal.variants)){
+    b <- causal.variants[i,"beta"]
+    if (diff[i] >= 0) {
+      causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c((1-prob), prob)) * abs(b)
+    } else {
+      causal.variants[i,"beta"] <- sample(c(1, -1),1, prob = c((1-prob), prob)) * abs(b)
+    }
   }
-}
+} else {
+    for (i in 1:nrow(causal.variants)){
+      b <- causal.variants[i,"beta"]
+      if (diff[i] >= 0) {
+        causal.variants[i,"beta"] <- sample(c(1, -1),1, prob = c((1-prob), prob)) * abs(b)
+      } else {
+        causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c((1-prob), prob)) * abs(b)
+      }
+    }
+  }
+
+
+
+
 
 #save the effect sizes to file and use plink2 to generate PRS
 fwrite(causal.variants%>%

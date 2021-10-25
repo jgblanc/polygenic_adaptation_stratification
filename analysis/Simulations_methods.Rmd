@@ -345,6 +345,28 @@ df <- bind_rows(true_es, noncausal_estimates)
 df %>% filter(case == "C1" & rep == "F1") %>% ggplot(aes(x = bp, y = BETA, color = type)) + geom_point() + facet_grid(~chr) 
 ```
 
+## Genetic and Evironmental stratification 
+
+$$h^2 = 0.3$$
+$$F_{st} \approx 0.005$$
+
+```{r}
+df <- fread("../code/plot/4PopSplit_T100_h23.txt")
+nc <- df %>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff) 
+nc <- nc %>% mutate(causal = case_when((type == "c" | type == "c-Tm") ~ T, (type == "nc" | type == "nc-Tm") ~ F)) %>% mutate(covariate_included = case_when((type == "c" | type == "nc") ~ F, (type == "c-Tm" | type == "nc-Tm") ~ T))
+
+ggplot(data = nc, aes(x = diff, y = fp_strat, color = covariate_included)) + geom_point(size =3)+   xlab(TeX("Environmental Shift")) + ylab("False Postive Rate") + theme_classic(base_size = 12)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) + theme( axis.title = element_text(size = 12),legend.position = "bottom") + facet_wrap(~causal) + scale_color_manual(values = c("navy", "goldenrod"))
+
+```
+
+
+
+
+
+
+
+
 
 
 
