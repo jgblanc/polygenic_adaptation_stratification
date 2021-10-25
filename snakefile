@@ -2,10 +2,9 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-MODEL=["4PopSplit"]
-REP = []
-for i in range(1,101):
-  REP.append("T"+str(i))
+REP = ["T1"]
+#for i in range(1,101):
+#  REP.append("T"+str(i))
 HERITABILITY = ["true-0.3"]
 #ENV = ["env-0.0", "env-1.0", "env-2.0", "env-3.0", "env-4.0", "env-5.0","env-6.0","env-7.0", "env-8.0", "env-9.0", "env-10.0"]
 ENV=["env-0.0"]
@@ -34,7 +33,7 @@ def get_seed1(rep, h2):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Qx.txt",rep=REP, model = MODEL, h2 = HERITABILITY, env=ENV, config=CONFIG)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, h2 = HERITABILITY, env=ENV, config=CONFIG, ts=TS)
 
 # Simluate Genotypes
 
@@ -63,38 +62,38 @@ rule simulate_genotypes_4popsplit:
 
 rule format_VCF:
     input:
-        "output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.vcf"
+        "output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.vcf"
     output:
-        gz="output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz"
-	      #csi="output/Simulate_Genotypes/{model}/{rep}/genos_{chr}.ids.vcf.gz.csi"
+        gz="output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.ids.vcf.gz"
+	      #csi="output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.ids.vcf.gz.csi"
     shell:
         """
-	      head -n6 {input} > output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt
-	            cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt <(cat output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/genos_{wildcards.chr}.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
+	      head -n6 {input} > output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/header_{wildcards.chr}.txt
+	            cat output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/header_{wildcards.chr}.txt <(cat output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos_{wildcards.chr}.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
 		          #bcftools index {output.gz}
-			        rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/header_{wildcards.chr}.txt
+			        rm output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/header_{wildcards.chr}.txt
 				      """
 
 rule concat_vcfs:
     input:
-        expand("output/Simulate_Genotypes/{{model}}/{{rep}}/genos_{chr}.ids.vcf.gz", chr=CHR)
+        expand("output/Simulate_Genotypes/4PopSplit/{{rep}}/genos_{chr}.ids.vcf.gz", chr=CHR)
     output:
-        "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
+        "output/Simulate_Genotypes/4PopSplit/{rep}/genos.ids.vcf.gz"
     shell:
         """
-        bcftools concat {input} -o output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/temp.vcf.gz -O z
-        bcftools annotate --rename-chrs code/Simulate_Genotypes/convert_chr.txt output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/temp.vcf.gz -o {output} -O z
-        rm output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/temp.vcf.gz
+        bcftools concat {input} -o output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/temp.vcf.gz -O z
+        bcftools annotate --rename-chrs code/Simulate_Genotypes/convert_chr.txt output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/temp.vcf.gz -o {output} -O z
+        rm output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/temp.vcf.gz
         """
 
 
 rule convert_vcf_to_plink:
     input:
-        "output/Simulate_Genotypes/{model}/{rep}/genos.ids.vcf.gz"
+        "output/Simulate_Genotypes/4PopSplit/{rep}/genos.ids.vcf.gz"
     output:
-        "output/Simulate_Genotypes/{model}/{rep}/genos.psam",
-	"output/Simulate_Genotypes/{model}/{rep}/genos.pgen",
-      	"output/Simulate_Genotypes/{model}/{rep}/genos.pvar"
+        "output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam",
+	"output/Simulate_Genotypes/4PopSplit/{rep}/genos.pgen",
+      	"output/Simulate_Genotypes4PopSplit/{rep}/genos.pvar"
     shell:
         "plink2 \
         --double-id \
@@ -300,8 +299,8 @@ rule draw_effect_sizes:
         "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{ts}/genos-gwas_common.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
-        seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2)
-        prob = lambda wildcards: get_params(wildcards.ts)
+        seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2),
+        prob = lambda wildcards: get_params(wildcards.ts),
         direction = STRAT_A
     shell:
         "Rscript code/Simulate_Phenotypes/simgeffects_TS.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob} {params.direction}"
