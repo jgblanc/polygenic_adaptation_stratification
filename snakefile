@@ -5,11 +5,11 @@ CONFIG=["C1"]
 MODEL=["4PopSplit"]
 REP = []
 for i in range(1,101):
-  REP.append("F"+str(i))
-HERITABILITY = ["rerun5H2-0.8"]
+  REP.append("T"+str(i))
+HERITABILITY = ["h2-0.3"]
 #ENV = ["env-0.0","env-0.005", "env-0.01","env-0.015", "env-0.02","env-0.025", "env-0.03","env-0.035", "env-0.04","env-0.045", "env-0.05", "env-0.055","env-0.06"]
-#ENV = ["env-0.0", "env-0.1", "env-0.2", "env-0.3", "env-0.4", "env-0.5","env-0.6","env-0.7", "env-0.8", "env-0.9", "env-1.0"]
-ENV=["env-0.0"]
+ENV = ["env-0.0", "env-1.0", "env-2.0", "env-3.0", "env-4.0", "env-5.0","env-6.0","env-7.0", "env-8.0", "env-9.0", "env-10.0"]
+#ENV=["env-1.0"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -56,8 +56,8 @@ rule simulate_genotypes_4popsplit:
 	       -b 2000 \
 	       -c 2000 \
 	       -d 2000 \
-         -s1 22000 \
-          -s2 11000 \
+         -s1 4400 \
+          -s2 2200 \
           -L 100000"
 
 rule format_VCF:
@@ -295,7 +295,7 @@ rule draw_effect_sizes:
     input:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq"
     output:
-        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt"
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
         seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2)
@@ -307,18 +307,18 @@ rule generate_genetic_values:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar",
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen",
-        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt"
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.effects.txt"
     output:
-        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore"
+        "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.gvalue.sscore"
     shell:
         "plink2 \
 	      --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	            --out output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-gwas_common.gvalue \
-		          --score output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-gwas_common.effects.txt cols=dosagesum,scoresums"
+	            --out output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common.gvalue \
+		          --score output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common.effects.txt cols=dosagesum,scoresums"
 
 rule simulate_phenotype_4PopSplit:
     input:
-        gvalues="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore",
+        gvalues="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{env}/genos-gwas_common.gvalue.sscore",
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:
         "output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.phenos.txt"
@@ -354,7 +354,7 @@ rule gwas_no_correction:
 
 rule pick_SNPS:
     input:
-        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt",
+        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.effects.txt",
         gwas_strat="output/Run_GWAS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.pheno_strat.glm.linear"
     output:
         "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.betas",
@@ -385,17 +385,17 @@ rule test_snp_freq:
 rule calc_true_gv:
     input:
         genos="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.psam",
-        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt",
+        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.effects.txt",
         freq="output/Simulate_Genotypes/{model}/{rep}/{config}/genos-test_common.afreq"
     output:
-        "output/PRS/{model}/{rep}/{config}/{h2}/genos-test_common.true.sscore",
+        "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-test_common.true.sscore",
     shell:
         """
         plink2 \
         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-test_common \
         --read-freq {input.freq} \
         --score {input.causal_effect} cols=dosagesum,scoresums \
-        --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-test_common.true \
+        --out output/PRS/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-test_common.true \
         """
 
 ## Include Tm as a covariate
@@ -501,7 +501,7 @@ rule gwas_Tm:
 
 rule pick_SNPS_Tm:
     input:
-        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt",
+        causal_effect="output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.effects.txt",
         gwas_strat="output/Run_GWAS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
     output:
         "output/PRS/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.betas",
@@ -565,7 +565,7 @@ rule Calc_Qx:
         lambda_T="output/Calculate_Tm/4PopSplit/{rep}/{config}/Lambda_T.txt",
         Va="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Va.txt",
         Va_Tm="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{env}/Va-Tm.txt",
-        true="output/PRS/4PopSplit/{rep}/{config}/{h2}/genos-test_common.true.sscore",
+        true="output/PRS/4PopSplit/{rep}/{config}/{h2}/{env}/genos-test_common.true.sscore",
         Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:

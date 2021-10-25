@@ -35,7 +35,6 @@ colnames(pop)<-c("IID","FID","pop")
 
 #add this info to prs file
 prs=merge(prs, pop, by="IID", sort=F)
-prs$prs <- rnorm(sample_size, 0, sqrt(h2)) # delete later
 
 ##### simulate environmental effects
 #no 'environmental' effect
