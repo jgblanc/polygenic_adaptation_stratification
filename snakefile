@@ -2,17 +2,26 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = ["T1"]
-#for i in range(1,101):
-#  REP.append("T"+str(i))
-HERITABILITY = ["true-0.3"]
+REP = []
+for i in range(1,101):
+  REP.append("T"+str(i))
+HERITABILITY = ["same-0.3"]
 #ENV = ["env-0.0", "env-1.0", "env-2.0", "env-3.0", "env-4.0", "env-5.0","env-6.0","env-7.0", "env-8.0", "env-9.0", "env-10.0"]
-ENV=["env-0.0"]
-TS=["p-0.5", "p-1.0"]
+ENV=["env-0.0", "env-5.0"]
+TS=["p-0.50","p-0.55","p-0.60", "p-0.65", "p-0.70", "p-1.00"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
 STRAT_A = 1
+
+
+wildcard_constraints:
+    rep="[A-Z]\d+",
+    config="C.",
+    h2="same-[0-1].[0-9]",
+    env="env-[0-9].[0-9]",
+    ts="p-[0-1].[0-9][0-9]"
+    
 
 def get_params(x):
   out = x.split("-")[1]
@@ -244,27 +253,27 @@ rule common_snp_freq:
 
 rule aggregate_genotypes:
     input:
-        frq=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq", model=MODEL, rep=REP, config=CONFIG),
-        genos=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.vcf", chr=CHR, rep=REP, config=CONFIG, model=MODEL),
-        gz_chr=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.ids.vcf.gz", chr=CHR, model=MODEL, rep=REP),
-        frq_test=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.afreq", model=MODEL, rep=REP, config=CONFIG),
-        frq_gwas=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.afreq", model=MODEL, rep=REP, config=CONFIG),
-        gz=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.ids.vcf.gz", model=MODEL, rep=REP),
-	      gwas_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pgen", model=MODEL, rep=REP, config=CONFIG),
-	      gwas_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pvar", model=MODEL, rep=REP, config=CONFIG),
-	      gwas_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.psam", model=MODEL, rep=REP, config=CONFIG),
-	      test_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pgen", model=MODEL, rep=REP, config=CONFIG),
-	      test_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pvar", model=MODEL, rep=REP, config=CONFIG),
-	      test_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.psam", model=MODEL, rep=REP, config=CONFIG),
-	      pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pgen", model=MODEL, rep=REP, config=CONFIG),
-	      pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pvar", model=MODEL, rep=REP, config=CONFIG),
-	      psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam", model=MODEL, rep=REP, config=CONFIG),
-	      big_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test-big.psam", model=MODEL, rep=REP, config=CONFIG),
-	      big_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test-big.pvar", model=MODEL, rep=REP, config=CONFIG),
-	      big_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test-big.pgen", model=MODEL, rep=REP, config=CONFIG),
-        id=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/downsample.id", model=MODEL, rep=REP, config=CONFIG)
+        frq=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq", rep=REP, config=CONFIG),
+        genos=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.vcf", chr=CHR, rep=REP, config=CONFIG),
+        gz_chr=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.ids.vcf.gz", chr=CHR, rep=REP),
+        frq_test=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.afreq", rep=REP, config=CONFIG),
+        frq_gwas=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.afreq", rep=REP, config=CONFIG),
+        gz=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.ids.vcf.gz", rep=REP),
+	      gwas_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pgen", rep=REP, config=CONFIG),
+	      gwas_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pvar", rep=REP, config=CONFIG),
+	      gwas_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.psam", rep=REP, config=CONFIG),
+	      test_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pgen", rep=REP, config=CONFIG),
+	      test_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pvar", rep=REP, config=CONFIG),
+	      test_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.psam", rep=REP, config=CONFIG),
+	      pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pgen", rep=REP, config=CONFIG),
+	      pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pvar", rep=REP, config=CONFIG),
+	      psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam", rep=REP, config=CONFIG),
+	      big_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test-big.psam", rep=REP, config=CONFIG),
+	      big_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test-big.pvar", rep=REP, config=CONFIG),
+	      big_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test-big.pgen", rep=REP, config=CONFIG),
+        id=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/downsample.id", rep=REP, config=CONFIG)
     output:
-        expand("output/Simulate_Genotypes/4PopSplit/{rep}/ff.txt", model=MODEL, rep=REP)
+        expand("output/Simulate_Genotypes/4PopSplit/{rep}/ff.txt", rep=REP)
     shell:
         """
 	 touch {output}
@@ -296,7 +305,7 @@ rule draw_effect_sizes:
         freq="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq",
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:
-        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/genos-gwas_common.effects.txt"
+        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
         seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2),
