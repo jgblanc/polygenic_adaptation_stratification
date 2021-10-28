@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_T100h23_same
-#SBATCH --output=logs/4PopSplit_T100h23_same.out
-#SBATCH --error=logs/4PopSplit_T100h23_same.err
-#SBATCH --time=15:00:00
+#SBATCH --job-name=4PopSplit_T100h23_diff
+#SBATCH --output=logs/4PopSplit_T100h23_diff.out
+#SBATCH --error=logs/4PopSplit_T100h23_diff.err
+#SBATCH --time=20:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
