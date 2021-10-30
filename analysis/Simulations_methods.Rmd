@@ -190,6 +190,50 @@ df3 <- df2[,2:6] %>%  gather(variable, value, -c(LAT, LONG,env))
 ggplot(df3, aes(x = LONG, y = LAT, fill = value)) + geom_tile() + facet_wrap(env~variable) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", limits = c(-0.5, 0.5), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
 ```
 
+
+```{r}
+df <- fread("../code/plot/SimpleGrid_C1_scale_T100_pgs.txt")
+
+df2 <- df %>% filter(env == "env-0.05") %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
+df3 <- df2[,2:6] %>%  gather(variable, value, -c(LAT, LONG,env))
+
+pl <- df3 %>% filter(variable == "avg_PRS") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() + theme_classic(base_size = 22) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "brown4", high = "royalblue4", limits = c(-0.5, 0.5), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+pl 
+
+ggsave("~/Desktop/strat_lat.png", pl, height = 5, width = 7)
+
+pl <- df3 %>% filter(variable == "avg_PRS_Tm") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() + theme_classic(base_size = 22) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "brown4", high = "royalblue4", limits = c(-0.5, 0.5), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+
+ggsave("~/Desktop/strat_lat_Tm.png", pl, height = 5, width = 7)
+
+
+df <- fread("../code/plot/SimpleGrid_T100_rescale.txt")
+nc <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(env, c("env", "diff"), "-")
+nc$diff <- as.numeric(nc$diff)
+nc <- subset(nc, nc$diff > 0.03)
+nc$test <- "Latitude"
+
+# labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))
+pl <- ggplot(data = nc, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 22) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 18, color = "black"), legend.position = "none") + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_x_discrete(breaks=c("nc","nc-Tm"),labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + scale_fill_manual(values = c("goldenrod2", "navy")) + facet_wrap(~test)
+
+pl
+
+ggsave("~/Desktop/strat_lat_fp.png", pl, height = 5, width = 5)
+
+df <- fread("../code/plot/SimpleGrid_scale_phenos.txt")
+
+df2 <- df %>% filter(env == "env-0.05") %>% group_by(rep, case, env) %>% mutate(pheno_strat = (pheno_strat - mean(pheno_strat)) / sd(pheno_strat)) %>% ungroup() %>%  group_by(POP, env) %>% summarise(avg_pheno = mean(pheno_strat),LAT = mean(LAT), LONG = mean(LONG))
+df3 <- df2[,3:5] %>%  gather(variable, value, -c(LAT, LONG))
+
+pl <- df3 %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() + theme_classic(base_size = 22) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "palegoldenrod", high = "purple4") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+ggsave("~/Desktop/strat_lat_phenos.png", pl, height = 5, width = 7)
+```
+
+
+
+
+
+
 #### stratD/Lat 
 
 * Simulated phenotype according to gradient along the diagonal going from lower left to upper right  
@@ -223,6 +267,62 @@ df3 <- df2[,2:6] %>%  gather(variable, value, -c(LAT, LONG,env))
 
 ggplot(df3, aes(x = LONG, y = LAT, fill = value)) + geom_tile() + facet_wrap(env~variable) + theme_classic() +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "red", high = "blue", mid = "white", name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
 ```
+
+```{r}
+df <- fread("../code/plot/SimpleGrid_C1_sratD_T100_pgs.txt")
+
+df2 <- df %>% filter(env == "env-0.3") %>% group_by(rep, case, env) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP, env) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
+df3 <- df2[,2:6] %>%  gather(variable, value, -c(LAT, LONG,env))
+
+pl <- df3 %>% filter(variable == "avg_PRS") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() + theme_classic(base_size = 22) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "brown4", high = "royalblue4", limits = c(-0.5, 1), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+pl 
+
+ggsave("~/Desktop/strat_D.png", pl, height = 5, width = 7)
+
+pl <- df3 %>% filter(variable == "avg_PRS_Tm") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() + theme_classic(base_size = 22) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "brown4", high = "royalblue4", limits = c(-0.5, 1), name = "PGS", midpoint = 0) + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+pl
+
+ggsave("~/Desktop/strat_D_Tm.png", pl, height = 5, width = 7)
+
+
+df <- fread("../code/plot/SimpleGrid_T100_stratD_Lat.txt")
+nc_lat <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(env, c("env", "diff"), "-")
+nc_lat$diff <- as.numeric(nc_lat$diff)
+nc_lat$test <- "Latitude"
+
+df <- fread("../code/plot/SimpleGrid_T100_stratD_Long.txt")
+nc_long <- df %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(env, c("env", "diff"), "-")
+nc_long$diff <- as.numeric(nc_long$diff)
+nc_long$test <- "Longitude"
+
+df <- rbind(nc_lat, nc_long)
+df2 <- df[,c(2,3,5,6,7,8)] %>%  gather(variable, value, -c(fp_strat, test, diff, lowerci, upperci)) %>% filter(diff == 0.3)
+
+# labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))
+pl <- ggplot(data = df2, aes(x = value, y = fp_strat, fill = value)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 22) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 18, color = "black", angle = 35, hjust=1)) + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_x_discrete(breaks=c("nc","nc-Tm"),labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + facet_wrap(~test)+scale_fill_manual(values = c("goldenrod2", "navy")) + theme(legend.position = "none")
+
+pl
+
+ggsave("~/Desktop/strat_D_fp.png", pl, height = 5, width = 5)
+
+df <- fread("../code/plot/SimpleGrid_stratD_phenos.txt")
+
+df2 <- df %>% filter(env == "env-0.3") %>% group_by(rep, case, env) %>% mutate(pheno_strat = (pheno_strat - mean(pheno_strat)) / sd(pheno_strat)) %>% ungroup() %>%  group_by(POP, env) %>% summarise(avg_pheno = mean(pheno_strat),LAT = mean(LAT), LONG = mean(LONG))
+df3 <- df2[,3:5] %>%  gather(variable, value, -c(LAT, LONG))
+
+pl <- df3 %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() + theme_classic(base_size = 22) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "palegoldenrod", high = "purple4", midpoint = 0) + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+pl
+ggsave("~/Desktop/stratD_phenos.png", pl, height = 5, width = 7)
+```
+
+
+
+
+
+
+
+
+
 
 #### 3 Pops  
 
@@ -354,16 +454,34 @@ $$F_{st} \approx 0.005$$
 df <- fread("../code/plot/4PopSplit_T100_h23.txt")
 nc <- df %>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm") %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), avg_Ax = mean(Ax)) %>% separate(env, c("env", "diff"), "-")
 nc$diff <- as.numeric(nc$diff) 
-nc <- nc %>% mutate(causal = case_when((type == "c" | type == "c-Tm") ~ T, (type == "nc" | type == "nc-Tm") ~ F)) %>% mutate(covariate_included = case_when((type == "c" | type == "nc") ~ F, (type == "c-Tm" | type == "nc-Tm") ~ T))
+nc <- nc %>% mutate(causal = case_when((type == "c" | type == "c-Tm") ~ "causal", (type == "nc" | type == "nc-Tm") ~ "ascertained")) %>% mutate(covariate_included = case_when((type == "c" | type == "nc") ~ F, (type == "c-Tm" | type == "nc-Tm") ~ T))
 
 ggplot(data = nc, aes(x = diff, y = fp_strat, color = covariate_included)) + geom_point(size =3)+   xlab(TeX("Environmental Shift")) + ylab("False Postive Rate") + theme_classic(base_size = 12)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + geom_hline(yintercept = 0.05, color = "red") +  geom_smooth(method = "loess", se = FALSE) + theme( axis.title = element_text(size = 12),legend.position = "bottom") + facet_wrap(~causal) + scale_color_manual(values = c("navy", "goldenrod"))
 
 ```
 
+```{r}
+df <- fread("../code/plot/4PopSplit_T100_true_same.txt")
+nc <- df %>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm") %>% group_by(env, type, case, ts) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(ts, c("ts", "prob"), "-")
+nc$prob <- as.numeric(nc$prob)
+nc <- nc %>% mutate(causal = case_when((type == "c" | type == "c-Tm") ~ "causal", (type == "nc" | type == "nc-Tm") ~ "ascertained")) %>% mutate(covariate_included = case_when((type == "c" | type == "nc") ~ F, (type == "c-Tm" | type == "nc-Tm") ~ T))
+nc <- nc %>% filter(prob < 1)
+
+ggplot(data = nc, aes(x = prob, y = fp_strat, color = covariate_included)) + geom_point(size =3)+   xlab(TeX("True Signal")) + ylab("False Postive Rate") + theme_classic(base_size = 12)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 12),legend.position = "bottom") + facet_grid(rows = vars(env), cols = vars(causal)) + scale_color_manual(values = c("navy", "goldenrod")) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.02)
+
+```
 
 
+```{r}
+df <- fread("../code/plot/4PopSplit_T100_true_diff.txt")
+nc <- df %>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm") %>% group_by(env, type, case, ts) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(ts, c("ts", "prob"), "-")
+nc$prob <- as.numeric(nc$prob)
+nc <- nc %>% mutate(causal = case_when((type == "c" | type == "c-Tm") ~ "causal", (type == "nc" | type == "nc-Tm") ~ "ascertained")) %>% mutate(covariate_included = case_when((type == "c" | type == "nc") ~ F, (type == "c-Tm" | type == "nc-Tm") ~ T))
+nc <- nc %>% filter(prob < 1)
 
+ggplot(data = nc, aes(x = prob, y = fp_strat, color = covariate_included)) + geom_point(size =3)+   xlab(TeX("True Signal")) + ylab("False Postive Rate") + theme_classic(base_size = 12)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(0,1) + geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 12),legend.position = "bottom") + facet_grid(rows = vars(env), cols = vars(causal)) + scale_color_manual(values = c("navy", "goldenrod")) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.02)
 
+```
 
 
 
