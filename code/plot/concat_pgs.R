@@ -18,7 +18,7 @@ agg_all_data <- function(rep, dir_path, case, type, h2, env) {
   pop <- fread(paste0('../../output/Simulate_Genotypes/SimpleGrid/', rep,"/", "genos.pop"))
   colnames(pop) <- c("IID", "#FID", "POP", "LAT", "LONG" )
   
-  df <- inner_join(PGS, pop)%>% select("nc", "nc_Tm","c", "c_Tm", POP)
+  df <- inner_join(PGS, pop)%>% select("nc", "nc_Tm","c", "c_Tm", POP, LAT, LONG)
   return(df)
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PRS/SimpleGrid/' )
