@@ -38,13 +38,13 @@ prs=merge(prs, pop, by="IID", sort=F)
 #NOTE: SIGMA_G SET AT h2
 
 # Shift the environmental variable by env_s/lat
-num_lat_demes <- length(unique(prs$Lat))
-if (env_s == 0) {
-  shifts <- rep(0, num_lat_demes)
-} else {
-  shifts <- seq(0, env_s, env_s / (num_lat_demes-1))
-}
-print(shifts)
+#num_lat_demes <- length(unique(prs$Lat))
+#if (env_s == 0) {
+#  shifts <- rep(0, num_lat_demes)
+#} else {
+#  shifts <- seq(0, env_s, env_s / (num_lat_demes-1))
+#}
+#print(shifts)
 
 # Shift environment for individuals in each deme
 #prs$env = rnorm(sample_size,0, sqrt(1 - h2))
@@ -72,7 +72,7 @@ for (i in 1:length(delta)) {
 # Add stratification along diagnoal Latitude
 id_diag <- c(25)
 for (i in 1:length(id_diag)) {
-  prs <- prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == id_diag[i], env + shifts[i], env))
+  prs <- prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == id_diag[i], env + env_s, env))
 }
 
 #add prs to each of the environmental effects

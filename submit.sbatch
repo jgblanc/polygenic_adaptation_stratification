@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_T100h23_diff
-#SBATCH --output=logs/4PopSplit_T100h23_diff.out
-#SBATCH --error=logs/4PopSplit_T100h23_diff.err
-#SBATCH --time=20:00:00
+#SBATCH --job-name=SimpleGrid_PS
+#SBATCH --output=logs/SimpleGrid_PS.out
+#SBATCH --error=logs/SimpleGrid_PS.err
+#SBATCH --time=06:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -16,5 +16,5 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake -j 40 --rerun-incomplete    
+snakemake -j 20 --rerun-incomplete    
 #sh copy_dir.sh

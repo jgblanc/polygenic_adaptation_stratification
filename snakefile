@@ -6,7 +6,7 @@ for i in range(1, 101):
   REP.append("T"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["scale-0"]
-ENV = ["ps-0.3"]
+ENV = ["ps-1.0"]
 SS_TEST =20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 PVALUE_THRESHOLD = 1
@@ -287,7 +287,7 @@ rule simulate_phenotype_SimpleGrid:
         en = lambda wildcards: get_params(wildcards.env),
         seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2,wildcards.env)
     shell:
-        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_PS.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
+        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_SimpleGrid_PS.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
 
 # Run GWAS
 
