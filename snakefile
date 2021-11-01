@@ -4,9 +4,9 @@ for i in range(0, 200):
 REP = []
 for i in range(1, 101):
   REP.append("T"+str(i))
-CONFIG = ["C1"]
+CONFIG = ["C3"]
 HERITABILITY = ["1Pop-0"]
-ENV = ["env-1.0"]
+ENV = ["env-0.5", "env-0.1"]
 SS_TEST =20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 PVALUE_THRESHOLD = 1
@@ -400,12 +400,12 @@ rule calc_Tm:
         tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/1Pop/Tvec.txt"
     output:
         Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/1Pop/Tm.txt",
-        weights="output/Calculate_Tm/SimpleGrid/{rep}/{config}/3Pop/weights.txt"
+        weights="output/Calculate_Tm/SimpleGrid/{rep}/{config}/1Pop/weights.txt"
     shell:
         """
-        gzip -dc {input.proj} > temp
-	      Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} temp {input.tvec} {output.Tm} {output.weights}
-	      rm temp
+        gzip -dc {input.proj} > output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/temp
+	      Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/temp {input.tvec} {output.Tm} {output.weights}
+	      rm output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/temp
 	"""
 
 # Format Covariate file
@@ -468,7 +468,7 @@ rule calc_lambdaT:
         "output/Calculate_Tm/SimpleGrid/{rep}/{config}/1Pop/Lambda_T.txt"
     shell:
         """
-	Rscript code/Calculate_Tm/calc_lambdaT_cont.R {input.vecs} {input.vals} {input.tvec} {output}
+	Rscript code/Calculate_Tm/calc_lambdaT_1Pop.R {input.vecs} {input.vals} {input.tvec} {output}
 	"""
 
 rule calc_Va:
@@ -519,7 +519,7 @@ rule Calc_Qx:
         num=NUM_RESAMPLE
     shell:
       """
-          Rscript code/PGA_test/calc_Qx_SimpleGrid.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx} {output.pgs}
+          Rscript code/PGA_test/calc_Qx_SimpleGrid_1Pop.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx} {output.pgs}
 	      """
 
 # Rule to calculate Fst across demes in GWAS panel

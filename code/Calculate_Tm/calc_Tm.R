@@ -23,14 +23,15 @@ out_file_weight=args[6] # Name for wieghts file
 vecs <- fread(vecs_file)
 vecs <- vecs[,3:ncol(vecs)]
 vecs <- apply(vecs, 2, as.numeric)
+#head(vecs)
 
 # Load test vector
 std.tvec <- fread(tvec_file)
-std.tvec <- std.tvec$V1
+print(std.tvec)
 
 # Get the weights of each eigenvector
-B <- t(vecs) %*% std.tvec
-fwrite(B, out_file,row.names=F,quote=F,sep="\t", col.names = T)
+B <- t(vecs) %*% std.tvec$T1
+fwrite(B, out_file_weight,row.names=F,quote=F,sep="\t", col.names = T)
 
 # Load Projected eigenvectors
 proj_vecs <- fread(proj_file)

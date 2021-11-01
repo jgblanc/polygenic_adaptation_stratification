@@ -5,10 +5,10 @@ n <- 100
 reps <- rep(NA, n)
 for (i in 1:n){reps[i] <- paste0("T", i)}
 print(reps)
-h2 <- "scale-0"
+h2 <- "1Pop-0"
 #envs <- c("env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.1")
-envs <- c('ps-1.0')
-cases <- c("C1")
+envs <- c('env-0.5')
+cases <- c("C3")
 dat <- expand.grid(reps, cases, h2, envs)
 colnames(dat) <- c("rep", "case", "h2", "env")
 
@@ -23,4 +23,4 @@ agg_all_data <- function(rep, dir_path, case, type, h2, env) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PRS/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_ps-1.0_pgs.txt", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_1Pop_pgs.txt", row.names=F,quote=F,sep="\t", col.names = T)

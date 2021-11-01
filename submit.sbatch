@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrid_PS
-#SBATCH --output=logs/SimpleGrid_PS.out
-#SBATCH --error=logs/SimpleGrid_PS.err
-#SBATCH --time=06:00:00
+#SBATCH --job-name=SimpleGrid_PS_tv
+#SBATCH --output=logs/SimpleGrid_PS_tv.out
+#SBATCH --error=logs/SimpleGrid_PS_tv.err
+#SBATCH --time=08:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
