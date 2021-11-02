@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrid_PS_tv
-#SBATCH --output=logs/SimpleGrid_PS_tv.out
-#SBATCH --error=logs/SimpleGrid_PS_tv.err
+#SBATCH --job-name=4PopSplit_ts_same
+#SBATCH --output=logs/4PopSplit_ts_same.out
+#SBATCH --error=logs/4PopSplit_ts_same.err
 #SBATCH --time=08:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mem-per-cpu=12GB
+#SBATCH --mem-per-cpu=6GB
 
 module load python/cpython-3.7.0
 module load R
