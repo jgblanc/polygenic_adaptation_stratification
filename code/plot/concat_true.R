@@ -8,7 +8,7 @@ print(reps)
 h2 <- c("same-0.3", "diff-0.3")
 #envs <- c("env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.1")
 #envs <- c("env-0.0","env-0.005", "env-0.01","env-0.015", "env-0.02","env-0.025", "env-0.03","env-0.035", "env-0.04","env-0.045", "env-0.05", "env-0.055","env-0.06")
-envs <- c("env-0.0","env-5.0")
+envs <- c("env-0.0","env-5.0", "env-1.0")
 cases <- c("C1")
 ts <- c("p-0.50","p-0.55","p-0.60", "p-0.65", "p-0.70")
 dat <- expand.grid(reps, cases, h2, envs, ts)
@@ -20,7 +20,7 @@ agg_all_data <- function(rep, dir_path, case, type, h2, env,ts) {
     Qx <- as.data.frame(matrix(NA, nrow=1,ncol=3))
     colnames(Qx) <- c("Qx", "P-Chi", "P-EN")
 } else {  
-  Qx <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/",  env, "/", "Qx_true.txt"))
+  Qx <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/",  env, "/", "Qx.txt"))
   colnames(Qx) <- c("Qx", "P-Chi", "P-EN")
 }  
   return(Qx)

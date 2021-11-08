@@ -5,20 +5,20 @@ CONFIG=["C1"]
 REP = []
 for i in range(1,101):
   REP.append("T"+str(i))
-HERITABILITY = ["same-0.3"]
+HERITABILITY = ["diff-0.3"]
 #ENV = ["env-0.0", "env-1.0", "env-2.0", "env-3.0", "env-4.0", "env-5.0","env-6.0","env-7.0", "env-8.0", "env-9.0", "env-10.0"]
-ENV=["env-0.0","env-5.0"]
+ENV=["env-1.0"]
 TS=["p-0.50","p-0.55","p-0.60", "p-0.65", "p-0.70"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
-STRAT_A = 1
+STRAT_A = 0
 # 1 = positive correlation between effect size and pC - pD; 0 = negative correlation between effect size and pC - pD
 
 wildcard_constraints:
     rep="[A-Z]\d+",
     config="C.",
-    h2="same-[0-1].[0-9]",
+    h2="diff-[0-1].[0-9]",
     env="env-[0-9].[0-9]",
     ts="p-[0-1].[0-9][0-9]"
 
@@ -42,7 +42,8 @@ def get_seed1(rep, h2):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx_true.txt",rep=REP, h2 = HERITABILITY, env=ENV, config=CONFIG, ts=TS)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx_true.txt",rep=REP, h2 = HERITABILITY, env=ENV, config=CONFIG, ts=TS),
+	expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, h2 = HERITABILITY, env=ENV, config=CONFIG, ts=TS)
 
 # Simluate Genotypes
 
