@@ -18,9 +18,9 @@ nc_file = args[3] # clumped betas
 c_Tm_file = args[4] # causal betas
 cp_Tm_file = args[5] # causal p-value betas
 nc_Tm_file = args[6] # clumped betas
-c_Tm_file = args[7] # causal betas
-cp_Tm_file = args[8] # causal p-value betas
-nc_Tm_file = args[9] # clumped betas
+c_ID_file = args[7] # causal betas
+cp_ID_file = args[8] # causal p-value betas
+nc_ID_file = args[9] # clumped betas
 geno_prefix = args[10] # Prefix to pilnk files
 lambdaT_file = args[11]
 Va_file = args[12] # Va
@@ -125,6 +125,7 @@ lambda_T <- as.numeric(as.character(lambda_T[1,1]))
 # Load Va
 Va_all <- as.matrix(fread(Va_file), rownames=1)
 Va_Tm_all <- as.matrix(fread(Va_Tm_file), rownames=1)
+Va_ID_all <- as.matrix(fread(Va_ID_file), rownames=1)
 
 # Load Test vector
 std.tvec <- fread(tvec_file)
@@ -183,9 +184,9 @@ out[3, ] <- main(nc_file, Va_all[3,])
 out[4, ] <- main(c_Tm_file, Va_Tm_all[1,])
 out[5, ] <- main(cp_Tm_file, Va_Tm_all[2,])
 out[6, ] <- main(nc_Tm_file, Va_Tm_all[3,])
-out[4, ] <- main(c_ID_file, Va_ID_all[1,])
-out[5, ] <- main(cp_ID_file, Va_ID_all[2,])
-out[6, ] <- main(nc_ID_file, Va_ID_all[3,])
+out[7, ] <- main(c_ID_file, Va_ID_all[1,])
+out[8, ] <- main(cp_ID_file, Va_ID_all[2,])
+out[9, ] <- main(nc_ID_file, Va_ID_all[3,])
 print(out)
 
 # Save output
