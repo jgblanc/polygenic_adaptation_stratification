@@ -4,10 +4,10 @@ for i in range(0, 200):
 CONFIG=["C1"]
 REP = []
 for i in range(1,101):
-  REP.append("T"+str(i))
-HERITABILITY = ["diff_large-0.3"]
+  REP.append("L"+str(i))
+HERITABILITY = ["same-0.3"]
 #ENV = ["env-0.0", "env-1.0", "env-2.0", "env-3.0", "env-4.0", "env-5.0","env-6.0","env-7.0", "env-8.0", "env-9.0", "env-10.0"]
-ENV=["env-1.0"]
+ENV=["env-1.0", "env-0.0"]
 TS=["p-0.50","p-0.55","p-0.60", "p-0.65", "p-0.70"]
 SIZE=2000
 NUM_RESAMPLE=1000
@@ -18,7 +18,7 @@ STRAT_A = 1
 wildcard_constraints:
     rep="[A-Z]\d+",
     config="C.",
-    h2="diff_large-[0-1].[0-9]",
+    h2="same-[0-1].[0-9]",
     env="env-[0-9].[0-9]",
     ts="p-[0-1].[0-9][0-9]"
 
@@ -62,9 +62,9 @@ rule simulate_genotypes_4popsplit:
 	       --NB 10000 \
 	       --NC 10000 \
 	       --ND 10000 \
-  	     -a 2000 \
+  	     -a 20000 \
 	       -b 2000 \
-	       -c 2000 \
+	       -c 20000 \
 	       -d 2000 \
          -s1 4400 \
           -s2 2200 \
@@ -103,7 +103,7 @@ rule convert_vcf_to_plink:
     output:
         "output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam",
 	"output/Simulate_Genotypes/4PopSplit/{rep}/genos.pgen",
-      	"output/Simulate_Genotypes4PopSplit/{rep}/genos.pvar"
+      	"output/Simulate_Genotypes/4PopSplit/{rep}/genos.pvar"
     shell:
         "plink2 \
         --double-id \

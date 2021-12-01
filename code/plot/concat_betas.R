@@ -5,7 +5,7 @@ n <- 100
 reps <- rep(NA, n)
 for (i in 1:n){reps[i] <- paste0("F", i)}
 print(reps)
-h2 <- "true-0.8"
+h2 <- "same_large-0."
 #envs <- c("env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.1")
 envs <- c('env-0.0')
 cases <- c("C1", "C2")

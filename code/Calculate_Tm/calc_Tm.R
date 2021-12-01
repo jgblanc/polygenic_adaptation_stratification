@@ -27,16 +27,19 @@ vecs <- apply(vecs, 2, as.numeric)
 
 # Load test vector
 std.tvec <- fread(tvec_file)
-print(std.tvec)
+std.tvec$V1 <- as.numeric(std.tvec$V1)
+#print(std.tvec)
+#print(str(std.tvec))
 
 # Get the weights of each eigenvector
-B <- t(vecs) %*% std.tvec$T1
-fwrite(B, out_file_weight,row.names=F,quote=F,sep="\t", col.names = T)
+B <- t(vecs) %*% std.tvec$V1
+#fwrite(as.data.frame(B[,1]), out_file_weight,row.names=F,quote=F,sep="\t", col.names = T)
 
 # Load Projected eigenvectors
 proj_vecs <- fread(proj_file)
 proj_vecs <- proj_vecs[,5:ncol(proj_vecs)]
 proj_vecs <- apply(proj_vecs, 2, as.numeric)
+#head(proj_vecs)
 
 # Load Eigenvalues
 vals <- fread(vals_file)

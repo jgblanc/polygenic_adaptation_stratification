@@ -25,7 +25,7 @@ prs=fread(gvalue_file)
 colnames(prs)<-c("IID","dosage","prs")
 
 sample_size=nrow(prs)
-NGWAS = 5000000000
+NGWAS = 500000
 N1_gwas = NGWAS / 2
 N2_gwas = NGWAS / 2
 
