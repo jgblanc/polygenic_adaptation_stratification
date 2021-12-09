@@ -643,7 +643,7 @@ rule Calc_Qx:
 rule Calc_Qx_true:
     input:
         es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
-        genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
+        genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
         Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
         lambda_T="output/Calculate_Tm/4PopSplit/{rep}/{config}/Lambda_T.txt"

@@ -121,12 +121,15 @@ main <- function(beta_file) {
 
   # Calc PGS
   sscore <- pgs(X, betas)
+  print(paste0("PGS",sscore))
 
   # Calc Va
   Va <- calc_Va(X, betas)
+  print(paste0("Va",sscore))
 
   # Calc Qx
   qx <- t(calc_Qx(sscore, tvec, Va, lambda_T))
+  print(paste0("Qx",sscore))
 
   # Generate Empirical null
   redraws <- matrix(0, ncol = 1, nrow = num)
