@@ -575,21 +575,21 @@ ggplot(nc, aes(x=prob, y=true_positive)) + geom_point(size =3) + facet_grid(~h2)
 
 
 ```{r}
-df <- fread("../code/plot/4PopSplit_T100_true_same.txt")
-nc <- df %>%filter(env == "env-0.0" | env == "env-1.0") %>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm") %>% group_by(env, type, case, ts) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(ts, c("ts", "prob"), "-")
+df <- fread("../code/plot/4PopSplit_L100_true_same.txt")
+nc <- df %>%filter(env == "env-0.0" | env == "env-1.0") %>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm" | type == "c-ID" | type == "nc-ID") %>% group_by(env, type, case, ts) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(ts, c("ts", "prob"), "-")
 nc$prob <- as.numeric(nc$prob)
-nc <- nc %>% mutate(causal = case_when((type == "c" | type == "c-Tm") ~ "causal", (type == "nc" | type == "nc-Tm") ~ "ascertained")) %>% mutate(covariate_included = case_when((type == "c" | type == "nc") ~ F, (type == "c-Tm" | type == "nc-Tm") ~ T))
+nc <- nc %>% mutate(causal = case_when((type == "c" | type == "c-Tm" | type == "c-ID") ~ "causal", (type == "nc" | type == "nc-Tm" | type == "nc-ID") ~ "ascertained")) %>% mutate(covariate_included = case_when((type == "c" | type == "nc") ~ "No", (type == "c-Tm" | type == "nc-Tm") ~ "Tm", (type == "c-ID" | type == "nc-ID") ~ "ID"))
 nc_same <- nc %>% filter(prob < 1)
 nc_same <- nc_same %>% mutate(direction = case_when(env == "env-0.0" ~ "no environmental stratification", env == "env-1.0" ~ "same direction"))
 
-df <- fread("../code/plot/4PopSplit_T100_true_diff.txt")
-nc <- df %>%filter(env == "env-0.0" | env == "env-1.0") %>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm") %>% group_by(env, type, case, ts) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(ts, c("ts", "prob"), "-")
+df <- fread("../code/plot/4PopSplit_L100_true_diff.txt")
+nc <- df %>%filter(env == "env-0.0" | env == "env-1.0") %>% filter(type == "nc"| type == "nc-Tm" | type == "c" | type == "c-Tm"| type == "c-ID" | type == "nc-ID") %>% group_by(env, type, case, ts) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(ts, c("ts", "prob"), "-")
 nc$prob <- as.numeric(nc$prob)
-nc <- nc %>% mutate(causal = case_when((type == "c" | type == "c-Tm") ~ "causal", (type == "nc" | type == "nc-Tm") ~ "ascertained")) %>% mutate(covariate_included = case_when((type == "c" | type == "nc") ~ F, (type == "c-Tm" | type == "nc-Tm") ~ T))
+nc <- nc %>% mutate(causal = case_when((type == "c" | type == "c-Tm" | type == "c-ID") ~ "causal", (type == "nc" | type == "nc-Tm" | type == "nc-ID") ~ "ascertained")) %>% mutate(covariate_included = case_when((type == "c" | type == "nc") ~ "No", (type == "c-Tm" | type == "nc-Tm") ~ "Tm", (type == "c-ID" | type == "nc-ID") ~ "ID"))
 nc_diff <- nc %>% filter(prob < 1)
 nc_diff$direction <- "opposite direction"
 
-df <- fread("../code/plot/4PopSplit_TS_true.txt")
+df <- fread("../code/plot/4PopSplit_L100_true.txt")
 
 #nc <- df %>%filter(env == "env-0.0" | env == "env-1.0")  %>% group_by(env, h2, case, ts) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(ts, c("ts", "prob"), "-") %>% mutate(causal = "true", covariate_included = NA) %>% filter(fp_strat > 0) %>% mutate(direction = case_when(env == "env-0.0" ~ "no environmental stratification", (h2 == "same-0.3" & env == "env-5.0") ~ "same direction", (h2 == "diff-0.3" & env == "env-5.0") ~ "opposite direction")) %>% select(-h2)
 #nc$prob <- as.numeric(nc$prob)
@@ -602,11 +602,20 @@ data <- rbind(nc_same, nc_diff)
 data <- full_join(data, nc)
 
 
-ggplot(data, aes(x = prob, y = fp_strat, color = covariate_included)) + geom_point() + facet_grid(causal ~ direction) + geom_point(aes(y = tp), color = "black", shape = 8) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.02) + theme_classic(base_size = 12)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12),legend.position = "bottom") + ylim(0,1) + geom_hline(yintercept = 0.05, color = "red") + scale_color_manual(values = c("goldenrod", "navy")) + xlab("True Signal") + ylab("Positive Rate") 
+ggplot(data, aes(x = prob, y = fp_strat, color = covariate_included)) + geom_point() + facet_grid(causal ~ direction) + geom_point(aes(y = tp), color = "black", shape = 8) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.02) + theme_classic(base_size = 12)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12),legend.position = "bottom") + ylim(0,1) + geom_hline(yintercept = 0.05, color = "red") + scale_color_manual(values = c("darkgreen", "goldenrod", "navy"), label = c("Population ID", "Uncorrected", "T GWAS"), name = "Covariate Included") + xlab("True Signal") + ylab("Positive Rate") 
 
 
 ```
 
+```{r}
+true <- fread("~/Downloads/genos-gwas_common.effects.txt")
+est <- fread("~/Downloads/genos-gwas_common-Tm.c.betas")
+
+plot(true$V3, est$BETA_Strat)
+abline(a=0, b =1)
+
+cor(true$V3, est$BETA_Strat)
+```
 
 
 
@@ -639,14 +648,28 @@ ggsave("~/Desktop/pgs_sep.png", height = 5, width = 7)
 ```
 
 ```{r,eval = FALSE, echo=FALSE}
-D <- rnorm(10000, 0, 1)
+D <- rnorm(10000, 3, 1)
 C <- rnorm(10000, 0, 1)
 
 df <- cbind(C,D)
 df <- melt(df)
-ggplot(df, aes(x = value, fill = Var2)) + geom_density(alpha=0.5) + theme_classic(base_size = 14) + xlab("Polygenic Score")+ ylab("") + scale_fill_manual(values = c("darkblue","forestgreen")) + theme(axis.ticks = element_blank(), axis.text = element_blank(), axis.line.y=element_blank(), axis.title.x = element_text(size = 25)) + geom_vline(xintercept = 0, color = "darkblue", size = 1.5)+ geom_vline(xintercept = 0, color = "forestgreen", size = 1.5)  + scale_y_continuous(expand = c(0, 0)) + theme(legend.position = "none")
-ggsave("~/Desktop/pgs_sep.png", height = 5, width = 7)
+ggplot(df, aes(x = value, fill = Var2)) + geom_density(alpha=0.5) + theme_classic(base_size = 14) + xlab("Polygenic Score")+ ylab("") + scale_fill_manual(values = c("darkblue","forestgreen")) + theme(axis.ticks = element_blank(), axis.text = element_blank(), axis.line.y=element_blank(), axis.title.x = element_text(size = 25)) + geom_vline(xintercept = 0, color = "darkblue", size = 1.5)+ geom_vline(xintercept = 3, color = "forestgreen", size = 1.5)  + scale_y_continuous(expand = c(0, 0)) + theme(legend.position = "none")
+#ggsave("~/Desktop/pgs_sep.png", height = 5, width = 7)
 ```
+
+
+```{r,eval = FALSE, echo=FALSE}
+D <- rnorm(10000, 3, 1)
+C <- rnorm(10000, 0, 1)
+E <- rnorm(10000, 7, 1)
+
+df <- cbind(C,D,E)
+df <- melt(df)
+ggplot(df, aes(x = value, fill = Var2)) + geom_density(alpha=0.5) + theme_classic(base_size = 14) + xlab("Polygenic Score")+ ylab("") + scale_fill_manual(values = c("darkblue","forestgreen", "darkseagreen1")) + theme(axis.ticks = element_blank(), axis.text = element_blank(), axis.line.y=element_blank(), axis.title.x = element_text(size = 25)) + geom_vline(xintercept = 0, color = "darkblue", size = 1.5)+ geom_vline(xintercept = 3, color = "forestgreen", size = 1.5) + geom_vline(xintercept = 7, color = "darkseagreen1", size = 1.5) + scale_y_continuous(expand = c(0, 0)) + theme(legend.position = "none")
+#ggsave("~/Desktop/pgs_sep.png", height = 5, width = 7)
+```
+
+
 
 
 ```{r,eval = FALSE, echo=FALSE}

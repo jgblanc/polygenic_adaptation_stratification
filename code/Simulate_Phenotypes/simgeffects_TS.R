@@ -27,7 +27,7 @@ alpha = as.numeric(args[4])
 print(paste("Alpha is", alpha))
 
 #random seed
-#set.seed(args[5])
+set.seed(12)
 
 #genotypes prefix
 geno_prefix = args[6]
@@ -110,7 +110,7 @@ causal.variants$beta = sapply( causal.variants$ALT_FREQS , function(x){
 
 #let's calculate sigma2_g to confirm that the total genetic variance is indeed 0.8
 sigma2_g = sum( mapply(function(b,p){ b^2* 2*p*(1-p) }, causal.variants$beta, causal.variants$ALT_FREQS))
-
+print(sigma2_g)
 
 # Function to read in genotype matrix for a set of variants
 read_genos <- function(geno_prefix, betas) {
@@ -134,7 +134,7 @@ pop <- fread(popfile, header = F)
 # Get number of individuals in each population
 n1 <- as.numeric(count(pop,V3)[2,2])
 n2 <- as.numeric(count(pop,V3)[4,2])
-print(count(pop,V3))
+print(n1, n2)
 
 # Read in genotype matrix for causal variants
 G <- read_genos(geno_prefix, causal.variants[,"ID"])
@@ -145,6 +145,7 @@ p2 <- colMeans(G[(n1+1):(n1+n2),])
 
 # Get allele frequency difference
 diff <- p1 - p2
+print(diff)
 
 # Create correlation between effect size and pop ID
 if (direction == 1) {
