@@ -134,7 +134,7 @@ pop <- fread(popfile, header = F)
 # Get number of individuals in each population
 n1 <- as.numeric(count(pop,V3)[2,2])
 n2 <- as.numeric(count(pop,V3)[4,2])
-print(n1, n2)
+print(c(n1, n2))
 
 # Read in genotype matrix for causal variants
 G <- read_genos(geno_prefix, causal.variants[,"ID"])
