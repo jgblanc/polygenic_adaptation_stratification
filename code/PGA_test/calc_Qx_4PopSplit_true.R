@@ -54,7 +54,7 @@ pgs <- function(X, betas) {
 calc_Va <- function(geno_mat, es) {
 
   # Get allele frequency in test panel
-  freq <- colMeans(geno_mat)
+  freq <- colMeans(geno_mat) /2
 
   # Pull out effect sizes only
   effect_size <- es$BETA
@@ -119,17 +119,18 @@ main <- function(beta_file) {
   # Load Genotypes
   X <- read_genos(geno_prefix, betas)
 
+
   # Calc PGS
   sscore <- pgs(X, betas)
-  print(paste0("PGS",sscore))
+  print(head(sscore))
 
   # Calc Va
   Va <- calc_Va(X, betas)
-  print(paste0("Va",sscore))
+  print(paste0("Va",Va))
 
   # Calc Qx
   qx <- t(calc_Qx(sscore, tvec, Va, lambda_T))
-  print(paste0("Qx",sscore))
+  print(paste0("Qx",qx))
 
   # Generate Empirical null
   redraws <- matrix(0, ncol = 1, nrow = num)

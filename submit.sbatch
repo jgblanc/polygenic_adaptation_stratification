@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_Big_same
-#SBATCH --output=logs/4PopSplit_Big_same.out
-#SBATCH --error=logs/4PopSplit_Big_same.err
+#SBATCH --job-name=4PopSplit_same
+#SBATCH --output=logs/4PopSplit_same.out
+#SBATCH --error=logs/4PopSplit_same.err
 #SBATCH --time=24:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=5

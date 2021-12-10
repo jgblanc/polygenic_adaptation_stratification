@@ -3,12 +3,12 @@ for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
 REP = []
-for i in range(1,2):
+for i in range(1,101):
   REP.append("L"+str(i))
-HERITABILITY = ["h2-0.3"]
+HERITABILITY = ["same-0.3"]
 #ENV = ["env-0.0", "env-1.0", "env-2.0", "env-3.0", "env-4.0", "env-5.0","env-6.0","env-7.0", "env-8.0", "env-9.0", "env-10.0"]
-ENV=["env-0.0"]
-TS=["p-0.70"]
+ENV=["env-0.0", "env-1.0"]
+TS=["p-0.50", "p-0.55", "p-0.60","p-0.65","p-0.70"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -18,7 +18,7 @@ STRAT_A = 1
 wildcard_constraints:
     rep="[A-Z]\d+",
     config="C.",
-    h2="h2-[0-1].[0-9]",
+    h2="same-[0-1].[0-9]",
     env="env-[0-9].[0-9]",
     ts="p-[0-1].[0-9][0-9]"
 

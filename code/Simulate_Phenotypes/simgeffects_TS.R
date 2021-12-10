@@ -27,7 +27,7 @@ alpha = as.numeric(args[4])
 print(paste("Alpha is", alpha))
 
 #random seed
-set.seed(12)
+#set.seed(12)
 
 #genotypes prefix
 geno_prefix = args[6]
