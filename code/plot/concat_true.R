@@ -5,7 +5,7 @@ n <- 100
 reps <- rep(NA, n)
 for (i in 1:n){reps[i] <- paste0("L", i)}
 print(reps)
-h2 <- c("same-0.3")
+h2 <- c("same-0.3", "diff-0.3")
 #envs <- c("env-0.0", "env-0.01", "env-0.02", "env-0.03", "env-0.04", "env-0.05", "env-0.06", "env-0.07", "env-0.08", "env-0.09", "env-0.1")
 #envs <- c("env-0.0","env-0.005", "env-0.01","env-0.015", "env-0.02","env-0.025", "env-0.03","env-0.035", "env-0.04","env-0.045", "env-0.05", "env-0.055","env-0.06")
 envs <- c("env-0.0", "env-1.0")
