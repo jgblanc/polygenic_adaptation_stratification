@@ -347,13 +347,6 @@ For each replicate calculate 7 total $Q_X$ statistics
   b. Include $T^{GWAS}$  
   c. Include population ID  
 
-
-1. Pick the SNP with lowest p-value per chromosome to include in PGS (200 SNPs total)  
-2. Compute PGS in test panel individuals 
-3. Calculate $V_a$ 
-4. Calculate the amount of variance explained by the test vector ($\lambda_T$; note that we used a test vector with $1/2*n_{pop}$,$ -1/2 *n_{pop}$ encoding)  
-5. Calculate empirical null p-value by permuting the signs of the SNP effect sizes 1,000 times and computing the proportion of permutations greater than the true $Q_x$ value.  
-
 ### Figures  
 
 ```{r, eval = TRUE, echo=FALSE, warning=FALSE}
