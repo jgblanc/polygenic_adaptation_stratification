@@ -1,0 +1,86 @@
+---
+title: "CCA_Latent"
+author: "Jennifer Blanc"
+date: "12/13/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+
+```{r}
+# Set parameters
+L <- 1000 # Number of loci
+n <- 100 # Number of inds in test panel
+m <- 200 # Number of inds in GWAS panel
+c <- min(n,m) # Number of non-zero canonical correlations
+
+## First layer
+
+# Draw latent allele frequencies
+pX <- rbeta(L, 0.5, 0.5) # Test
+pG <- rbeta(L, 0.5, 0.5)  # GWAS
+pGX <- rbeta(L, 0.5, 0.5) # Shared
+
+# Use latent allele frequencies to draw the latent genotype matrices 
+make_genotype_matrix <- function(L, n, p) {
+  Z <- matrix(NA, n, L)
+  for (i in 1:(n-1)) {
+    Z[i,] <- rbinom(L, 2, p)
+  }
+  Z[n,] <- rep(1, length(p)) # Add a heterozygote to avoid getting fixed sites
+  return(scale(Z))
+}
+
+# Latent scaled genotype matrices 
+Zx <- make_genotype_matrix(L, n, pX)
+Zg <- make_genotype_matrix(L, m, pG)
+Zgx <- make_genotype_matrix(L, c, pGX)
+
+# Generate canonical correlations
+lambda <- rep(1, c)
+
+## Second layer
+
+# Calculate CCA-whitened test matrix by mixing shared and non-shared components 
+X_CCA <- matrix(NA, n, L)
+for(i in 1:n) {
+  if (i <= c) {
+   X_CCA[i, ] <- (sqrt(1 - abs(lambda[i])) * Zx[i,]) + (sqrt(abs(lambda[i])) * Zgx[i,])
+  } else {
+    X_CCA[i, ] <-  Zx[i,]
+  }
+}
+
+# Calculate CCA-whitened GWAS matrix by mixing shared and non-shared components 
+G_CCA <- matrix(NA, m, L)
+for(i in 1:m) {
+  if (i <= c) {
+   G_CCA[i, ] <- (sqrt(1 - abs(lambda[i])) * Zg[i,]) + (sqrt(abs(lambda[i])) * Zgx[i,] * sign(lambda[i]))
+  } else {
+    G_CCA[i, ] <-  Zg[i,]
+  }
+}
+
+## Third layer 
+
+# ? 
+```
+
+```{r}
+library(CCA)
+myCCA <- cancor(t(X_CCA), t(G_CCA))
+myCCA$cor
+#plot((lambda)^2, abs(myCCA$cor)^2)
+```
+
+
+```{r}
+plot(X_CCA[1,], G_CCA[,1])
+```
+

@@ -19,7 +19,6 @@ lambdaT_file = args[4]
 pops_file = args[5]
 num = as.numeric(args[6]) # number of times to resapme
 out_pre = args[7]
-#out_pre = "~/polygenic_adaptation_stratification/output/Empirical_Null/4PopSplit/E1/C1/h2-0/env-0.0/geno-gwas_"
 
 
 # Function to read in genotype matrix for a set of variants
@@ -122,15 +121,12 @@ main <- function(beta_file) {
 
   # Calc PGS
   sscore <- pgs(X, betas)
-  print(head(sscore))
 
   # Calc Va
   Va <- calc_Va(X, betas)
-  print(paste0("Va",Va))
 
   # Calc Qx
   qx <- t(calc_Qx(sscore, tvec, Va, lambda_T))
-  print(paste0("Qx",qx))
 
   # Generate Empirical null
   redraws <- matrix(0, ncol = 1, nrow = num)

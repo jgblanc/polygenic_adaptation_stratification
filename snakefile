@@ -656,6 +656,24 @@ rule Calc_Qx_true:
           Rscript code/PGA_test/calc_Qx_4PopSplit_true.R {input.es} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.lambda_T} {input.pops} {params.num} {output.qx}
 	      """
 
+# Calculate true signal magnitude
+
+rule calc_ts_magnitude:
+    input:
+        psam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam"
+        pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop".
+        true_es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt"
+    output:
+        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/ts_magnitude.txt"
+    shell:
+        "Rscript code/Simulate_Phenotypes/calculate_true_signal_magnitude.R {input.pops} {input.true_es} {output} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {output}"
+
+
+
+
+
+
+
 # Remove non-end files
 
 #rule delete_files:
