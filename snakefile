@@ -669,10 +669,6 @@ rule calc_ts_magnitude:
 
 
 
-
-
-
-
 # Remove non-end files
 
 #rule delete_files:
