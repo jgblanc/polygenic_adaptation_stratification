@@ -373,10 +373,52 @@ data <- rbind(nc_same, nc_diff)
 data <- full_join(data, nc)
 
 
-ggplot(data, aes(x = prob, y = fp_strat, color = covariate_included)) + geom_point() + facet_grid(causal ~ direction) + geom_point(aes(y = tp), color = "red", shape = 8) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.02) + theme_classic(base_size = 12)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12),legend.position = "bottom") + ylim(0,1) + geom_hline(yintercept = 0.05, color = "red") + scale_color_manual(values = c("darkgreen", "goldenrod", "navy"), label = c("Population ID", "Uncorrected", "T GWAS"), name = "Covariate Included") + xlab("True Signal") + ylab("Positive Rate") 
+ggplot(data, aes(x = prob, y = fp_strat, color = covariate_included)) + geom_point() + facet_grid(causal ~ direction) + geom_point(aes(y = tp), color = "red", shape = 8) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.02) + theme_classic(base_size = 12)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12),legend.position = "bottom") + ylim(0,1) + geom_hline(yintercept = 0.05, color = "red") + scale_color_manual(values = c("darkgreen", "goldenrod", "navy"), label = unname(TeX( c("Population ID", "Uncorrected", "$T^{GWAS}$"))), name = "Covariate Included") + xlab("True Signal") + ylab("Positive Rate") 
 
 
 ```
+
+```{r, eval = TRUE, echo=FALSE, warning=FALSE}
+df_same <- fread("../code/plot/4PopSplit_L100_true_same.txt") %>% select(-c(Ax, `P-Ax`))
+df_diff <- fread("../code/plot/4PopSplit_L100_true_diff.txt") %>% select(-c(Ax, `P-Ax`))
+df_true1 <- fread("../code/plot/4PopSplit_L100_tes.txt") %>% mutate(type = "c-true") 
+df_true2 <- fread("../code/plot/4PopSplit_L100_tes.txt") %>% mutate(type = "nc-true") 
+df <- rbind(df_same, df_diff, df_true1, df_true2) 
+
+
+mag <- fread("../code/plot/4PopSplit_L100_ts_magnitude.txt")
+merged_df <- left_join(df, mag)
+merged_df$ts_magnitude <- abs(merged_df$ts_magnitude)
+
+merged_df <- merged_df %>% filter(type != "c.p" & type != "c.p-ID" & type != "c.p-Tm") %>% drop_na() %>% mutate(positive =  case_when((`P-EN` <= 0.05) ~ 1, (`P-EN` > 0.05)  ~ 0)) %>% mutate(direction = case_when(env == "env-0.0" ~ "No environmental stratification", (h2 == "same-0.3" & env == "env-1.0") ~ "Same direction", (h2 == "diff-0.3" & env == "env-1.0") ~ "Opposite direction")) %>% mutate(covariate_included = case_when((type == "c" | type == "nc") ~ "No", (type == "c-Tm" | type == "nc-Tm") ~ "Tm", (type == "c-ID" | type == "nc-ID") ~ "ID", (type == "c-true" | type == "nc-true") ~ "True")) %>% mutate(causal = case_when((type == "c" | type == "c-Tm" | type == "c-ID" | type == "c-true") ~ "causal", (type == "nc" | type == "nc-Tm" | type == "nc-ID" | type == "nc-true") ~ "ascertained"))
+
+merged_df %>% ggplot(aes(x = abs(ts_magnitude), y=positive, group = covariate_included, color = covariate_included)) + geom_point() + facet_grid(causal ~ direction) + stat_smooth(method="glm", se=FALSE, method.args = list(family=binomial)) + theme_classic(base_size = 12)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12),legend.position = "bottom") + scale_color_manual(values = c("darkgreen", "goldenrod", "navy", "black"), label = unname(TeX( c("Population ID", "Uncorrected", "$T^{GWAS}$", "True"))), name = "") + xlab(TeX("$\\Delta_{CD}$")) + ylab("Positive Rate") 
+```
+
+
+```{r, eval = TRUE, echo=FALSE, warning=FALSE}
+library(Hmisc)
+
+df <- merged_df %>% group_by(direction) %>% mutate(bins = cut2(abs(ts_magnitude), g=5, digits = 5)) %>% ungroup() %>% group_by(bins, direction) %>% mutate(avg = mean(ts_magnitude), num = n())  
+
+df_plot <- df %>% group_by(direction, covariate_included, avg, causal) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), num = n()) 
+
+pl <- df_plot %>% filter(covariate_included != "True") %>% ggplot(aes(x = avg, y = fp_strat, color = covariate_included)) + geom_point() + facet_grid(causal ~ direction) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.04) + theme_classic(base_size = 12)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12),legend.position = "bottom") + ylim(0,1) + geom_hline(yintercept = 0.05, color = "red") + scale_color_manual(values = c("darkgreen", "goldenrod", "navy", "black"), label = unname(TeX( c("Population ID", "Uncorrected", "$T^{GWAS}$", "True"))), name = "Covariate included") + xlab(TeX("$\\Delta_{CD}$")) + ylab("Positive Rate") 
+te <- df_plot %>% filter(covariate_included == "True")
+pl + geom_point(data = te, aes(x = avg, y = fp_strat), shape = 8, color = "red")
+
+#df%>% group_by(ts) %>% summarise(avg = mean(ts_magnitude), var = var(ts_magnitude), min = min(ts_magnitude), max = max(ts_magnitude))
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
