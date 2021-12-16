@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_same
-#SBATCH --output=logs/4PopSplit_same.out
-#SBATCH --error=logs/4PopSplit_same.err
+#SBATCH --job-name=SimpleGrid_PopID
+#SBATCH --output=logs/SimpleGrid_PopID.out
+#SBATCH --error=logs/SimpleGrid_PopID.err
 #SBATCH --time=04:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=5
