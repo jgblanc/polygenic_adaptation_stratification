@@ -9,6 +9,7 @@ HERITABILITY = ["scale-0"]
 ENV = ["env-0.0", "env-0.05"]
 SS_TEST =20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
+GWAS_SIZE = 60 * 36
 PVALUE_THRESHOLD = 1
 NUM_RESAMPLE = 1000
 
@@ -18,8 +19,6 @@ wildcard_constraints:
     config="C1",
     h2="scale-[0-1]",
     env="env-[0-9].*[0-9]*"
-
-
 
 def get_params(x):
   out = x.split("-")[1]
@@ -41,7 +40,7 @@ def get_seed1(rep, h2):
 
 rule all:
     input:
-        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{env}/Qx_ID.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV)
+        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca_weights.txt", rep=REP, config=CONFIG)
 
 # Simluate Genotypes
 
@@ -415,6 +414,37 @@ rule calc_Tm:
 
 	rm {input.allele}
 	"""
+
+# Get the weights of TGWAS on GWAS PCs
+
+rule GWAS_PCA:
+    input:
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pgen",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pvar",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam"
+    output:
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec",
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenval"
+    params:
+        n_minus_1 = int(GWAS_SIZE)-1
+    shell:
+        """
+        plink2 \
+        --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+       --pca {params.n_minus_1} \
+       --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/gwas_pca
+        """
+
+rule GWAS_PCA_weights:
+    input:
+        vecs="output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec",
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm.txt"
+    output:
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca_weights.txt"
+    shell:
+        """
+        Rscript code/Calculate_Tm/GWAS_PC_weights.R {input.vecs} {input.Tm} {output}
+        """
 
 # Format Covariate file
 

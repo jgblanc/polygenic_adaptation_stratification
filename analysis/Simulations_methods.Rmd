@@ -183,10 +183,13 @@ make_pgs_plot <- function(df, ll, up) {
 
 make_fp_plot <- function(df) {
   
-  pl <- ggplot(data = df, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none") + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red")+ geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_x_discrete(breaks=c("nc","nc-Tm"),labels = unname(TeX(c("No covariate", " Including $T^{GWAS}")))) + scale_fill_manual(values = c("goldenrod2", "navy")) + facet_wrap(~test)
+  df$type <- factor(df$type, levels = c("nc", "nc-Tm", "nc-ID"))
+  pl <- ggplot(data = df, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none") + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "Including $T^{GWAS}", "Including confounder")))) + facet_wrap(~test)
+  pl
   
   return(pl)
 }
+
 ```
 
 
@@ -207,7 +210,7 @@ df <- df[,2:6] %>%  gather(variable, value, -c(LAT, LONG,env))
 pl_pgs <- make_pgs_plot(df, -0.5, 0.5)
 
 # False positive rate plot 
-nc <- fread("../code/plot/SimpleGrid_T100_rescale.txt") %>% filter(type == "nc"| type == "nc-Tm") %>% filter(case == "C1" & env == "env-0.05")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(env, c("env", "diff"), "-") %>% mutate(test = "Latitude")
+nc <- fread("../code/plot/SimpleGrid_LatLat_ID.txt") %>% filter(type == "nc"| type == "nc-Tm" | type == "nc-ID") %>% filter(case == "C1" & env == "env-0.05")  %>% group_by(env, type, case) %>% summarise(fp_strat = sum(`P-EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(env, c("env", "diff"), "-") %>% mutate(test = "Latitude")  
 pl_fp <- make_fp_plot(nc)
 
 ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.25, 0.5, 0.25))
