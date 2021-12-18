@@ -15,6 +15,7 @@ parser.add_argument("--mu","-u",dest="mu",help="mutation rate (def:1e-08)",type=
 parser.add_argument("--migrate","-m",dest="migrate",help="migration rate (def:0.05)",type=float,default=0.05,nargs="?")
 parser.add_argument("--ndemes","-d",dest="ndemes",help="number of demes - must be a squared number (e.g. 25 or 100",type=int,default=36,nargs="?")
 parser.add_argument("--tmove","-t",dest="tmove",help="time (g) to panmixia. can be -9 (inf) or any positive integer",type=int,default=100,nargs="?")
+parser.add_argument("--seed","-sd",dest="seed",help="seed for simulation",type=int,default=1,nargs="?")
 args=parser.parse_args()
 
 print(args)
@@ -90,7 +91,7 @@ print(mig_mat)
 ss=args.ss
 
 ##### define function to simulate genotypes under a stepping stone migration model
-def step_geno(N=1e4,l=1e7,ss_each=2*ss,tmove=1000,mmat=mig_mat):
+def step_geno(N=1e4,l=1e7,ss_each=2*ss,tmove=1000,mmat=mig_mat, seed=args.seed):
     #N is the population size for each deme
     #ss_each is the haploid sample size for each deme
     #l is the length of the chromosome
@@ -141,7 +142,8 @@ def step_geno(N=1e4,l=1e7,ss_each=2*ss,tmove=1000,mmat=mig_mat):
                               mutation_rate=args.mu,
                               recombination_rate=args.rho,
                               length=l,
-                           demographic_events=demog)
+                           demographic_events=demog,
+                           random_seed = seed)
 
     return(ts)
 
@@ -150,10 +152,10 @@ print("simulating genotypes under demographic model")
 #simulate!
 for i in range(0,int(args.chr)):
     
-    #print(i)
-    
+    rand_seed = args.seed + i
+
     # Simulate
-    ts=step_geno(N=args.npop,ss_each=2*ss,l=args.length,tmove=args.tmove)
+    ts=step_geno(N=args.npop,ss_each=2*ss,l=args.length,tmove=args.tmove, seed=rand_seed)
     
     # Save to VCF
     #print("writing genotype to vcf file")

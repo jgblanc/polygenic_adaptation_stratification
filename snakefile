@@ -1,12 +1,12 @@
 CHR =[]
-for i in range(0, 200):
+for i in range(0, 20):
   CHR.append(str(i))
 REP = []
-for i in range(1, 101):
-  REP.append("T"+str(i))
+for i in range(1, 10):
+  REP.append("A"+str(i))
 CONFIG = ["C1"]
-HERITABILITY = ["scale-0"]
-ENV = ["env-0.0", "env-0.05"]
+HERITABILITY = ["h2-0"]
+ENV = ["env-0.0"]
 SS_TEST =20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
@@ -32,15 +32,15 @@ def get_seed(rep, h2, env):
   out3 = sum(tmp_list)
   return out1 + out2 + str(out3)
 
-def get_seed1(rep, h2):
-  out1 = list(rep)[1]
-  out2 = h2.split("-")[1]
-  return out1 + out2
+def get_seed_msprime(rep):
+  out = int(''.join(list(rep)[1::])) * 1000
+  print(out)
+  return out
 
 
 rule all:
     input:
-        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca_weights.txt", rep=REP, config=CONFIG)
+        expand("output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop", rep=REP)
 
 # Simluate Genotypes
 
@@ -49,7 +49,8 @@ rule simulate_genotypes_SimpleGrid:
         expand("output/Simulate_Genotypes/SimpleGrid/{{rep}}/genos_{chr}.vcf", chr=CHR),
 	      "output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop"
     params:
-      chr_num = len(CHR)
+      chr_num = len(CHR),
+      seed = lambda wildcards: get_seed_msprime(wildcards.rep)
     shell:
         "python code/Simulate_Genotypes/generate_genotypes_SimpleGrid.py \
 	       --outpre output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/genos \
@@ -60,7 +61,8 @@ rule simulate_genotypes_SimpleGrid:
 	       --mu 1e-07 \
 	       --rho 1e-07 \
 	       --tmove -9 \
-	       --migrate 0.01"
+	       --migrate 0.01 \
+	       --seed {params.seed}"
 
 rule format_VCF:
     input:
@@ -75,6 +77,7 @@ rule format_VCF:
 		          #bcftools index {output.gz}
 			        rm output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/header_{wildcards.chr}.txt
 				      """
+
 rule concat_vcfs:
     input:
         expand("output/Simulate_Genotypes/SimpleGrid/{{rep}}/genos_{chr}.ids.vcf.gz", chr=CHR)
@@ -111,7 +114,6 @@ rule create_panels_SimpleGrid:
         ss_test = SS_TEST
     shell:
         "Rscript code/Simulate_Genotypes/split_gwas-test_SimpleGrid.R {params.ss_test} {input} {output.gwas} {output.test}"
-
 
 rule split_into_test_gwas:
     input:

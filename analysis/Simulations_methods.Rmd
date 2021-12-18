@@ -217,6 +217,17 @@ ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.25, 0.5, 0.25))
 ```
 
 
+```{r, eval = FALSE, echo=FALSE}
+df <- fread("../code/plot/SimpleGrid_LatLat_weights.txt")
+
+x <- df %>% group_by(PC)%>% summarise(avg_rel_weight = mean(Relative_PC_weights))
+plot(x$avg_rel_weight)
+
+t <- df %>% filter(rep == "T33")
+plot(t$PC_weights)
+```
+
+
 #### stratD/Lat 
 
 * Simulated phenotype according to gradient along the diagonal going from lower left to upper right  
