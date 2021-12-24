@@ -1,13 +1,13 @@
 CHR =[]
-for i in range(0, 20):
+for i in range(0, 200):
   CHR.append(str(i))
 REP = []
-for i in range(1, 10):
+for i in range(1, 101):
   REP.append("A"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 ENV = ["env-0.0"]
-SS_TEST =20 # Number of inidividuals per deme
+SS_TEST = 20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
 PVALUE_THRESHOLD = 1
@@ -34,7 +34,6 @@ def get_seed(rep, h2, env):
 
 def get_seed_msprime(rep):
   out = int(''.join(list(rep)[1::])) * 1000
-  print(out)
   return out
 
 
