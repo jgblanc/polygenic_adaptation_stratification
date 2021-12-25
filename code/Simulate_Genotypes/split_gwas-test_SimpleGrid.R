@@ -1,4 +1,4 @@
-# Split individuals into GWAS and test panell
+# Split individuals into GWAS and test panel
 
 args=commandArgs(TRUE)
 
@@ -25,7 +25,7 @@ test <- df_test[,1:2]
 df_gwas <- anti_join(pop, df_test)
 gwas <- df_gwas[,1:2]
 
-
+# Write panel IDs to file
 write.table(gwas, gwas_file, quote = F, col.names = F, row.names = F)
 write.table(test, test_file, quote = F, col.names = F, row.names = F)
 

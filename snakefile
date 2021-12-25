@@ -6,7 +6,8 @@ for i in range(1, 101):
   REP.append("A"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
-ENV = ["env-0.0"]
+PHENO = ["LAT", "DIAG", "PS"]
+ENV = ["env-0.0", "env-0.5", "env-1.0"]
 SS_TEST = 20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
@@ -17,20 +18,25 @@ NUM_RESAMPLE = 1000
 wildcard_constraints:
     rep="[A-Z]\d+",
     config="C1",
-    h2="scale-[0-1]",
+    h2="h2-[0-1]",
+    pheno="[A-Z]*",
     env="env-[0-9].*[0-9]*"
 
 def get_params(x):
   out = x.split("-")[1]
   return out
 
-def get_seed(rep, h2, env):
-  out1 = list(rep)[1]
-  out2 = h2.split("-")[1]
-  tmp = env.split("-")[1].split(".")[1]
-  tmp_list = [int(i) for i in tmp]
-  out3 = sum(tmp_list)
-  return out1 + out2 + str(out3)
+def get_seed(rep, h2, pheno, env):
+  rep = list(rep)[1]
+  h2 = h2.split("-")[1]
+  pheno_list = list(pheno)
+  pheno_list = [ord(i) for i in pheno_list]
+  pheno = sum(pheno_list)
+  env_list = env.split("-")[1].split(".")[1]
+  env_list = [int(i) for i in env_list]
+  env = sum(env_list)
+  out = rep + h2 + str(pheno) + str(env)
+  return out
 
 def get_seed_msprime(rep):
   out = int(''.join(list(rep)[1::])) * 1000
@@ -39,7 +45,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop", rep=REP)
+        expand("output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO)
 
 # Simluate Genotypes
 
@@ -68,12 +74,10 @@ rule format_VCF:
         "output/Simulate_Genotypes/SimpleGrid/{rep}/genos_{chr}.vcf"
     output:
         gz="output/Simulate_Genotypes/SimpleGrid/{rep}/genos_{chr}.ids.vcf.gz"
-	      #csi="output/Simulate_Genotypes/SimpleGrid/{rep}/genos_{chr}.ids.vcf.gz.csi"
     shell:
         """
 	      head -n6 {input} > output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/header_{wildcards.chr}.txt
 	            cat output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/header_{wildcards.chr}.txt <(cat output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/genos_{wildcards.chr}.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
-		          #bcftools index {output.gz}
 			        rm output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/header_{wildcards.chr}.txt
 				      """
 
@@ -263,39 +267,39 @@ rule draw_effect_sizes:
     input:
         "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.afreq"
     output:
-        "output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/genos-gwas_common.effects.txt"
+        "output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
-        seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2)
+        seed = lambda wildcards: get_seed(wildcards.rep, wildcards.h2, wildcards.pheno, wildcards.env)
     shell:
-        "Rscript code/Simulate_Phenotypes/simgeffects.R {input} {output} {params.her} 0.4 {params.seed}"
+        "Rscript code/Simulate_Phenotypes/draw_effect_sizes.R {input} {output} {params.her} 0.4 {params.seed}"
 
 rule generate_genetic_values:
     input:
         "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
         "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pvar",
         "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pgen",
-        "output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/genos-gwas_common.effects.txt"
+        "output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.effects.txt"
     output:
-        "output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore"
+        "output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.gvalue.sscore"
     shell:
         "plink2 \
 	      --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	      --out output/Simulate_Phenotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-gwas_common.gvalue \
-		    --score output/Simulate_Phenotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-gwas_common.effects.txt cols=dosagesum,scoresums"
+	      --out output/Simulate_Phenotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/genos-gwas_common.gvalue \
+		    --score output/Simulate_Phenotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/genos-gwas_common.effects.txt cols=dosagesum,scoresums"
 
 rule simulate_phenotype_SimpleGrid:
     input:
-        gvalues="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore",
+        gvalues="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.gvalue.sscore",
         pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop"
     output:
-        "output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common.phenos.txt"
+        "output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
         en = lambda wildcards: get_params(wildcards.env),
-        seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2,wildcards.env)
+        seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2, wildcards.pheno, wildcards.env)
     shell:
-        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_SimpleGrid.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
+        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_SimpleGrid.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed} {wildcards.pheno}"
 
 # Run GWAS
 
