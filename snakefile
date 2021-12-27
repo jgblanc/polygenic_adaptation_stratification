@@ -1,13 +1,15 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = []
-for i in range(1, 101):
-  REP.append("A"+str(i))
+REP = ["A1"]
+#for i in range(1, 101):
+#  REP.append("A"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["LAT", "DIAG", "PS"]
-ENV = ["env-0.0", "env-0.5", "env-1.0"]
+TEST = ["LAT", "PS"]
+#ENV = ["env-0.0", "env-0.5", "env-1.0"]
+ENV = ["env-0.0", "env-0.5"]
 SS_TEST = 20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
@@ -45,7 +47,9 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO)
+        expand("output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-test_common.true.sscore", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO),
+        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt", rep=REP, config=CONFIG, test=TEST),
+        expand("output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.c.betas", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO)
 
 # Simluate Genotypes
 
@@ -307,9 +311,9 @@ rule gwas_no_correction:
     input:
         genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.afreq",
-        pheno="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common.phenos.txt"
+        pheno="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt"
     output:
-        "output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common.pheno_strat.glm.linear"
+        "output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.pheno_strat.glm.linear"
     shell:
         "plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
@@ -317,22 +321,22 @@ rule gwas_no_correction:
         --glm allow-no-covars \
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
-        --out output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
+        --out output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/genos-gwas_common"
 
 # Ascertain SNPs for PRS
 
 rule pick_SNPS:
     input:
-        causal_effect="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/genos-gwas_common.effects.txt",
-        gwas_strat="output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common.pheno_strat.glm.linear"
+        causal_effect="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.effects.txt",
+        gwas_strat="output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.pheno_strat.glm.linear"
     output:
-        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.betas",
-        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common.c.p.betas",
-        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common.nc.betas"
+        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.c.betas",
+        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.c.p.betas",
+        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.nc.betas"
     params:
         pt = PVALUE_THRESHOLD
     shell:
-        "Rscript code/PRS/clump_strat_only.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common {params.pt} output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common"
+        "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/genos-gwas_common {params.pt} output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/genos-gwas_common"
 
 
 # Calculate true genetic value in test panel
@@ -340,17 +344,17 @@ rule pick_SNPS:
 rule calc_true_gv:
     input:
         genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
-        causal_effect="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/genos-gwas_common.effects.txt",
+        causal_effect="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.effects.txt",
         freq="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.afreq"
     output:
-        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/genos-test_common.true.sscore",
+        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-test_common.true.sscore",
     shell:
         """
         plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common \
         --read-freq {input.freq} \
         --score {input.causal_effect} cols=dosagesum,scoresums \
-        --out output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-test_common.true \
+        --out output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/genos-test_common.true \
         """
 
 ## Include Tm as a covariate
@@ -363,9 +367,9 @@ rule make_test_vector:
         pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
         fam="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam"
     output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tvec.txt"
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt"
     shell:
-        "Rscript code/Calculate_Tm/make_tvec_SimpleGrid.R {input.pops} {input.fam} {output}"
+        "Rscript code/Calculate_Tm/make_tvec_SimpleGrid.R {input.pops} {input.fam} {wildcards.test} {output}"
 
 
 # Project T using Plink2
@@ -377,8 +381,7 @@ rule proj_T:
         "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
         "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pgen",
         "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pvar",
-        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tvec.txt"
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam"
     params:
         n_minus_1 = int(SIZE)-1,
         col_start = 6,
@@ -409,15 +412,14 @@ rule calc_Tm:
         vecs="output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenvec",
         vals="output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenval",
         proj="output/Calculate_Tm/SimpleGrid/{rep}/{config}/projection.sscore",
-        tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tvec.txt",
+        tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt",
 	allele="output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenvec.allele"
     output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm.txt"
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt",
+        weights="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Test_weights.txt",
     shell:
         """
-	Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} {input.proj} {input.tvec} {output}
-
-	rm {input.allele}
+	Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} {input.proj} {input.tvec} {output.Tm} {output.weights}
 	"""
 
 # Get the weights of TGWAS on GWAS PCs

@@ -4,7 +4,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<5){stop("Rscript calc_Tm.R <eigenvecs> <eigenvals> <sscore> <Tvec> <outfile name>")}
+if(length(args)<6){stop("Rscript calc_Tm.R <eigenvecs> <eigenvals> <sscore> <Tvec> <outfile Tm name> <outfile weights name>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -23,23 +23,24 @@ out_file_weight=args[6] # Name for wieghts file
 vecs <- fread(vecs_file)
 vecs <- vecs[,3:ncol(vecs)]
 vecs <- apply(vecs, 2, as.numeric)
-#head(vecs)
+
 
 # Load test vector
 std.tvec <- fread(tvec_file)
 std.tvec$V1 <- as.numeric(std.tvec$V1)
-#print(std.tvec)
-#print(str(std.tvec))
+
 
 # Get the weights of each eigenvector
 B <- t(vecs) %*% std.tvec$V1
-#fwrite(as.data.frame(B[,1]), out_file_weight,row.names=F,quote=F,sep="\t", col.names = T)
+Br = abs(B) / sum(abs(B))
+out <- as_tibble(cbind(B, Br))
+colnames(out) <- c("PC_weights", "Relative_PC_weights")
+fwrite(out, out_file_weight,row.names=F,quote=F,sep="\t", col.names = T)
 
 # Load Projected eigenvectors
 proj_vecs <- fread(proj_file)
 proj_vecs <- proj_vecs[,5:ncol(proj_vecs)]
 proj_vecs <- apply(proj_vecs, 2, as.numeric)
-#head(proj_vecs)
 
 # Load Eigenvalues
 vals <- fread(vals_file)
@@ -50,5 +51,6 @@ Tm <- proj_vecs %*% diag(1/sqrt(vals)) %*% B
 Tm <- -2 * Tm
 
 # Save Tm
+colnames(Tm) <- "Tm"
 fwrite(Tm, out_file,row.names=F,quote=F,sep="\t", col.names = T)
 

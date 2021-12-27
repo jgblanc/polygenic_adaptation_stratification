@@ -67,9 +67,7 @@ if (pheno_pattern == "LAT") {
     prs <- prs %>% group_by(Lat) %>% mutate(env = ifelse(Lat == (i-1), env + shifts[i], env))
   }
 
-}
-
-if (pheno_pattern == "DIAG") {
+} else if (pheno_pattern == "DIAG") {
 
   print(pheno_pattern)
 
@@ -86,9 +84,7 @@ if (pheno_pattern == "DIAG") {
   for (i in 1:length(id_diag)) {
     prs <- prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == id_diag[i], env + shifts[i], env))
   }
-}
-
-if (pheno_pattern == "PS") {
+} else if (pheno_pattern == "PS") {
 
   print(pheno_pattern)
 
@@ -98,6 +94,8 @@ if (pheno_pattern == "PS") {
     prs <- prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == id_diag[i], env + env_s, env))
   }
 
+} else {
+  stop("Please enter acceptable phenotype pattern: LAT, DIAG, PS")
 }
 
 # Add genetic value to each of the environmental effects
