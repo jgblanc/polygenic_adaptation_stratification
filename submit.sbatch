@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrid_A_Genotypes
-#SBATCH --output=logs/SimpleGrid_A_Genotypes.out
-#SBATCH --error=logs/SimpleGrid_A_Genotypes.err
+#SBATCH --job-name=SimpleGrid_A_Phenotypes
+#SBATCH --output=logs/SimpleGrid_A_Phenotypes.out
+#SBATCH --error=logs/SimpleGrid_A_Phenotypes.err
 #SBATCH --time=36:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=5
@@ -16,5 +16,5 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake -j 20 --rerun-incomplete aggregate_genotypes    
+snakemake -j 20 --rerun-incomplete    
 #sh copy_dir.sh
