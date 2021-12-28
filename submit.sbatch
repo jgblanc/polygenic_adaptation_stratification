@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrid_A_Phenotypes
-#SBATCH --output=logs/SimpleGrid_A_Phenotypes.out
-#SBATCH --error=logs/SimpleGrid_A_Phenotypes.err
+#SBATCH --job-name=SimpleGrid_A_Tm
+#SBATCH --output=logs/SimpleGrid_A_Tm.out
+#SBATCH --error=logs/SimpleGrid_A_Tm.err
 #SBATCH --time=36:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=5
