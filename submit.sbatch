@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrid_A_Tm
-#SBATCH --output=logs/SimpleGrid_A_Tm.out
-#SBATCH --error=logs/SimpleGrid_A_Tm.err
-#SBATCH --time=36:00:00
+#SBATCH --job-name=SimpleGrid_A_GWAS
+#SBATCH --output=logs/SimpleGrid_A_GWAS.out
+#SBATCH --error=logs/SimpleGrid_A_GWAS.err
+#SBATCH --time=05:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=5
 #SBATCH --ntasks-per-node=4
-#SBATCH --mem-per-cpu=10GB
+#SBATCH --mem-per-cpu=6GB
 
 module load python/cpython-3.7.0
 module load R
