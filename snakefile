@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = []
-for i in range(1, 101):
-  REP.append("A"+str(i))
+REP = ["A1"]
+#for i in range(1, 101):
+#  REP.append("A"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["LAT", "DIAG", "PS"]
@@ -47,9 +47,9 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-test_common.true.sscore", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO),
-        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt", rep=REP, config=CONFIG, test=TEST),
-        expand("output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.c.betas", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO)
+        expand("output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.c.betas", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST),
+        expand("output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.c.betas", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST),
+        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt", rep=REP, config=CONFIG, test=TEST)
 
 # Simluate Genotypes
 
@@ -445,9 +445,9 @@ rule GWAS_PCA:
 rule GWAS_PCA_weights:
     input:
         vecs="output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec",
-        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm.txt"
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt"
     output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca_weights.txt"
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt"
     shell:
         """
         Rscript code/Calculate_Tm/GWAS_PC_weights.R {input.vecs} {input.Tm} {output}
@@ -459,11 +459,11 @@ rule format_covars:
     input:
         pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
         fam="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
-        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm.txt"
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt"
     output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm-ID_covars.txt"
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm-ID_covars.txt"
     shell:
-        "Rscript code/Calculate_Tm/Latitude_format_ID_covars.R {input.pops} {input.Tm} {input.fam} {output}"
+        "Rscript code/Calculate_Tm/SimpleGrid_format_ID_covars.R {input.pops} {input.Tm} {input.fam} {wildcards.test} {output}"
 
 # Re-run GWAS
 
@@ -471,10 +471,10 @@ rule gwas_Tm:
     input:
         genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.afreq",
-        pheno="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common.phenos.txt",
-        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm_covars.txt"
+        pheno="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt",
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm-ID_covars.txt"
     output:
-        "output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
+        "output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.pheno_strat.glm.linear"
     shell:
         "plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
@@ -484,16 +484,16 @@ rule gwas_Tm:
         --covar-col-nums 3 \
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
-        --out output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-Tm"
+        --out output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common-Tm"
 
 rule gwas_PopID:
     input:
         genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.afreq",
-        pheno="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common.phenos.txt",
-        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tm-ID_covars.txt"
+        pheno="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt",
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm-ID_covars.txt"
     output:
-        "output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear"
+        "output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.pheno_strat.glm.linear"
     shell:
         "plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
@@ -503,7 +503,7 @@ rule gwas_PopID:
         --covar-col-nums 4 \
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
-        --out output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-ID"
+        --out output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common-ID"
 
 
 
@@ -511,29 +511,29 @@ rule gwas_PopID:
 
 rule pick_SNPS_Tm:
     input:
-        causal_effect="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/genos-gwas_common.effects.txt",
-        gwas_strat="output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
+        causal_effect="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.effects.txt",
+        gwas_strat="output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.pheno_strat.glm.linear"
     output:
-        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.betas",
-        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.c.p.betas",
-        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-Tm.nc.betas"
+        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.c.betas",
+        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.c.p.betas",
+        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.nc.betas"
     params:
         pt = PVALUE_THRESHOLD
     shell:
-        "Rscript code/PRS/clump_strat_only.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-Tm {params.pt} output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-Tm"
+        "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common-Tm {params.pt} output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common-Tm"
 
 rule pick_SNPS_ID:
     input:
-        causal_effect="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/genos-gwas_common.effects.txt",
-        gwas_strat="output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear"
+        causal_effect="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.effects.txt",
+        gwas_strat="output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.pheno_strat.glm.linear"
     output:
-        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-ID.c.betas",
-        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-ID.c.p.betas",
-        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{env}/genos-gwas_common-ID.nc.betas"
+        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.c.betas",
+        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.c.p.betas",
+        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.nc.betas"
     params:
         pt = PVALUE_THRESHOLD
     shell:
-        "Rscript code/PRS/clump_strat_only.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-ID {params.pt} output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.env}/genos-gwas_common-ID"
+        "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common-ID {params.pt} output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common-ID"
 
 
 # Do polygenic adaptation test

@@ -4,7 +4,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<3){stop("Rscript calc_Tm.R <eigenvecs> <eigenvals> <sscore> <Tvec> <outfile name>")}
+if(length(args)<3){stop("Rscript calc_Tm.R <eigenvecs> <Tm> <outfile name>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -24,7 +24,8 @@ vecs <- apply(vecs, 2, as.numeric)
 
 # Load T^GWAS
 Tm = fread(Tm_file)
-Tm = Tm$V1
+print(head(Tm))
+Tm = Tm$Tm
 
 # Get weights
 B = t(vecs) %*% Tm
