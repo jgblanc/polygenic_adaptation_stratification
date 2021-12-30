@@ -1,15 +1,15 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = ["A1"]
-#for i in range(1, 101):
-#  REP.append("A"+str(i))
+REP = []
+for i in range(1, 2):
+  REP.append("A"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["LAT", "DIAG", "PS"]
 TEST = ["LAT", "PS"]
-#ENV = ["env-0.0", "env-0.5", "env-1.0"]
-ENV = ["env-0.0", "env-0.5"]
+ENV = ["env-0.0", "env-0.5", "env-1.0"]
+#ENV = ["env-0.0", "env-0.5"]
 SS_TEST = 20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
