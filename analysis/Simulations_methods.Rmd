@@ -429,7 +429,7 @@ pl + geom_point(data = te, aes(x = avg, y = fp_strat), shape = 8, color = "red")
 
 
 ```{r}
-df <- fread("../code/Make_Plots/SimpleGrid_A.txt")
+df <- fread("../code/Make_Plots/SimpleGrid_fp_A.txt")
 
 
 make_fp_plot <- function(df, pheno_type, env_type, test_type, longitude=F) {
@@ -461,9 +461,32 @@ make_fp_plot <- function(df, pheno_type, env_type, test_type, longitude=F) {
 }
 
 
-make_fp_plot(df, "DIAG", "env-0.5", "LAT", longitude = T)
+make_fp_plot(df, "DIAG", "env-0.5", "LAT", longitude = F)
 ```
 
+```{r}
+df <- fread("../code/Make_Plots/SimpleGrid_pgs_A.txt.gz")
+
+make_grid_plot <- function(df, pheno_type, env_type, test_type, ll, up) {
+  
+  dat <- df %>% filter(pheno == pheno_type & envs == env_type & test == test_type) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
+  
+  dat <- dat[,2:5] %>%  gather(variable, value, -c(LAT, LONG))
+  
+  plu <- dat %>% filter(variable == "avg_PRS") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() +  theme_classic(base_size = 12) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "brown4", high = "royalblue4",limits = c(ll, up), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+  
+  plc <- dat %>% filter(variable == "avg_PRS_Tm") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() +  theme_classic(base_size = 12) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "brown4", high = "royalblue4",limits = c(ll, up), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+  
+  pl <- ggarrange(plu, plc, common.legend = T, legend="right")
+  
+  return(pl)
+}
+
+make_grid_plot(df, "LAT", "env-0.5", "LAT", -1.5, 1.5)
+make_grid_plot(df, "DIAG", "env-0.5", "LAT", -1, 1)
+make_grid_plot(df, "PS", "env-0.5", "LAT", -1, 1)
+make_grid_plot(df, "PS", "env-1.0", "PS", -1, 1)
+```
 
 
 
