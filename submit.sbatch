@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrid_A_GWAS
-#SBATCH --output=logs/SimpleGrid_A_GWAS.out
-#SBATCH --error=logs/SimpleGrid_A_GWAS.err
-#SBATCH --time=05:00:00
+#SBATCH --job-name=SimpleGrid_A_Qx
+#SBATCH --output=logs/SimpleGrid_A_Qx.out
+#SBATCH --error=logs/SimpleGrid_A_Qx.err
+#SBATCH --time=24:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=5
 #SBATCH --ntasks-per-node=4

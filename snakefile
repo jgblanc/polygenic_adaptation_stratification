@@ -2,7 +2,7 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 REP = []
-for i in range(1, 2):
+for i in range(1, 101):
   REP.append("A"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
