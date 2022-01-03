@@ -428,6 +428,50 @@ pl + geom_point(data = te, aes(x = avg, y = fp_strat), shape = 8, color = "red")
 
 
 
+```{r}
+df <- fread("../code/Make_Plots/SimpleGrid_A.txt")
+
+
+make_fp_plot <- function(df, pheno_type, env_type, test_type, longitude=F) {
+  
+  if (test_type == "LAT") {
+    test_name <- "Latitude"
+  }
+  if (test_type == "PS") {
+    test_name = "Single Deme"
+  }
+  
+  if (longitude == F) {
+    dat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc", "nc-Tm", "nc-ID")) %>% mutate(test = test_type)
+  
+  pl <-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none") + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "Including $T^{GWAS}", "Including confounder")))) + facet_wrap(~test)
+  } else {
+    
+    dat_lat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc", "nc-Tm", "nc-ID")) %>% mutate(test = test_name)
+    
+    dat_long <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_Long <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc", "nc-Tm", "nc-ID")) %>% mutate(test = "Longitude")
+    
+    dat <- full_join(dat_lat, dat_long)
+
+    pl <-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none") + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "Including $T^{GWAS}", "Including confounder")))) + facet_wrap(~test)    
+    
+  }
+  
+  return(pl)
+}
+
+
+make_fp_plot(df, "DIAG", "env-0.5", "LAT", longitude = T)
+```
+
+
+
+
+
+
+
+
+
 
 
 
