@@ -26,13 +26,14 @@ parser.add_argument("--split1","-s1",dest="split_time1",help="time when 1 pop sp
 parser.add_argument("--split2","-s2",dest="split_time2",help="time when 2 pops split to 4",type=int,default=70e3,nargs="?")
 parser.add_argument("--ploidy","-p",dest="ploidy",help="ploidy of individuals",type=int,default=2,nargs="?")
 req_grp.add_argument("--chr","-ch",dest="chrom_num",help="number of chromosome",type=int,required=True)
+parser.add_argument("--seed","-sd",dest="seed",help="seed for simulation",type=int,default=1,nargs="?")
 args=parser.parse_args()
 
 print(args)
 
 
 # Define Function to generate tree sequency under 4 population split model - single population splits into 2 at `split_time_1` and each of those populations splits into 2 at `split_time_2`
-def split(N_A, N_B, N_C, N_D, split_time1, split_time2, sample_A, sample_B, sample_C, sample_D, seg_length, recomb_rate, mut_rate, N_anc):
+def split(N_A, N_B, N_C, N_D, split_time1, split_time2, sample_A, sample_B, sample_C, sample_D, seg_length, recomb_rate, mut_rate, N_anc, seed):
 
     # Times are provided in years, so we convert into generations.
     generation_time = 25
@@ -72,22 +73,21 @@ def split(N_A, N_B, N_C, N_D, split_time1, split_time2, sample_A, sample_B, samp
     #dd.print_history()
     
     ts = msprime.simulate(population_configurations=population_configurations,
-                         demographic_events=demographic_events, length=seg_length, recombination_rate=recomb_rate)
-    ts = msprime.mutate(ts,rate=mut_rate)
+                         demographic_events=demographic_events, length=seg_length, recombination_rate=recomb_rate, random_seed = seed)
+    ts = msprime.mutate(ts,rate=mut_rate, random_seed=seed)
     return ts
 
 # Generate Tree Sequences and Save to VCF
 for i in range(0,args.chrom_num):
     
-    #print(i)
+    rand_seed = args.seed + i
     
     # Generate Tree Sequence 
     #print("simulating genotypes under demographic model")
-    ts = split(args.NA, args.NB, args.NC, args.ND, args.split_time1, args.split_time2, args.sample_A, args.sample_B, args.sample_C, args.sample_D, args.length, args.rho, args.mu, args.Nanc)
+    ts = split(args.NA, args.NB, args.NC, args.ND, args.split_time1, args.split_time2, args.sample_A, args.sample_B, args.sample_C, args.sample_D, args.length, args.rho, args.mu, args.Nanc, rand_seed)
 
     # Save to VCF
     #print("writing genotype to vcf file")
-
     with open(args.outpre+"_"+str(i)+".vcf","w") as vcf_file:
         ts.write_vcf(vcf_file,ploidy=args.ploidy,contig_id=i+1)
     
