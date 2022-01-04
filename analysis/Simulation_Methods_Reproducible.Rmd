@@ -1,0 +1,215 @@
+---
+title: "Simulation_Methods_Reproducible"
+author: "Jennifer Blanc"
+date: "1/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(data.table)
+library(tidyverse)
+library(latex2exp)
+library(ggpubr)
+```
+
+## Introduction 
+
+Here I will reccord the details for the simulations presented in the main text and the supplement. I will also include the code to make the the figures.
+
+## Simple Grid 
+
+### Msprime simulation 
+
+Generate diploid individuals using a stepping stone model on a 6x6 grid with the parameters below: 
+
+Parameters: 
+
+* 200 chromosomes  
+* sample size = 80 diploids  
+* Ne = 1000 
+* $\mu$ = 1e-07  
+* $\rho$ = 1e-07 
+* m = 0.01  
+* chromosome length = 10000 
+* tmove = -9 (perpetual structure)  
+
+The simulation was run 100 times total.  
+
+### Create genotypes panels and filter SNPs
+
+1. Sample 20 individuals per deme for test panels (36 * 20 individuals total) 
+2. Remaining individuals (60 per deme) become the GWAS panel  
+3. Restrict snps to sites segregating at greater than 5% frequency within each panel  
+
+### Draw phenotype 
+
+Notes:  
+
+* All simulations have $h^2 = 0$  
+* ENV is the magnitude of the phenotype shift 
+
+1. Sample random phenotype $N(0,1)$ for all GWAS indviduals 
+2. Scale variance within deme to match full size GWAS variance (see __ for more details)
+3. Simulate stratification:  
+  1. Lat/Lat: Shift average phenotype per Latitude (if env is the total shift, shift 1 lat by env/5, 2 lat by 2*(env/5), etc.) and use Latitude as the test vector 
+  2. stratD/Lat: Shift the average phenotype on the diagonals of the grid going lower left to upper right and use latitude as the test vector 
+  
+### Project Test Vector  
+
+1. Set test vector as a mean centered $n \times 1$ vector with each entry as the test panel individuals latitude/longitude/popID  
+2. Project test vector in GWAS panel, resulting in an $m \times 1$ (see ___ for more detail)
+
+### Run GWASs  
+
+1. Use plink to run GWAS with and without including projected test vector 
+
+### Calculate PGS and Qx 
+
+1. Pick the SNP with lowest p-value per chromosome to include in PGS (200 SNPs total)  
+2. Compute PGS in test panel individuals 
+3. Calculate $V_a$ 
+4. Calculate the amount of variance explained by the test vector ($\lambda_T$; note that we used the mean-centered test vector to compute this)  
+5. Calculate empirical null p-value by permuting the signs of the SNP effect sizes 1,000 times and computing the proportion of permutations greater than the true $Q_x$ value.  
+
+
+### Figures
+
+```{r,eval = TRUE, echo=FALSE, warning=FALSE}
+# Function to plot the false positive rates 
+make_fp_plot <- function(df, pheno_type, env_type, test_type, longitude=F) {
+  
+  if (test_type == "LAT") {
+    test_name <- "Latitude"
+  }
+  if (test_type == "PS") {
+    test_name = "Single Deme"
+  }
+  
+  if (longitude == F) {
+    dat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc", "nc-Tm", "nc-ID")) %>% mutate(test = test_type)
+  
+  pl <-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none") + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "Including $T^{GWAS}", "Including confounder")))) + facet_wrap(~test)
+  } else {
+    
+    dat_lat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc", "nc-Tm", "nc-ID")) %>% mutate(test = test_name)
+    
+    dat_long <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_Long <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc", "nc-Tm", "nc-ID")) %>% mutate(test = "Longitude")
+    
+    dat <- full_join(dat_lat, dat_long)
+
+    pl <-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none") + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "Including $T^{GWAS}", "Including confounder")))) + facet_wrap(~test)    
+    
+  }
+  
+  return(pl)
+}
+
+# Function to plot PGS on grid
+make_pgs_plot <- function(df, pheno_type, env_type, test_type, ll, up) {
+  
+  dat <- df %>% filter(pheno == pheno_type & envs == env_type & test == test_type) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
+  
+  dat <- dat[,2:5] %>%  gather(variable, value, -c(LAT, LONG))
+  
+  plu <- dat %>% filter(variable == "avg_PRS") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() +  theme_classic(base_size = 12) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "brown4", high = "royalblue4",limits = c(ll, up), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+  
+  plc <- dat %>% filter(variable == "avg_PRS_Tm") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() +  theme_classic(base_size = 12) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "brown4", high = "royalblue4",limits = c(ll, up), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+  
+  pl <- ggarrange(plu, plc, common.legend = T, legend="right")
+  
+  return(pl)
+}
+
+# Function to plot phenotypes 
+make_phenotype_plot <- function(df, pheno_type, env_type) {
+  
+  dat <- df %>% filter(pheno == pheno_type & envs == env_type) %>% mutate(pheno_strat = (pheno_strat - mean(pheno_strat)) / sd(pheno_strat)) %>%  group_by(POP) %>% summarise(avg_pheno = mean(pheno_strat),LAT = mean(LAT), LONG = mean(LONG))
+  
+  dat <- dat[,2:4] %>%  gather(variable, value, -c(LAT, LONG))
+  
+  pl <- ggplot(dat, aes(x = LONG, y = LAT, fill = value)) + geom_tile() + theme_classic(base_size = 12) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + scale_fill_gradient2(low = "palegoldenrod", high = "purple4") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+  
+  return(pl)
+}
+
+make_gwas_weights_plot <- function(df, test_type) {
+  
+  dat <- df %>% filter(test == test_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(Relative_PC_weights))
+  
+  pl <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("Principal Component") + ylab("Avg. Relative Weight")  
+  
+  return(pl)
+  
+}
+
+
+fp <- fread("../code/Make_Plots/SimpleGrid_fp_A.txt")
+pgs <- fread("../code/Make_Plots/SimpleGrid_pgs_A.txt.gz")
+phenos <- fread("../code/Make_Plots/SimpleGrid_phenos_A.txt.gz")
+gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_A.txt")
+```
+
+#### Lat/Lat 
+
+* Simulated phenotype according to latitudinal gradient 
+* Test vector is latitude 
+
+```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
+pl_fp <- make_fp_plot(fp, pheno_type = "LAT", env_type = "env-0.5", test_type = "LAT", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "LAT", env_type = "env-0.5", test_type = "LAT", -1.5, 1.5)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "LAT", env_type = "env-0.5")
+pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
+
+ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
+```
+
+#### stratD/Lat 
+
+* Simulated phenotype according to gradient along the diagonal going from lower left to upper right  
+* Project latitude as the test vector 
+* For each simulation do 2 polygenic adaptation tests one with latitude as the test vector and one with longitude  
+
+```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
+pl_fp <- make_fp_plot(fp, pheno_type = "DIAG", env_type = "env-0.5", test_type = "LAT", longitude = T)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "DIAG", env_type = "env-0.5", test_type = "LAT", -1, 1)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "DIAG", env_type = "env-0.5")
+pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
+
+ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
+```
+
+
+#### singleDeme/Lat 
+
+* Simulated phenotype difference in a single deme
+* Project latitude as the test vector 
+* For each simulation do 1 polygenic adaptation test with latitude as the test vector 
+
+```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
+pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-0.5", test_type = "LAT", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-0.5", test_type = "LAT", -0.5, 0.5)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-0.5")
+pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
+
+ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
+```
+
+
+#### singleDeme/singleDeme 
+
+* Simulated phenotype difference in a single deme
+* Project single deme vs everyone else as test vector 
+* For each simulation do 1 polygenic adaptation test with single deme vs everybody as the test vector 
+
+```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
+pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-0.5", test_type = "PS", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-0.5", test_type = "PS", -0.5, 0.5)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-0.5")
+pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
+
+ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
+```
+
+
+
