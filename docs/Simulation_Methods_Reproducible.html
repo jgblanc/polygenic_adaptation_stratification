@@ -9,9 +9,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Jennifer Blanc" />
 
 
-<title>Home</title>
+<title>Simulation_Methods_Reproducible</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -28,6 +29,9 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
@@ -227,6 +231,69 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
 
 </head>
 
@@ -234,6 +301,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -277,7 +354,9 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Home</h1>
+<h1 class="title toc-ignore">Simulation_Methods_Reproducible</h1>
+<h4 class="author">Jennifer Blanc</h4>
+<h4 class="date">1/3/2022</h4>
 
 </div>
 
@@ -305,7 +384,7 @@ $(document).ready(function () {
 <strong>Last updated:</strong> 2022-01-03
 </p>
 <p>
-<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
 </p>
 <p>
 <strong>Knit directory:</strong> <code>polygenic_adaptation_stratification/analysis/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
@@ -327,6 +406,66 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
 <div class="panel-body">
 <p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20201015code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20201015)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20201015code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20201015)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
 </div>
 </div>
 </div>
@@ -438,7 +577,7 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <div id="versions" class="tab-pane fade">
 
 <p>
-These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/index.Rmd</code>) and HTML (<code>docs/index.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/Simulation_Methods_Reproducible.Rmd</code>) and HTML (<code>docs/Simulation_Methods_Reproducible.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
 </p>
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
@@ -467,7 +606,7 @@ Message
 Rmd
 </td>
 <td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/1e10dec627b5ea23e6a139befadaf18de7b4dfbc/analysis/index.Rmd" target="_blank">1e10dec</a>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/1e10dec627b5ea23e6a139befadaf18de7b4dfbc/analysis/Simulation_Methods_Reproducible.Rmd" target="_blank">1e10dec</a>
 </td>
 <td>
 jgblanc
@@ -479,686 +618,6 @@ jgblanc
 wflow_publish(c(“analysis/Simulation_Methods_Reproducible.Rmd”,
 </td>
 </tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/3c774bfa756e4900af963112d14deb7ed000f4e8/docs/index.html" target="_blank">3c774bf</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-05
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/cba0a794d92676b31dc4ac30147503c02840d20d/analysis/index.Rmd" target="_blank">cba0a79</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-05
-</td>
-<td>
-Publish website
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/d395ec753b671275347ed497cdb3d84aed17816f/analysis/index.Rmd" target="_blank">d395ec7</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-04
-</td>
-<td>
-transfer true signal up
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/d395ec753b671275347ed497cdb3d84aed17816f/docs/index.html" target="_blank">d395ec7</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-04
-</td>
-<td>
-transfer true signal up
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/c811553addf687a880dbfc099fc4b74459348796/docs/index.html" target="_blank">c811553</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-04
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/b47db7e65401219f3095b0c4d0e71e5afe55cf20/analysis/index.Rmd" target="_blank">b47db7e</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-04
-</td>
-<td>
-trying git wflow
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/4a478051738fc7e6fb2d027da74d1a0b02c9722c/analysis/index.Rmd" target="_blank">4a47805</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-09-29
-</td>
-<td>
-organizing website
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/4a478051738fc7e6fb2d027da74d1a0b02c9722c/docs/index.html" target="_blank">4a47805</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-09-29
-</td>
-<td>
-organizing website
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/4da4d1ddf7ed4417adc6f911e23e6e6ac552da30/docs/index.html" target="_blank">4da4d1d</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-08-18
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/de741dbbaf6452eed618be884b1839c4cb253a52/analysis/index.Rmd" target="_blank">de741db</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-08-18
-</td>
-<td>
-testing wflowr
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/552d55057f8bec9a558a259677122d854ee84f88/docs/index.html" target="_blank">552d550</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-08-18
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/db67bf87403dbf414c8c82b5a8d462b62632ba80/docs/index.html" target="_blank">db67bf8</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-08-17
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/ba6e2e083d37c95adc026f7ff7184e00771a852c/docs/index.html" target="_blank">ba6e2e0</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-08-17
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/011a710681ef21d98e57d073ec4d9334518b15b4/analysis/index.Rmd" target="_blank">011a710</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-08-17
-</td>
-<td>
-Meeting notes
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/35227cccc214f2dcdf39fa20bde86dbbab86e954/docs/index.html" target="_blank">35227cc</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-08-02
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/3f17ad7e08262766b5ec7df99202ce429477e959/analysis/index.Rmd" target="_blank">3f17ad7</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-08-02
-</td>
-<td>
-wflow_publish(c(“analysis/index.Rmd”, “analysis/Simulations_methods.Rmd”))
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/d9097240c6da5ad034c144b1e1cc9a9740394d9d/docs/index.html" target="_blank">d909724</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-06-15
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/64a812dcced2ff5b9aff69c250cecf27d719312f/analysis/index.Rmd" target="_blank">64a812d</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-06-15
-</td>
-<td>
-wflow_publish(c(“analysis/Plot_4PopSplit.Rmd”, “analysis/Plot_SimpleGrid.Rmd”,
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/1b63da0512a6ca0644c7f36a67529f759688fe56/docs/index.html" target="_blank">1b63da0</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-06-15
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/46a0ddd147cf0dcf35fce52284ada596d752c366/analysis/index.Rmd" target="_blank">46a0ddd</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-06-15
-</td>
-<td>
-wflow_publish(c(“analysis/index.Rmd”))
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/e1445422fbc438ca45004c039cb4992ca300e576/docs/index.html" target="_blank">e144542</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-05-04
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/a83c1a34853e12d7ade74b2c6114286de9af4cf9/analysis/index.Rmd" target="_blank">a83c1a3</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-05-04
-</td>
-<td>
-calc qx page
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/d3bef4b79b2cf08b7ed0842a998c10bf55b6aa2e/docs/index.html" target="_blank">d3bef4b</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-03-15
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/b2c89c77e94c6c91507be6d9de05607707dfd766/analysis/index.Rmd" target="_blank">b2c89c7</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-03-15
-</td>
-<td>
-wflow_publish(c(“analysis/index.Rmd”, “analysis/Projection_plink2.Rmd”))
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/44151c058d1a60c2de19ec65ec3b38ab65c962e4/docs/index.html" target="_blank">44151c0</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-03-04
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/2d14caf606eada4a7f878c269e62793673b7dd5b/analysis/index.Rmd" target="_blank">2d14caf</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-03-04
-</td>
-<td>
-projection example
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/be1f7f87a2462914f1fc7bcf770d313a5748b80f/docs/index.html" target="_blank">be1f7f8</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-01-31
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/645d3aa8666de71d46e9e090bc4bc90f1911693b/analysis/index.Rmd" target="_blank">645d3aa</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-01-31
-</td>
-<td>
-wflow_publish(c(“analysis/Plot_4Popsplit.Rmd”, “analysis/index.Rmd”))
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/25150cd2fa70005c08724bb459d853b0d4465440/docs/index.html" target="_blank">25150cd</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-12-14
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/675a6155cd1eae8dac8272c65f88fbe6326334de/analysis/index.Rmd" target="_blank">675a615</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-12-14
-</td>
-<td>
-Lab meeting
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/911a4621242dedac83b0a17283134accbd45ff61/docs/index.html" target="_blank">911a462</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-11-15
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/05d143af52e3ba9319e8e546367b5f27399183cf/analysis/index.Rmd" target="_blank">05d143a</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-11-15
-</td>
-<td>
-help
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/dba2c6fd247f284867bfa05ea2a160bd71975896/docs/index.html" target="_blank">dba2c6f</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-11-03
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/fc12aa99cb8dd574a5d74f94bcc370fbe355d2ea/analysis/index.Rmd" target="_blank">fc12aa9</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-11-03
-</td>
-<td>
-draft
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/8b1fa832db5d8cf52623306978b8414777f70722/docs/index.html" target="_blank">8b1fa83</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-10-19
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/401d8dd52aefb13d571e5fc0109732544b24bf6b/docs/index.html" target="_blank">401d8dd</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-10-19
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/5b17f8385a152534402ce3b765358a751cdc5668/analysis/index.Rmd" target="_blank">5b17f83</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-10-19
-</td>
-<td>
-Theory
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/854d4f7080c4700bbd1f0e700d7372a0c10e8628/docs/index.html" target="_blank">854d4f7</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-10-19
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/f10649af9ea0c80e583d8c9f590ac45a0863ce45/analysis/index.Rmd" target="_blank">f10649a</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-10-19
-</td>
-<td>
-Theory
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/e644370277c72670300dc91aa786948370ee88c0/analysis/index.Rmd" target="_blank">e644370</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2020-10-15
-</td>
-<td>
-Start workflowr project.
-</td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -1166,45 +625,172 @@ Start workflowr project.
 </div>
 </div>
 </div>
-<div id="guaranteeing-unbiasedness-in-selection-tests-based-on-polygenic-scores" class="section level1">
-<h1>Guaranteeing unbiasedness in selection tests based on polygenic scores</h1>
-<p>Link to manuscript: <a href="https://www.overleaf.com/project/5ff4eec3e5325e0db841f6eb" class="uri">https://www.overleaf.com/project/5ff4eec3e5325e0db841f6eb</a></p>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>This website contains all the code used for the analysis.</p>
+<p>Here I will reccord the details for the simulations presented in the main text and the supplement. I will also include the code to make the the figures.</p>
 </div>
-<div id="simulation-pipeline" class="section level2">
-<h2>Simulation Pipeline</h2>
-<p>This pipline is written in snakemake. To run the entire simulation pipeline you simply need to swap in the correct snakefile.</p>
+<div id="simple-grid" class="section level2">
+<h2>Simple Grid</h2>
+<div id="msprime-simulation" class="section level3">
+<h3>Msprime simulation</h3>
+<p>Generate diploid individuals using a stepping stone model on a 6x6 grid with the parameters below:</p>
+<p>Parameters:</p>
 <ul>
-<li><code>code/Snakefiles/4PopSplit/snakefile</code> is the correct file to run the 4 population toy model from figure 1<br />
+<li>200 chromosomes<br />
 </li>
-<li><code>code/Snakefiles/SimpleGrid/snakefile/Lat/snakefile</code> runs the stepping stone grid simulations, simulates a latitudinal gradient, and uses latitude as the test vector<br />
+<li>sample size = 80 diploids<br />
 </li>
-<li><code>code/Snakefiles/SimpleGrid/snakefile/StratD/snakefile</code> runs the stepping stone grid simultations, simulates stratifcation along the diagonal, uses latitude as the test vector, and does a PGA test along latitude and longitude</li>
+<li>Ne = 1000</li>
+<li><span class="math inline">\(\mu\)</span> = 1e-07<br />
+</li>
+<li><span class="math inline">\(\rho\)</span> = 1e-07</li>
+<li>m = 0.01<br />
+</li>
+<li>chromosome length = 10000</li>
+<li>tmove = -9 (perpetual structure)</li>
 </ul>
-<p>The detailed methods and results for each simulation can be found <a href="Simulations_methods.html">here</a>.</p>
-<p>The pages below explain the 5 major steps of the pipeline:</p>
+<p>The simulation was run 100 times total.</p>
+</div>
+<div id="create-genotypes-panels-and-filter-snps" class="section level3">
+<h3>Create genotypes panels and filter SNPs</h3>
 <ol style="list-style-type: decimal">
-<li><a href="Simulate_Genotypes.html">Simulate Genotypes</a></li>
-<li><a href="Simulate_Phenotypes.html">Simulate Phenotypes</a></li>
-<li>Project Test Vector</li>
-<li>Run GWAS</li>
-<li>Polygenic Adaptation Test</li>
+<li>Sample 20 individuals per deme for test panels (36 * 20 individuals total)</li>
+<li>Remaining individuals (60 per deme) become the GWAS panel<br />
+</li>
+<li>Restrict snps to sites segregating at greater than 5% frequency within each panel</li>
 </ol>
-<p><br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /></p>
-<p>WIP links<br />
-Reproducible figures <a href="Simulation_Methods_Reproducible.html">link</a> Theory <a href="Theory.html">link</a><br />
-4popslit <a href="4Popsplit.html">link</a><br />
-scratch <a href="scratch.html">link</a><br />
-test_vec <a href="Test_vec.html">link</a><br />
-Plot_4PopSplit <a href="Plot_4PopSplit.html">link</a><br />
-projection_example <a href="projection_example.html">link</a><br />
-plink2 projection <a href="Projection_plink2.html">link</a><br />
-calc Qx <a href="Calc_Qx.html">link</a><br />
-Plot_SimpleGrid <a href="Plot_SimpleGrid.html">link</a><br />
-methods <a href="Simulations_methods.html">link</a><br />
-Meeting Notes <a href="Meetings_Notes.html">link</a></p>
+</div>
+<div id="draw-phenotype" class="section level3">
+<h3>Draw phenotype</h3>
+<p>Notes:</p>
+<ul>
+<li>All simulations have <span class="math inline">\(h^2 = 0\)</span><br />
+</li>
+<li>ENV is the magnitude of the phenotype shift</li>
+</ul>
+<ol style="list-style-type: decimal">
+<li>Sample random phenotype <span class="math inline">\(N(0,1)\)</span> for all GWAS indviduals</li>
+<li>Scale variance within deme to match full size GWAS variance (see __ for more details)</li>
+<li>Simulate stratification:<br />
+</li>
+<li>Lat/Lat: Shift average phenotype per Latitude (if env is the total shift, shift 1 lat by env/5, 2 lat by 2*(env/5), etc.) and use Latitude as the test vector</li>
+<li>stratD/Lat: Shift the average phenotype on the diagonals of the grid going lower left to upper right and use latitude as the test vector</li>
+</ol>
+</div>
+<div id="project-test-vector" class="section level3">
+<h3>Project Test Vector</h3>
+<ol style="list-style-type: decimal">
+<li>Set test vector as a mean centered <span class="math inline">\(n \times 1\)</span> vector with each entry as the test panel individuals latitude/longitude/popID<br />
+</li>
+<li>Project test vector in GWAS panel, resulting in an <span class="math inline">\(m \times 1\)</span> (see ___ for more detail)</li>
+</ol>
+</div>
+<div id="run-gwass" class="section level3">
+<h3>Run GWASs</h3>
+<ol style="list-style-type: decimal">
+<li>Use plink to run GWAS with and without including projected test vector</li>
+</ol>
+</div>
+<div id="calculate-pgs-and-qx" class="section level3">
+<h3>Calculate PGS and Qx</h3>
+<ol style="list-style-type: decimal">
+<li>Pick the SNP with lowest p-value per chromosome to include in PGS (200 SNPs total)<br />
+</li>
+<li>Compute PGS in test panel individuals</li>
+<li>Calculate <span class="math inline">\(V_a\)</span></li>
+<li>Calculate the amount of variance explained by the test vector (<span class="math inline">\(\lambda_T\)</span>; note that we used the mean-centered test vector to compute this)<br />
+</li>
+<li>Calculate empirical null p-value by permuting the signs of the SNP effect sizes 1,000 times and computing the proportion of permutations greater than the true <span class="math inline">\(Q_x\)</span> value.</li>
+</ol>
+</div>
+<div id="figures" class="section level3">
+<h3>Figures</h3>
+<div id="latlat" class="section level4">
+<h4>Lat/Lat</h4>
+<ul>
+<li>Simulated phenotype according to latitudinal gradient</li>
+<li>Test vector is latitude</li>
+</ul>
+<p><img src="figure/Simulation_Methods_Reproducible.Rmd/unnamed-chunk-2-1.png" width="960" style="display: block; margin: auto;" /></p>
+</div>
+<div id="stratdlat" class="section level4">
+<h4>stratD/Lat</h4>
+<ul>
+<li>Simulated phenotype according to gradient along the diagonal going from lower left to upper right<br />
+</li>
+<li>Project latitude as the test vector</li>
+<li>For each simulation do 2 polygenic adaptation tests one with latitude as the test vector and one with longitude</li>
+</ul>
+<p><img src="figure/Simulation_Methods_Reproducible.Rmd/unnamed-chunk-3-1.png" width="960" style="display: block; margin: auto;" /></p>
+</div>
+<div id="singledemelat" class="section level4">
+<h4>singleDeme/Lat</h4>
+<ul>
+<li>Simulated phenotype difference in a single deme</li>
+<li>Project latitude as the test vector</li>
+<li>For each simulation do 1 polygenic adaptation test with latitude as the test vector</li>
+</ul>
+<p><img src="figure/Simulation_Methods_Reproducible.Rmd/unnamed-chunk-4-1.png" width="960" style="display: block; margin: auto;" /></p>
+</div>
+<div id="singledemesingledeme" class="section level4">
+<h4>singleDeme/singleDeme</h4>
+<ul>
+<li>Simulated phenotype difference in a single deme</li>
+<li>Project single deme vs everyone else as test vector</li>
+<li>For each simulation do 1 polygenic adaptation test with single deme vs everybody as the test vector</li>
+</ul>
+<p><img src="figure/Simulation_Methods_Reproducible.Rmd/unnamed-chunk-5-1.png" width="960" style="display: block; margin: auto;" /></p>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.6.2 (2019-12-12)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.6
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] ggpubr_0.4.0      latex2exp_0.5.0   forcats_0.5.1     stringr_1.4.0    
+ [5] dplyr_1.0.7       purrr_0.3.4       readr_2.0.1       tidyr_1.1.3      
+ [9] tibble_3.1.4      ggplot2_3.3.5     tidyverse_1.3.1   data.table_1.14.0
+[13] workflowr_1.6.2  
+
+loaded via a namespace (and not attached):
+ [1] fs_1.5.0          lubridate_1.7.10  httr_1.4.2        rprojroot_2.0.2  
+ [5] tools_3.6.2       backports_1.2.1   bslib_0.3.0       utf8_1.2.2       
+ [9] R6_2.5.1          DBI_1.1.1         colorspace_2.0-2  withr_2.4.2      
+[13] gridExtra_2.3     tidyselect_1.1.1  curl_4.3.2        compiler_3.6.2   
+[17] git2r_0.28.0      cli_3.0.1         rvest_1.0.1       xml2_1.3.2       
+[21] labeling_0.4.2    sass_0.4.0        scales_1.1.1      digest_0.6.27    
+[25] foreign_0.8-72    rmarkdown_2.10    R.utils_2.10.1    rio_0.5.27       
+[29] pkgconfig_2.0.3   htmltools_0.5.2   highr_0.9         dbplyr_2.1.1     
+[33] fastmap_1.1.0     rlang_0.4.11      readxl_1.3.1      rstudioapi_0.13  
+[37] jquerylib_0.1.4   generics_0.1.0    farver_2.1.0      jsonlite_1.7.2   
+[41] zip_2.2.0         car_3.0-11        R.oo_1.24.0       magrittr_2.0.1   
+[45] Rcpp_1.0.7        munsell_0.5.0     fansi_0.5.0       abind_1.4-5      
+[49] lifecycle_1.0.0   R.methodsS3_1.8.1 stringi_1.7.4     whisker_0.4      
+[53] yaml_2.2.1        carData_3.0-4     grid_3.6.2        promises_1.2.0.1 
+[57] crayon_1.4.1      haven_2.4.3       cowplot_1.1.1     hms_1.1.0        
+[61] knitr_1.33        pillar_1.6.2      ggsignif_0.6.2    reprex_2.0.1     
+[65] glue_1.4.2        evaluate_0.14     modelr_0.1.8      vctrs_0.3.8      
+[69] tzdb_0.1.2        httpuv_1.6.2      cellranger_1.1.0  gtable_0.3.0     
+[73] assertthat_0.2.1  xfun_0.25         openxlsx_4.2.4    broom_0.7.9      
+[77] rstatix_0.7.0     later_1.3.0       ellipsis_0.3.2   </code></pre>
+</div>
+</div>
 </div>
 </div>
 
@@ -1222,6 +808,8 @@ footer is added to webpages before the MathJax javascript. -->
 </script>
 
 
+</div>
+</div>
 
 </div>
 
@@ -1254,6 +842,35 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
