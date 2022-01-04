@@ -15,7 +15,7 @@ library(ggpubr)
 
 ## Introduction 
 
-Here I will reccord the details for the simulations presented in the main text and the supplement. I will also include the code to make the the figures. The illustrative examples for the 3 simulation types can be found **here** (link later).  
+Here I will reccord the details for the simulations presented in the main text and the supplement. I will also include the code to make the the figures.
 
 ## 4PopSplit 
 
@@ -323,6 +323,7 @@ Generate diplois individuals according to the demographic model below
 * $\rho$ = 1e-08  
 
 The simulation was run 100 times total. 
+(Average Fst 0.015)
 
 ### Create genotypes panels and filter SNPs
 
@@ -488,6 +489,22 @@ make_grid_plot(df, "PS", "env-0.5", "LAT", -1, 1)
 make_grid_plot(df, "PS", "env-1.0", "PS", -1, 1)
 ```
 
+```{r}
+df <- fread("../code/Make_Plots/SimpleGrid_phenos_A.txt.gz")
+
+make_phenotype_plot <- function(df, pheno_type, env_type) {
+  
+  dat <- df %>% filter(pheno == pheno_type & envs == env_type) %>% mutate(pheno_strat = (pheno_strat - mean(pheno_strat)) / sd(pheno_strat)) %>%  group_by(POP) %>% summarise(avg_pheno = mean(pheno_strat),LAT = mean(LAT), LONG = mean(LONG))
+  
+  dat <- dat[,2:4] %>%  gather(variable, value, -c(LAT, LONG))
+  
+  pl <- ggplot(dat, aes(x = LONG, y = LAT, fill = value)) + geom_tile() + theme_classic(base_size = 12) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + scale_fill_gradient2(low = "palegoldenrod", high = "purple4") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) 
+  
+  return(pl)
+}
+
+make_phenotype_plot(df, "PS", "env-0.5")
+```
 
 
 
