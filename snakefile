@@ -71,7 +71,7 @@ rule simulate_genotypes_4popsplit:
 	       -d 2000 \
          -s1 4400 \
           -s2 2200 \
-          -L 100000"
+          -L 10000"
 
 rule format_VCF:
     input:
