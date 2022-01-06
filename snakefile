@@ -8,11 +8,10 @@ for i in range(1,101):
 HERITABILITY = ["h2-0.3"]
 ENV=["env-1.0", "env-0.0"]
 TS=["p-0.50", "p-0.55", "p-0.60","p-0.65","p-0.70"]
+DIRECTION = ["same", "opposite", "none"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
-STRAT_A = 1
-# 1 = positive correlation between effect size and pC - pD; 0 = negative correlation between effect size and pC - pD
 
 wildcard_constraints:
     rep="[A-Z]\d+",
@@ -30,18 +29,22 @@ def get_params(x):
   out = x.split("-")[1]
   return out
 
-def get_seed(rep, h2, env):
-  out1 = list(rep)[1]
-  out2 = h2.split("-")[1]
-  tmp = env.split("-")[1].split(".")[1]
-  tmp_list = [int(i) for i in tmp]
-  out3 = sum(tmp_list)
-  return out1 + out2 + str(out3)
+def get_seed(rep, h2, ts, env, direction):
+  rep = list(rep)[1]
+  h2 = h2.split("-")[1]
+  direction_list = list(phen)
+  direction_list = [ord(i) for i in direction_list]
+  direction = sum(pheno_list)
+  env_list = env.split("-")[1].split(".")[1]
+  env_list = [int(i) for i in env_list]
+  env = sum(env_list)
+  ts_list = ts.split("-")[1].split(".")[1]
+  ts_list = [int(i) for i in ts_list]
+  ts = sum(ts_list)
+  out = rep + h2 + str(direction) + str(env) + str(ts)
+  print(out)
+  return out
 
-def get_seed1(rep, h2):
-  out1 = list(rep)[1]
-  out2 = h2.split("-")[1]
-  return out1 + out2
 
 rule all:
     input:
@@ -66,9 +69,9 @@ rule simulate_genotypes_4popsplit:
 	       --NC 10000 \
 	       --ND 10000 \
   	     -a 20000 \
-	       -b 2000 \
+	       -b 20000 \
 	       -c 20000 \
-	       -d 2000 \
+	       -d 20000 \
          -s1 4400 \
           -s2 2200 \
           -L 10000"
@@ -307,14 +310,13 @@ rule draw_effect_sizes:
         freq="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq",
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:
-        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt"
+        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{dir}/genos-gwas_common.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
-        seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2),
+        seed = lambda wildcards: get_seed(wildcards.rep, wildcards.h2, wildcards.ts, wildcards.env, wildcards.dir),
         prob = lambda wildcards: get_params(wildcards.ts),
-        direction = STRAT_A
     shell:
-        "Rscript code/Simulate_Phenotypes/simgeffects_TS.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob} {params.direction}"
+        "Rscript code/Simulate_Phenotypes/simgeffects_TS.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob} {wildcards.direction}"
 
 rule generate_genetic_values:
     input:

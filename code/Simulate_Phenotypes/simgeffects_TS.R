@@ -1,6 +1,6 @@
 args=commandArgs(TRUE)
 
-if(length(args)<9){stop("Rscript simphenotype_ge_3.R <frequency file> <output_file> <seed>")}
+if(length(args)<9){stop("Rscript draw_effects_sizes_4PopSplit.R <frequency file> <output_file> <heritability> <alpha> <test panel genotype prefix> <popfile> <probability of flipping effect size> <direction to flip effects> <seed>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -27,7 +27,8 @@ alpha = as.numeric(args[4])
 print(paste("Alpha is", alpha))
 
 #random seed
-#set.seed(12)
+seed = as.numeric(args[5])
+set.seed(seed)
 
 #genotypes prefix
 geno_prefix = args[6]
@@ -40,40 +41,28 @@ prob = as.numeric(args[8])
 print(paste("Prob is", prob))
 
 # Direction of true signal (1 = positive correlation between effect size and pC - pD; 0 = negative correlation between effect size and pC - pD)
-direction = as.numeric(args[9])
+direction = args[9]
+print(paste("The direction is", direction))
+if (direction == "same") {
+  direction = 1
+} else if (direction == "opposite") {
+  direction = 0
+} else if (direection == "none") {
+  direction = 1 # doesn't matter because there is no signal
+  prob = 0.5 # Must be no signal
+  print("Warning: there is no true signal")
+} else {
+  stop("Please enter same or opposite as a valid direction of true signal")
+}
 
 # load variant frequency file
 p = fread(freq_file)
-
 colnames(p)=c("chr","ID","REF","ALT","ALT_FREQS","COUNT")
 p=p[,c("chr","ID","ALT_FREQS")]
 p[, c("CHROM", "position","ref","alt") := tstrsplit(ID, "_", fixed=TRUE)]
 p = p[,c("CHROM","ID","position","ALT_FREQS")]
 p$position = as.numeric(p$position)
 
-#for each chromosome, sample the first variant from the first 100kb
-#then, select every other variant to be at least 100kb apart
-
-#write function to do this for each chromosome separately
-#roundDw <- function(x,to=-1e5){
-#  to*(x%/%to + as.logical(x%%to))
-#}
-#
-#sample.variant=function(df){
-#  min_pos = roundDw(as.numeric(df[1,3])) + 1e5
-#  max_pos = roundDw(as.numeric(tail(df,1)[1,3])) + 1e5
-#
-#  position1 = as.numeric(dplyr::sample_n(df[position < min_pos, 'position' ], 1))
-#  positions = position1 + seq(0,(max_pos/1e5 - 1))*1e5
-#
-#  #pick variants that are further than these
-#  positions.adj = lapply( positions, function(x){
-#    ix = min( df[df$position > x, which =TRUE ] )
-#    return(df[ix])
-#  })
-#  #return datatable
-#  positions.adj = bind_rows(positions.adj)
-#}
 
 sample.variant <- function(df) {
   return(sample_n(df,1))
@@ -89,12 +78,6 @@ for (i in 2:nchrms){
   causal.variants <- rbind(causal.variants, out)
 }
 
-#for some reason, sometimes the final window does not have a variant. let's remove NAs here
-#causal.variants = causal.variants%>%drop_na(ID)
-
-# drop duplicates - NOTE if there are not enough variants from the sim this will decrease the number of causal variants
-causal.variants = causal.variants%>%group_by(ID)%>%filter(row_number(ID) == 1)
-
 
 #Now generate the effect sizes from these variants
 #calculate the independent component of variance required
@@ -107,6 +90,7 @@ sigma2_l = h2 / sum( sapply( causal.variants$ALT_FREQS,function(x){
 causal.variants$beta = sapply( causal.variants$ALT_FREQS , function(x){
   beta = rnorm( 1 , mean = 0, sd = sqrt(sigma2_l * (2*x*(1-x))^-alpha ))
 })
+causal.variants$beta <- abs(causal.variants$beta)
 
 #let's calculate sigma2_g to confirm that the total genetic variance is indeed 0.8
 sigma2_g = sum( mapply(function(b,p){ b^2* 2*p*(1-p) }, causal.variants$beta, causal.variants$ALT_FREQS))
@@ -130,31 +114,36 @@ read_genos <- function(geno_prefix, betas) {
 
 # Read in population ID info
 pop <- fread(popfile, header = F)
+colnames(pop) <- c("FID", "IID", "POP")
+
+# Read in fam file
+fam <- fread(paste0(geno_prefix, ".psam"))
+
+# Get only test individuals
+test_inds <- inner_join(fam, pop)
 
 # Get number of individuals in each population
-n1 <- as.numeric(count(pop,V3)[2,2])
-n2 <- as.numeric(count(pop,V3)[4,2])
+n1 <- as.numeric(count(test_inds, POP)[1,2])
+n2 <- as.numeric(count(test_inds, POP)[2,2])
 print(c(n1, n2))
 
 # Read in genotype matrix for causal variants
 G <- read_genos(geno_prefix, causal.variants[,"ID"])
 
 # Calculate population specific allele frequeny
-p1 <- colMeans(G[1:n1,])
-p2 <- colMeans(G[(n1+1):(n1+n2),])
+p1 <- colMeans(G[1:n1,])/2
+p2 <- colMeans(G[(n1+1):(n1+n2),])/2
 
 # Get allele frequency difference
 diff <- p1 - p2
-print(diff)
+print(max(diff))
 
 # Create correlation between effect size and pop ID
 if (direction == 1) {
   for (i in 1:nrow(causal.variants)){
     b <- causal.variants[i,"beta"]
     if (diff[i] >= 0) {
-      causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c((1-prob), prob)) * abs(b)
-    } else {
-      causal.variants[i,"beta"] <- sample(c(1, -1),1, prob = c((1-prob), prob)) * abs(b)
+      causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c((1-prob), prob)) * b
     }
   }
 } else {
@@ -162,15 +151,12 @@ if (direction == 1) {
       b <- causal.variants[i,"beta"]
       if (diff[i] >= 0) {
         causal.variants[i,"beta"] <- sample(c(1, -1),1, prob = c((1-prob), prob)) * abs(b)
-      } else {
-        causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c((1-prob), prob)) * abs(b)
       }
     }
   }
 
-
-
-
+# Print probability of positive beta
+print(sum(causal.variants$beta > 0)/length(causal.variants$beta))
 
 #save the effect sizes to file and use plink2 to generate PRS
 fwrite(causal.variants%>%
