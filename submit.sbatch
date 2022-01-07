@@ -5,8 +5,8 @@
 #SBATCH --time=24:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=5
-#SBATCH --ntasks-per-node=4
-#SBATCH --mem-per-cpu=10GB
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem-per-cpu=16GB
 
 module load python/cpython-3.7.0
 module load R
@@ -16,5 +16,5 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake -j 20 --rerun-incomplete aggregate_genotypes   
+snakemake -j 5 --rerun-incomplete aggregate_genotypes   
 #sh copy_dir.sh
