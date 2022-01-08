@@ -47,7 +47,7 @@ if (direction == "same") {
   direction = 1
 } else if (direction == "opposite") {
   direction = 0
-} else if (direection == "none") {
+} else if (direction == "none") {
   direction = 1 # doesn't matter because there is no signal
   prob = 0.5 # Must be no signal
   print("Warning: there is no true signal")

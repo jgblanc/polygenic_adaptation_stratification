@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<5){stop("Rscript simphenotype_ge.R <genetic value file> <pop file> <output_file> <hertaibility> <seed>")}
+if(length(args)<6){stop("Rscript simphenotype_ge.R <genetic value file> <pop file> <output_file> <hertaibility> <environmental shift> <seed>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -10,20 +10,20 @@ suppressWarnings(suppressMessages({
 }))
 
 gvalue_file = args[1] #genetic values
-#gvalue_file = 'output/Simulate_Phenotypes/4PopSplit/E2/C1/h2-0/genos-gwas_common.gvalue.sscore'
 popfile = args[2] # pop file from msprime simulation
-#popfile = "output/Simulate_Genotypes/4PopSplit/E2/genos.pop"
 output_file = args[3] #name of output file
-h2 = as.numeric(args[4])
-env_s=as.numeric(args[5])
-#set.seed(as.numeric(args[6]))
+h2 = as.numeric(args[4]) #target heritability
+env_s=as.numeric(args[5]) #total environmental shift
+set.seed(as.numeric(args[6]))
 
 print(as.numeric(env_s))
 print(as.numeric(h2))
 
+# Load true genetic values
 prs=fread(gvalue_file)
 colnames(prs)<-c("IID","dosage","prs")
 
+# Parameters to scale variance
 sample_size=nrow(prs)
 NGWAS = 500000
 N1_gwas = NGWAS / 2
@@ -35,16 +35,6 @@ colnames(pop)<-c("IID","FID","pop")
 
 #add this info to prs file
 prs=merge(prs, pop, by="IID", sort=F)
-
-##### simulate environmental effects
-#no 'environmental' effect
-#NOTE: SIGMA_G SET AT h2
-
-# effect on the "first" population (A)
-#pops <- unique(prs$pop)
-#prs$env = rnorm(sample_size,0, sqrt(1 - h2))
-#prs <- prs %>% group_by(pop) %>% mutate(env = env-mean(env))
-#prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env + env_s, env ))
 
 # Draw random environment
 pops <- unique(prs$pop)
@@ -73,10 +63,11 @@ prs = prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env - delta1
 prs = prs %>%
   mutate(pheno_strat = prs + env)
 
-
+# Print heritability
 print(paste("h2 :",
             round(cor(prs$prs,
                       prs$pheno_strat)^2,2)))
+# Write to output file
 fwrite(
   prs%>%
     mutate(FID=IID)%>%
