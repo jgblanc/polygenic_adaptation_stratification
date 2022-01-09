@@ -2,15 +2,13 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = []
-for i in range(1,101):
-  REP.append("A"+str(i))
+REP = ["A1"]
+#for i in range(1,101):
+#  REP.append("A"+str(i))
 HERITABILITY = ["h2-0.3"]
-ENV=["env-1.0"]
+ENV=["env_-1.0","env_0.0","env_1.0"]
 TS=["p-0.54", "p-0.57", "p-0.60","p-0.63","p-0.66"]
-#TS=["p-0.70" ]
-DIRECTION = ["same", "opposite", "none"]
-#DIRECTION = ["none"]
+#TS=["p-0.50","p-0.70"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -19,7 +17,7 @@ wildcard_constraints:
     rep="[A-Z]\d+",
     config="C.",
     h2="h2-[0-1].[0-9]",
-    env="env-[0-9].[0-9]",
+    env="env_-?[0-9].[0-9]",
     ts="p-[0-1].[0-9][0-9]",
     dir="[a-z]*"
 
@@ -31,26 +29,38 @@ def get_params(x):
   out = x.split("-")[1]
   return out
 
-def get_seed(rep,config, h2, ts, env, direction):
+def get_env(x):
+  out = x.split("_")[1]
+  print(out)
+  return out
+
+def get_seed_es(rep,config, h2, ts):
   rep = list(rep)[1]
   config = list(config)[1]
   h2 = h2.split(".")[1]
-  direction_list = list(direction)
-  direction_list = [ord(i) for i in direction_list]
-  direction = sum(direction_list)
-  env_list = env.split("-")[1].split(".")[1]
-  env_list = [int(i) for i in env_list]
-  env = sum(env_list)
   ts_list = ts.split("-")[1].split(".")[1]
   ts_list = [int(i) for i in ts_list]
   ts = sum(ts_list)
-  out = rep + config + h2 + str(direction) + str(env) + str(ts)
+  out = rep + config + h2  + str(ts)
+  return out
+
+def get_seed(rep,config, h2, ts, env):
+  rep = list(rep)[1]
+  config = list(config)[1]
+  h2 = h2.split(".")[1]
+  env = float(env.split("_")[1]) + 3.1415
+  ts_list = ts.split("-")[1].split(".")[1]
+  ts_list = [int(i) for i in ts_list]
+  ts = sum(ts_list)
+  out = int(env * float(rep + config + h2 + str(ts)))
+  out = str(out)
+  print(out)
   return out
 
 
 rule all:
     input:
-        expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{dir}/genos-gwas_common.phenos.txt",rep=REP, h2 = HERITABILITY, env=ENV, config=CONFIG, ts=TS, dir=DIRECTION)
+        expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt",rep=REP, h2 = HERITABILITY, config=CONFIG, ts=TS, env=ENV)
 
 # Simluate Genotypes
 
@@ -312,13 +322,13 @@ rule draw_effect_sizes:
         freq="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq",
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:
-        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{dir}/genos-gwas_common.effects.txt"
+        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/genos-gwas_common.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
-        seed = lambda wildcards: get_seed(wildcards.rep, wildcards.config, wildcards.h2, wildcards.ts, wildcards.env, wildcards.dir),
+        seed = lambda wildcards: get_seed_es(wildcards.rep, wildcards.config, wildcards.h2, wildcards.ts),
         prob = lambda wildcards: get_params(wildcards.ts)
     shell:
-        "Rscript code/Simulate_Phenotypes/draw_effect_sizes_4PopSplit.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob} {wildcards.dir}"
+        "Rscript code/Simulate_Phenotypes/draw_effect_sizes_4PopSplit.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob}"
 
 
 rule generate_genetic_values:
@@ -326,25 +336,26 @@ rule generate_genetic_values:
         "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
         "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pvar",
         "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pgen",
-        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{dir}/genos-gwas_common.effects.txt"
+        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/genos-gwas_common.effects.txt"
     output:
-        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{dir}/genos-gwas_common.gvalue.sscore"
+        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/genos-gwas_common.gvalue.sscore"
     shell:
         "plink2 \
 	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	            --out output/Simulate_Phenotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/{wildcards.dir}/genos-gwas_common.gvalue \
-		          --score output/Simulate_Phenotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/{wildcards.dir}/genos-gwas_common.effects.txt cols=dosagesum,scoresums"
+	            --out output/Simulate_Phenotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/genos-gwas_common.gvalue \
+		          --score output/Simulate_Phenotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/genos-gwas_common.effects.txt cols=dosagesum,scoresums"
+
 
 rule simulate_phenotype_4PopSplit:
     input:
-        gvalues="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{dir}/genos-gwas_common.gvalue.sscore",
+        gvalues="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/genos-gwas_common.gvalue.sscore",
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:
-        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{dir}/genos-gwas_common.phenos.txt"
+        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
-        en = lambda wildcards: get_params(wildcards.env),
-        seed = lambda wildcards: get_seed(wildcards.rep, wildcards.config, wildcards.h2, wildcards.ts, wildcards.env, wildcards.dir)
+        en = lambda wildcards: get_env(wildcards.env),
+        seed = lambda wildcards: get_seed(wildcards.rep, wildcards.config, wildcards.h2, wildcards.ts, wildcards.env)
     shell:
         "Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
 
@@ -355,9 +366,9 @@ rule gwas_no_correction:
     input:
         genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq",
-        pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt"
+        pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{dir}/genos-gwas_common.phenos.txt"
     output:
-        "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat.glm.linear"
+        "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{dir}/genos-gwas_common.pheno_strat.glm.linear"
     shell:
         "plink2 \
         --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
@@ -365,7 +376,7 @@ rule gwas_no_correction:
         --glm allow-no-covars\
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
-        --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common"
+        --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/{wildcards.dir}genos-gwas_common"
 
 
 

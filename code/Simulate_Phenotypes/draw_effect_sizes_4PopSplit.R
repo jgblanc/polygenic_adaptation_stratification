@@ -1,6 +1,6 @@
 args=commandArgs(TRUE)
 
-if(length(args)<9){stop("Rscript draw_effects_sizes_4PopSplit.R <frequency file> <output_file> <heritability> <alpha> <test panel genotype prefix> <popfile> <probability of flipping effect size> <direction to flip effects> <seed>")}
+if(length(args)<8){stop("Rscript draw_effects_sizes_4PopSplit.R <frequency file> <output_file> <heritability> <alpha> <test panel genotype prefix> <popfile> <probability of flipping effect size> <seed>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -39,21 +39,6 @@ popfile = args[7]
 # probability effect size is positive given pC - pD is positive
 prob = as.numeric(args[8])
 print(paste("Prob is", prob))
-
-# Direction of true signal (1 = positive correlation between effect size and pC - pD; 0 = negative correlation between effect size and pC - pD)
-direction = args[9]
-print(paste("The direction is", direction))
-if (direction == "same") {
-  direction = 1
-} else if (direction == "opposite") {
-  direction = 0
-} else if (direction == "none") {
-  direction = 1 # doesn't matter because there is no signal
-  prob = 0.5 # Must be no signal
-  print("Warning: there is no true signal")
-} else {
-  stop("Please enter same or opposite as a valid direction of true signal")
-}
 
 # load variant frequency file
 p = fread(freq_file)
@@ -139,21 +124,12 @@ diff <- p1 - p2
 print(max(diff))
 
 # Create correlation between effect size and pop ID
-if (direction == 1) {
-  for (i in 1:nrow(causal.variants)){
-    b <- causal.variants[i,"beta"]
-    if (diff[i] >= 0) {
-      causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c((1-prob), prob)) * b
-    }
+for (i in 1:nrow(causal.variants)){
+  b <- causal.variants[i,"beta"]
+  if (diff[i] >= 0) {
+    causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c((1-prob), prob)) * b
   }
-} else {
-    for (i in 1:nrow(causal.variants)){
-      b <- causal.variants[i,"beta"]
-      if (diff[i] >= 0) {
-        causal.variants[i,"beta"] <- sample(c(1, -1),1, prob = c((1-prob), prob)) * abs(b)
-      }
-    }
-  }
+}
 
 # Print probability of positive beta
 print(sum(causal.variants$beta > 0)/length(causal.variants$beta))

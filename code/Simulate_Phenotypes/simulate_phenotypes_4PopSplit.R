@@ -16,8 +16,8 @@ h2 = as.numeric(args[4]) #target heritability
 env_s=as.numeric(args[5]) #total environmental shift
 set.seed(as.numeric(args[6]))
 
-print(as.numeric(env_s))
-print(as.numeric(h2))
+print(paste0("The stratification shift is ",as.numeric(env_s)))
+print(paste0("The heritability is " , as.numeric(h2)))
 
 # Load true genetic values
 prs=fread(gvalue_file)
@@ -42,7 +42,12 @@ prs$env = rnorm(sample_size,0, sqrt(1 - h2))
 prs$env = scale(prs$env, scale = TRUE) * (sqrt(1 - h2))
 
 # Add stratification effect to environment
-prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env + env_s, env ))
+if (env_s >= 0) {
+  prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env + env_s, env ))
+} else {
+  prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[2], env + abs(env_s), env ))
+}
+
 
 # Calculate average phenotype
 Z1 = prs %>% group_by(pop) %>% summarise(avg = mean(env)) %>% filter(pop == pops[1]) %>% pull(avg)
@@ -67,6 +72,10 @@ prs = prs %>%
 print(paste("h2 :",
             round(cor(prs$prs,
                       prs$pheno_strat)^2,2)))
+
+# Print mean phenotype in each pop
+print(prs %>% group_by(pop) %>% summarise(mean(pheno_strat)))
+
 # Write to output file
 fwrite(
   prs%>%
