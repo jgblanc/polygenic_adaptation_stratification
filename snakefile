@@ -2,9 +2,9 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = ["A1"]
-#for i in range(1,101):
-#  REP.append("A"+str(i))
+REP = []
+for i in range(1,101):
+  REP.append("A"+str(i))
 HERITABILITY = ["h2-0.3"]
 ENV=["env_-1.0","env_0.0","env_1.0"]
 TS=["p-0.54", "p-0.57", "p-0.60","p-0.63","p-0.66"]
@@ -31,7 +31,6 @@ def get_params(x):
 
 def get_env(x):
   out = x.split("_")[1]
-  print(out)
   return out
 
 def get_seed_es(rep,config, h2, ts):
@@ -54,7 +53,6 @@ def get_seed(rep,config, h2, ts, env):
   ts = sum(ts_list)
   out = int(env * float(rep + config + h2 + str(ts)))
   out = str(out)
-  print(out)
   return out
 
 
