@@ -58,7 +58,8 @@ def get_seed(rep,config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt",rep=REP, h2 = HERITABILITY, config=CONFIG, ts=TS, env=ENV)
+        expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/genos-test_common.true.sscore",rep=REP, h2 = HERITABILITY, config=CONFIG, ts=TS, env=ENV),
+        expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.betas",rep=REP, h2 = HERITABILITY, config=CONFIG, ts=TS, env=ENV)
 
 # Simluate Genotypes
 
@@ -364,9 +365,9 @@ rule gwas_no_correction:
     input:
         genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq",
-        pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{dir}/genos-gwas_common.phenos.txt"
+        pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt"
     output:
-        "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{dir}/genos-gwas_common.pheno_strat.glm.linear"
+        "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat.glm.linear"
     shell:
         "plink2 \
         --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
@@ -374,7 +375,7 @@ rule gwas_no_correction:
         --glm allow-no-covars\
         --pheno {input.pheno} \
         --pheno-name pheno_strat \
-        --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/{wildcards.dir}genos-gwas_common"
+        --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common"
 
 
 
@@ -382,7 +383,7 @@ rule gwas_no_correction:
 
 rule pick_SNPS:
     input:
-        causal_effect="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
+        causal_effect="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/genos-gwas_common.effects.txt",
         gwas_strat="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat.glm.linear"
     output:
         "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.betas",
@@ -391,7 +392,7 @@ rule pick_SNPS:
     params:
         pt = PVALUE_THRESHOLD
     shell:
-        "Rscript code/PRS/clump_strat_only.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common {params.pt} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common"
+        "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common {params.pt} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common"
 
 # Get allele freq in test panel
 
@@ -413,17 +414,17 @@ rule test_snp_freq:
 rule calc_true_gv:
     input:
         genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
-        causal_effect="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
+        causal_effect="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/genos-gwas_common.effects.txt",
         freq="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.afreq"
     output:
-        "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-test_common.true.sscore",
+        "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/genos-test_common.true.sscore",
     shell:
         """
         plink2 \
         --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
         --read-freq {input.freq} \
         --score {input.causal_effect} cols=dosagesum,scoresums \
-        --out output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-test_common.true \
+        --out output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/genos-test_common.true \
         """
 
 ## Include Tm as a covariate
@@ -437,7 +438,7 @@ rule make_test_vector:
     output:
         "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
     shell:
-        "Rscript code/Calculate_Tm/make_tvec.R {input.pops} {input.fam} {output}"
+        "Rscript code/Calculate_Tm/4PopSplit_make_tvec.R {input.pops} {input.fam} {output}"
 
 # Project T using Plink2
 
