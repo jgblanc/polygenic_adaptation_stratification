@@ -2,13 +2,13 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = []
-for i in range(1,101):
-  REP.append("A"+str(i))
+REP = ["A1", "A2"]
+#for i in range(1,101):
+#  REP.append("A"+str(i))
 HERITABILITY = ["h2-0.3"]
 ENV=["env_-1.0","env_0.0","env_1.0"]
-TS=["p-0.54", "p-0.57", "p-0.60","p-0.63","p-0.66"]
-#TS=["p-0.50","p-0.70"]
+#TS=["p-0.54", "p-0.57", "p-0.60","p-0.63","p-0.66"]
+TS=["p-0.50","p-0.70"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -58,7 +58,7 @@ def get_seed(rep,config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/genos-test_common.true.sscore",rep=REP, h2 = HERITABILITY, config=CONFIG, ts=TS, env=ENV),
+        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt",rep=REP, h2 = HERITABILITY, config=CONFIG, ts=TS, env=ENV),
         expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.betas",rep=REP, h2 = HERITABILITY, config=CONFIG, ts=TS, env=ENV)
 
 # Simluate Genotypes
@@ -462,12 +462,12 @@ rule proj_T:
         "output/Calculate_Tm/4PopSplit/{rep}/{config}/projection.sscore"
     shell:
         """
-        plink2 \
+        ~/Desktop/plink2 \
         --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
        --pca allele-wts {params.n_minus_1} \
        --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca
 
-        plink2 \
+        ~/Desktop/plink2 \
         --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
        --score output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
        --score-col-nums {params.col_start}-{params.col_end} \
