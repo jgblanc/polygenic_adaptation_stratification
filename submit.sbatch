@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_A_TsPhenotypes
-#SBATCH --output=logs/4PopSplit_A_TsPhenotypes.out
-#SBATCH --error=logs/4PopSplit_A_TsPhenotypes.err
+#SBATCH --job-name=4PopSplit_A_TsGWAS
+#SBATCH --output=logs/4PopSplit_A_TsGWAS.out
+#SBATCH --error=logs/4PopSplit_A_TsGWAS.err
 #SBATCH --time=24:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=5
