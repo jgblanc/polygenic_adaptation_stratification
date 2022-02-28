@@ -302,7 +302,7 @@ $(document).ready(function () {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2022-01-03
+<strong>Last updated:</strong> 2022-02-07
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -333,16 +333,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree1e10dec627b5ea23e6a139befadaf18de7b4dfbctargetblank1e10deca"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/1e10dec627b5ea23e6a139befadaf18de7b4dfbc" target="_blank">1e10dec</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreedeb2706feab2347cd1851cab086ad39b9f6c6020targetblankdeb2706a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/deb2706feab2347cd1851cab086ad39b9f6c6020" target="_blank">deb2706</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtree1e10dec627b5ea23e6a139befadaf18de7b4dfbctargetblank1e10deca" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreedeb2706feab2347cd1851cab086ad39b9f6c6020targetblankdeb2706a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/1e10dec627b5ea23e6a139befadaf18de7b4dfbc" target="_blank">1e10dec</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/deb2706feab2347cd1851cab086ad39b9f6c6020" target="_blank">deb2706</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -361,10 +361,11 @@ Ignored files:
     Ignored:    code/Simulate_Genotypes/.DS_Store
     Ignored:    code/Simulate_Phenotypes/.DS_Store
     Ignored:    code/Snakefiles/.DS_Store
-    Ignored:    code/Snakefiles/SimpleGrid/.DS_Store
-    Ignored:    code/Snakefiles/SimpleGrid/Lat/
+    Ignored:    code/Snakefiles/4PopSplit/Signal/
     Ignored:    data/.DS_Store
     Ignored:    data/projection_example/
+    Ignored:    output/Calculate_Tm/4PopSplit/A1/
+    Ignored:    output/Calculate_Tm/4PopSplit/A2/
     Ignored:    output/Calculate_Tm/4PopSplit/E2/
     Ignored:    output/Calculate_Tm/4PopSplit/E20/
     Ignored:    output/Calculate_Tm/4PopSplit/E3/
@@ -390,6 +391,8 @@ Ignored files:
     Ignored:    output/PGA_test/4PopSplit/E8/
     Ignored:    output/PGA_test/4PopSplit/E9/
     Ignored:    output/PGA_test/SimpleGrid/
+    Ignored:    output/PRS/4PopSplit/A1/
+    Ignored:    output/PRS/4PopSplit/A2/
     Ignored:    output/PRS/4PopSplit/E2/
     Ignored:    output/PRS/4PopSplit/E20/
     Ignored:    output/PRS/4PopSplit/E3/
@@ -411,6 +414,8 @@ Ignored files:
     Ignored:    output/Simulate_Genotypes/SimpleGrid/E6/
     Ignored:    output/Simulate_Genotypes/SimpleGrid/E7/
     Ignored:    output/Simulate_Genotypes/SimpleGrid/E8/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/A1/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/A2/
     Ignored:    output/Simulate_Phenotypes/4PopSplit/E2/
     Ignored:    output/Simulate_Phenotypes/4PopSplit/E20/
     Ignored:    output/Simulate_Phenotypes/4PopSplit/E3/
@@ -421,9 +426,6 @@ Ignored files:
     Ignored:    output/Simulate_Phenotypes/4PopSplit/E8/
     Ignored:    output/Simulate_Phenotypes/4PopSplit/E9/
     Ignored:    output/Simulate_Phenotypes/SimpleGrid/
-
-Unstaged changes:
-    Modified:   analysis/Simulations_methods.Rmd
 
 </code></pre>
 <p>
@@ -462,6 +464,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/deb2706feab2347cd1851cab086ad39b9f6c6020/analysis/index.Rmd" target="_blank">deb2706</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2022-02-07
+</td>
+<td>
+wflow_publish(“analysis/index.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/db79e2ed4f64a80e540c758f89ecac59b34e9fd0/docs/index.html" target="_blank">db79e2e</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2022-01-03
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -1204,7 +1240,8 @@ plink2 projection <a href="Projection_plink2.html">link</a><br />
 calc Qx <a href="Calc_Qx.html">link</a><br />
 Plot_SimpleGrid <a href="Plot_SimpleGrid.html">link</a><br />
 methods <a href="Simulations_methods.html">link</a><br />
-Meeting Notes <a href="Meetings_Notes.html">link</a></p>
+Meeting Notes <a href="Meetings_Notes.html">link</a><br />
+Proof <a href="Proof.html">link</a></p>
 </div>
 </div>
 

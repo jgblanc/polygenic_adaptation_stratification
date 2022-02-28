@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Jennifer Blanc" />
+
+
+<title>Proof</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">polygenic_adaptation_stratification</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jgblanc/polygenic_adaptation_stratification">
+    <span class="fa fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Proof</h1>
+<h4 class="author">Jennifer Blanc</h4>
+<h4 class="date">2/5/2022</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2022-02-07
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>polygenic_adaptation_stratification/analysis/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.6.2). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20201015code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20201015)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20201015code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20201015)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreee474fc2f513da4e16617026e0012c59147bb0080targetblanke474fc2a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/e474fc2f513da4e16617026e0012c59147bb0080" target="_blank">e474fc2</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjgblancpolygenicadaptationstratificationtreee474fc2f513da4e16617026e0012c59147bb0080targetblanke474fc2a" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version <a href="https://github.com/jgblanc/polygenic_adaptation_stratification/tree/e474fc2f513da4e16617026e0012c59147bb0080" target="_blank">e474fc2</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    .snakemake/
+    Ignored:    code/.DS_Store
+    Ignored:    code/Calculate_Tm/.DS_Store
+    Ignored:    code/Debug/.DS_Store
+    Ignored:    code/PGA_test/.DS_Store
+    Ignored:    code/PRS/.DS_Store
+    Ignored:    code/Simulate_Genotypes/.DS_Store
+    Ignored:    code/Simulate_Phenotypes/.DS_Store
+    Ignored:    code/Snakefiles/.DS_Store
+    Ignored:    code/Snakefiles/4PopSplit/Signal/
+    Ignored:    data/.DS_Store
+    Ignored:    data/projection_example/
+    Ignored:    output/Calculate_Tm/4PopSplit/A1/
+    Ignored:    output/Calculate_Tm/4PopSplit/A2/
+    Ignored:    output/Calculate_Tm/4PopSplit/E2/
+    Ignored:    output/Calculate_Tm/4PopSplit/E20/
+    Ignored:    output/Calculate_Tm/4PopSplit/E3/
+    Ignored:    output/Calculate_Tm/4PopSplit/E4/
+    Ignored:    output/Calculate_Tm/4PopSplit/E5/
+    Ignored:    output/Calculate_Tm/4PopSplit/E6/
+    Ignored:    output/Calculate_Tm/4PopSplit/E7/
+    Ignored:    output/Calculate_Tm/4PopSplit/E8/
+    Ignored:    output/Calculate_Tm/4PopSplit/E9/
+    Ignored:    output/Calculate_Tm/SimpleGrid/A1/
+    Ignored:    output/Calculate_Tm/SimpleGrid/E1/
+    Ignored:    output/Calculate_Tm/SimpleGrid/E2/
+    Ignored:    output/Calculate_Tm/SimpleGrid/E3/
+    Ignored:    output/Calculate_Tm/SimpleGrid/E4/
+    Ignored:    output/Calculate_Tm/SimpleGrid/E5/
+    Ignored:    output/PGA_test/4PopSplit/E2/
+    Ignored:    output/PGA_test/4PopSplit/E20/
+    Ignored:    output/PGA_test/4PopSplit/E3/
+    Ignored:    output/PGA_test/4PopSplit/E4/
+    Ignored:    output/PGA_test/4PopSplit/E5/
+    Ignored:    output/PGA_test/4PopSplit/E6/
+    Ignored:    output/PGA_test/4PopSplit/E7/
+    Ignored:    output/PGA_test/4PopSplit/E8/
+    Ignored:    output/PGA_test/4PopSplit/E9/
+    Ignored:    output/PGA_test/SimpleGrid/
+    Ignored:    output/PRS/4PopSplit/A1/
+    Ignored:    output/PRS/4PopSplit/A2/
+    Ignored:    output/PRS/4PopSplit/E2/
+    Ignored:    output/PRS/4PopSplit/E20/
+    Ignored:    output/PRS/4PopSplit/E3/
+    Ignored:    output/PRS/4PopSplit/E4/
+    Ignored:    output/PRS/4PopSplit/E5/
+    Ignored:    output/PRS/4PopSplit/E6/
+    Ignored:    output/PRS/4PopSplit/E7/
+    Ignored:    output/PRS/4PopSplit/E8/
+    Ignored:    output/PRS/4PopSplit/E9/
+    Ignored:    output/PRS/SimpleGrid/
+    Ignored:    output/Run_GWAS/
+    Ignored:    output/Simulate_Genotypes/4PopSplit/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/A1/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E1/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E2/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E3/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E4/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E5/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E6/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E7/
+    Ignored:    output/Simulate_Genotypes/SimpleGrid/E8/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/A1/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/A2/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E2/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E20/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E3/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E4/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E5/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E6/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E7/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E8/
+    Ignored:    output/Simulate_Phenotypes/4PopSplit/E9/
+    Ignored:    output/Simulate_Phenotypes/SimpleGrid/
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/Proof.Rmd</code>) and HTML (<code>docs/Proof.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/e474fc2f513da4e16617026e0012c59147bb0080/analysis/Proof.Rmd" target="_blank">e474fc2</a>
+</td>
+<td>
+jgblanc
+</td>
+<td>
+2022-02-07
+</td>
+<td>
+wflow_publish(“analysis/Proof.Rmd”)
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="the-model" class="section level2">
+<h2>The Model</h2>
+<p>We start by assuming that,</p>
+<p><span class="math display">\[\begin{bmatrix}
+           \bf{G} \\
+           \bf{X}
+         \end{bmatrix} \sim \text{MN}(0,\begin{bmatrix}
+           \bf{K_{GG}} &amp; \bf{K_{GX}} \\
+           \bf{K_{XG}} &amp; \bf{K_{XX}}
+         \end{bmatrix}, \bf{R} )\]</span></p>
+<p>under our null model. Here <span class="math inline">\(\bf{G}\)</span> is the genotype matrix of the GWAS panel and <span class="math inline">\(\bf{X}\)</span> is the genotype matrix of the test panel.</p>
+<p>We assume our trait is generated by,</p>
+<p><span class="math display">\[\vec{Y} = \textbf{G}\vec{\beta} + \vec{E}\]</span></p>
+<p>were <span class="math inline">\(\vec{\beta}\)</span> are the causal effects of genetic variants. <span class="math inline">\(\vec{E}\)</span> contains all the non-genetic effects on the trait. <span class="math inline">\(\vec{E}\)</span> is fixed but unknown.</p>
+<p>Now we estimated effect sizes under the model,</p>
+<p><span class="math display">\[\vec{Y} = \textbf{G}\vec{\beta} + \vec{v}\alpha + \vec{\epsilon}\]</span></p>
+<p>where <span class="math inline">\(\vec{v}\)</span> is a covariate standardized to have length 1 (i.e <span class="math inline">\(\| v\| = 1\)</span>) and <span class="math inline">\(\vec{\epsilon}\)</span> is the error term.</p>
+<p>Using the FWL theorem, this is identical to the model</p>
+<p><span class="math display">\[\textbf{P}\vec{Y} = \textbf{PG}\vec{\beta} + \vec{e}\]</span></p>
+<p>where</p>
+<p><span class="math display">\[\textbf{P} = \textbf{I} - vv^T\]</span></p>
+<p>so the OLS estimate of <span class="math inline">\(\vec{\beta}\)</span> is</p>
+<p><span class="math display">\[\vec{\hat{\beta}} = (\textbf{G}^{T}\textbf{PG})^{-1}\textbf{P}\vec{Y} = \vec{\beta} + (\textbf{G}^{T}\textbf{PG})^{-1}\textbf{G}^T\textbf{P}\vec{E}\]</span></p>
+</div>
+<div id="selection-test" class="section level2">
+<h2>Selection Test</h2>
+<p>We now want to test whether the genetic component of the trait is associated with some arbitrary but known vector <span class="math inline">\(\vec{T}\)</span>.</p>
+<p>Our test statistic is,</p>
+<p><span class="math display">\[Q := \vec{T}^T \textbf{X} \vec{\hat{\beta}} \\
+= \vec{T}^T\textbf{X} \vec{\beta} + \vec{T}^T\textbf{X}(\textbf{G}^{T}\textbf{PG})^{-1}\textbf{G}^T\textbf{P}\vec{E}\]</span></p>
+<p>Here we have decomposed the test statistics into the true signal and the bias component.</p>
+<p>Next, note that we can write <span class="math inline">\(\vec{E}\)</span> as a linear combination of <span class="math inline">\(\vec{v}\)</span> and an unknown vector <span class="math inline">\(\vec{\Lambda}\)</span> which is orthogonal to <span class="math inline">\(\vec{v}\)</span></p>
+<p><span class="math display">\[\vec{E} = \vec{v}\alpha + \vec{\Lambda} \ \ \ \ \ \ \text{where} \ \ \vec{v}^T\vec{\Lambda} = 0\]</span></p>
+<p>Substituting the expression above in for <span class="math inline">\(\vec{E}\)</span> we have,</p>
+<p><span class="math display">\[Q = \vec{T}^T\textbf{X}\vec{\beta} + \vec{T}^T\textbf{X}(\textbf{G}^{T}\textbf{PG})^{-1}\textbf{G}^T\textbf{P}\vec{v}\alpha + \vec{T}^T\textbf{X}(\textbf{G}^{T}\textbf{PG})^{-1}\textbf{G}^T\textbf{P}\vec{\Lambda} \\
+= \vec{T}^T\textbf{X}\vec{\beta} + \vec{T}^T\textbf{X}(\textbf{G}^{T}\textbf{PG})^{-1}\textbf{G}^T\textbf{P}\vec{\Lambda} \]</span></p>
+<p>Here we recognize that <span class="math inline">\(\textbf{P}\vec{v}\alpha = (\textbf{I} - \vec{v}\vec{v}^T)\vec{v}\alpha = \vec{v}\alpha - \vec{v}\alpha = 0\)</span>. The test statistic <span class="math inline">\(Q\)</span> has a signal component and an error component.</p>
+</div>
+<div id="choosing-v" class="section level2">
+<h2>Choosing v</h2>
+<p>Now we want to chose <span class="math inline">\(\vec{v}\)</span> so that the expectation of the error component is equal to zero. We know that <span class="math inline">\(\vec{T}\)</span> <span class="math inline">\(\vec{v}\)</span>, <span class="math inline">\(\vec{E}\)</span>, and therefore <span class="math inline">\(\textbf{P}\)</span> and <span class="math inline">\(\vec{\Lambda}\)</span> are fixed. We have already estimated effect sizes so <span class="math inline">\(\textbf{G}\)</span> is also fixed. Therefore, the only random part of the error term are the test panel genotypes <span class="math inline">\(\textbf{X}\)</span>.</p>
+<p>So we have,</p>
+<p><span class="math display">\[\mathbb{E}_{\textbf{X}}[Q|\vec{T}, \textbf{P}, \textbf{G}, \vec{\Lambda}] = \vec{T}^T\textbf{X}\beta + \vec{T}^T\mathbb{E}[\textbf{X|G}](\textbf{G}^{T}\textbf{PG})^{-1}\textbf{G}^T\textbf{P}\vec{\Lambda}\]</span></p>
+<p>Due to their joint matrix normal distribution,</p>
+<p><span class="math display">\[\mathbb{E}[\textbf{X|G}] = \textbf{K}_{XG}\textbf{K}_{GG}^{-1}\textbf{G}\]</span></p>
+<p>Now we can want to know under what conditions is</p>
+<p><span class="math display">\[\vec{T}^T\textbf{K}_{XG}\textbf{K}_{GG}^{-1}\textbf{G}(\textbf{G}^{T}\textbf{PG})^{-1}\textbf{G}^T\textbf{P}\vec{\Lambda} = 0\]</span></p>
+<p>Below we prove that the above condition is true if we choose <span class="math inline">\(\vec{v}\)</span> to be</p>
+<p><span class="math display">\[\vec{v} = c_1\textbf{K}_{XG}\textbf{K}_{GG}^{-1}T\]</span></p>
+<p>where <span class="math inline">\(c_1\)</span> is a constant such that <span class="math inline">\(\| v\| = 1\)</span>.</p>
+</div>
+<div id="proof" class="section level2">
+<h2>Proof</h2>
+<p>First let,</p>
+<p><span class="math display">\[\textbf{G} = \textbf{U} \bf{\Sigma} S^T\]</span></p>
+<p>where</p>
+<p><span class="math display">\[\textbf{U} = [\vec{v} \ \ u_{\perp v}] \\
+\boldsymbol{\Sigma} = \begin{bmatrix}
+           \sigma_v &amp; 0 \\
+           0 &amp; \Sigma_{\perp v}
+         \end{bmatrix} \\
+         \textbf{S}^T = \begin{bmatrix}
+           \vec{S}_v^T \\
+           \textbf{S}_{\perp v}^T
+         \end{bmatrix}\]</span></p>
+<pre class="r"><code># Set dimensions 
+L &lt;- 1000
+m &lt;- 432
+n &lt;- 288 
+
+# Choose v 
+tmp_v &lt;- runif(m)
+c1 &lt;- 1/sqrt(sum(tmp_v^2))
+v &lt;- (c1) * tmp_v 
+
+# Generate m - 1 vectors that orthogonal to each other and v
+u_perp &lt;- MASS::Null(v)
+
+# Combine with v to make U
+U &lt;- cbind(v, u_perp)
+
+# Generate random singular values 
+sigma_v &lt;- 0.5
+sigma_perp &lt;- sort(rbeta(ncol(u_perp), 0.5, 2), decreasing = T)
+
+# Combine to make matrix of singular values 
+Sigma &lt;- diag(c(sigma_v, sigma_perp))
+
+# Generate random loadings
+S &lt;- rustiefel(L, m)
+S_v &lt;- S[,1]
+
+# Compute G
+G &lt;- U %*% Sigma %*% t(S) </code></pre>
+<p>Now the error term is</p>
+<p><span class="math display">\[\vec{T}^T\textbf{K}_{XG}\textbf{K}_{GG}^{-1}\textbf{G}(\textbf{G}^{T}\textbf{PG})^{-1}\textbf{G}^T\textbf{P}\vec{\Lambda} \\ = c_1^{-1}\vec{v}^T\textbf{G}(\textbf{G}^{T}\textbf{PG})^{-1}\textbf{G}^T\textbf{P}\vec{\Lambda} \\ = c_1^{-1}\vec{v}^T\textbf{G}(\textbf{G}^{T}\textbf{PG})^{-1}\textbf{G}^T\vec{\Lambda}\]</span></p>
+<p>because</p>
+<p><span class="math display">\[\vec{T}^T\textbf{K}_{XG}\textbf{K}_{GG}^{-1} = c_1^{-1}\vec{v}^T\]</span></p>
+<p>and</p>
+<p><span class="math display">\[\textbf{P}\vec{\Lambda} = (\textbf{I} - \vec{v}\vec{v}^T)\vec{\Lambda} = \vec{\Lambda}\]</span></p>
+<pre class="r"><code># Compute P
+P &lt;- diag(rep(1, m)) - (v %*% t(v))
+
+# Generate Lambda by taking a linear combination of the perpendicular orthogonal eigenvectors  
+Lambda &lt;- u_perp %*% rnorm(m-1)
+
+# Check v and Lambda are orthogonal
+t(v) %*% Lambda</code></pre>
+<pre><code>              [,1]
+[1,] -1.526557e-15</code></pre>
+<pre class="r"><code># Check P*Lambda = Lambda
+plot(Lambda,P %*% Lambda)
+abline(0,1, col = &quot;red&quot;)</code></pre>
+<p><img src="figure/Proof.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Next we can say,</p>
+<p><span class="math display">\[c_1^{-1}\vec{v}^T\textbf{G}(\textbf{G}^{T}\textbf{PG})^{-1}\textbf{G}^T\vec{\Lambda}\\ = c_1^{-1}\vec{v}^T\textbf{G}(\textbf{G}^T\textbf{G} - \sigma^2_v\vec{S}_v\vec{S}_v^T)\textbf{G}^T\vec{\Lambda}\]</span></p>
+<p>because</p>
+<p><span class="math display">\[\textbf{G}^T \textbf{PG} = \textbf{S} \boldsymbol{\Sigma} \textbf{U}^T(\textbf{I} - \vec{v}\vec{v}^T) \textbf{U} \boldsymbol{\Sigma} \textbf{S}^T \\ =
+\textbf{G}^T\textbf{G} - \textbf{S}\boldsymbol{\Sigma}\textbf{U}^T\vec{v}\vec{v}^T\textbf{U} \boldsymbol{\Sigma} \textbf{S}^T \\ 
+= \textbf{G}^T\textbf{G} - \sigma_v^2\vec{S}_v \vec{S}_v^T\]</span></p>
+<pre class="r"><code># Check G&#39;PG proof 
+GPG &lt;- t(G) %*% P %*% G
+
+# First Line
+GPG_one &lt;- S %*% Sigma %*% t(U) %*% (diag(rep(1, m)) - (v %*% t(v))) %*% U %*% Sigma %*% t(S)
+
+# Check if they are equal 
+all.equal(GPG, GPG_one)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>par(mfrow = c(2,2))
+plot(GPG[,1], GPG_one[,1])
+plot(GPG[,2], GPG_one[,2])
+plot(GPG[,999], GPG_one[,999])
+plot(GPG[,1000], GPG_one[,1000])</code></pre>
+<p><img src="figure/Proof.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Second Line 
+GPG_two &lt;- t(G) %*% G - (S %*% Sigma %*% U %*% v %*% t(v) %*% U %*% Sigma %*% t(S))
+
+# Check if they are equal 
+all.equal(GPG, GPG_two)</code></pre>
+<pre><code>[1] &quot;Mean relative difference: 0.114088&quot;</code></pre>
+<pre class="r"><code>par(mfrow = c(2,2))
+plot(GPG[,1], GPG_two[,1])
+plot(GPG[,2], GPG_two[,2])
+plot(GPG[,999], GPG_two[,999])
+plot(GPG[,1000], GPG_two[,1000])</code></pre>
+<p><img src="figure/Proof.Rmd/unnamed-chunk-3-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Third Line 
+GPG_three &lt;- t(G) %*% G - (sigma_v^2 * S_v %*% t(S_v))
+
+# Check if they are equal 
+all.equal(GPG, GPG_three)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>par(mfrow = c(2,2))
+plot(GPG[,1], GPG_three[,1])
+plot(GPG[,2], GPG_three[,2])
+plot(GPG[,999], GPG_three[,999])
+plot(GPG[,1000], GPG_three[,1000])</code></pre>
+<p><img src="figure/Proof.Rmd/unnamed-chunk-3-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>## Double check that both versions of the error term above are identical 
+
+# Compute psuedo inverse of G&#39;PG
+GPG_inv &lt;- pinv(GPG) 
+
+# Compute the error term in line 1 above 
+error_term1 &lt;- (c1^-1) %*% t(v) %*% G %*% GPG_inv %*% t(G) %*% Lambda
+
+# Computer pseudo inverse of (G&#39;G - sigma_v^2 SS`)
+modGPG_inv &lt;- pinv(GPG_three)
+ 
+# Compute the error term in line 2 
+error_term2 &lt;- (c1^-1) %*% t(v) %*% G %*% modGPG_inv %*% t(G) %*% Lambda
+
+# Check if they are identical 
+print(error_term1)</code></pre>
+<pre><code>          [,1]
+[1,] 0.3394424</code></pre>
+<pre class="r"><code>print(error_term2)</code></pre>
+<pre><code>           [,1]
+[1,] 0.09228944</code></pre>
+<p>Next we can rewrite,</p>
+<p><span class="math display">\[c_1^{-1}\vec{v}^T\textbf{G}(\textbf{G}^T\textbf{G} - \sigma^2_v\vec{S}_v\vec{S}_v^T)\textbf{G}^T\vec{\Lambda} \\  
+=  c_1^{-1}\vec{v}^T\textbf{G}(\textbf{G}^T\textbf{G})^{-1}\textbf{G}\vec{\Lambda} + c_3 \vec{v}^T\textbf{G}(\textbf{G}^T\textbf{G})^{-1}\vec{S}_v \vec{S}_v^T(\textbf{G}^T\textbf{G})^{-1}\textbf{G}^T\vec{\Lambda}\]</span></p>
+<p>because</p>
+<p><span class="math display">\[(\textbf{G}^T\textbf{G} - \sigma_v^2\vec{S}_v\vec{S}_v^T)^-1 =  (\textbf{G}^T\textbf{G})^-1 + c_2^{-1}(\textbf{G}^T\textbf{G})^{-1}\vec{S}_v\vec{S}_v^T(\textbf{G}^T\textbf{G})^{-1}\]</span></p>
+<pre class="r"><code># Check Sherman-Morrison formula 
+GPG_three &lt;- t(G) %*% G - (sigma_v^2 * S_v %*% t(S_v))
+GPGmod_inv &lt;- pinv(GPG_three)
+
+# Calculate the inverse using S-M
+pinvG &lt;- pinv(t(G) %*% G) 
+c2 &lt;- 1 + (t(S_v) %*% pinvG %*% S_v)
+GPGsm_inv &lt;- pinvG + (as.numeric(1/c2) * (pinvG %*% S_v %*% t(S_v) %*% pinvG))
+
+# Compare inverses 
+all.equal(GPGmod_inv, GPGsm_inv)</code></pre>
+<pre><code>[1] &quot;Mean relative difference: 7.937586e-06&quot;</code></pre>
+<pre class="r"><code>par(mfrow = c(2,2))
+plot(GPGmod_inv[,1], GPGsm_inv[,1])
+plot(GPGmod_inv[,2], GPGsm_inv[,2])
+plot(GPGmod_inv[,999], GPGsm_inv[,999])
+plot(GPGmod_inv[,1000], GPGsm_inv[,1000])</code></pre>
+<p><img src="figure/Proof.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Looking at our current expression for the error term,</p>
+<p><span class="math display">\[c_1^{-1}\vec{v}^T\textbf{G}(\textbf{G}^T\textbf{G})^{-1}\textbf{G}\vec{\Lambda} + c_3 \vec{v}^T\textbf{G}(\textbf{G}^T\textbf{G})^{-1}\vec{S}_v \vec{S}_v^T(\textbf{G}^T\textbf{G})^{-1}\textbf{G}^T\vec{\Lambda}\]</span></p>
+<p>we recognize that the first term is equal to zero and we are left with</p>
+<p><span class="math display">\[c_3 \vec{v}^T\textbf{G}(\textbf{G}^T\textbf{G})^{-1}\vec{S}_v \vec{S}_v^T(\textbf{G}^T\textbf{G})^{-1}\textbf{G}^T\vec{\Lambda}\]</span></p>
+<pre class="r"><code># Show that the first term is zero 
+first_term &lt;- (1/c1) * t(v) %*% G %*% pinvG %*% t(G) %*% Lambda
+first_term</code></pre>
+<pre><code>              [,1]
+[1,] -2.110969e-07</code></pre>
+<p>Then we have,</p>
+<p><span class="math display">\[c_3 \vec{v}^T\textbf{G}(\textbf{G}^T\textbf{G})^{-1}\vec{S}_v \vec{S}_v^T(\textbf{G}^T\textbf{G})^{-1}\textbf{G}^T\vec{\Lambda} \\
+= c_4 \vec{v}^T\textbf{G} \vec{S}_v\vec{S}_v^T \textbf{G}^T \vec{\Lambda}\]</span></p>
+<p>because</p>
+<p><span class="math display">\[(\textbf{G}^T\textbf{G})^{-1}\vec{S}_v \vec{S}_v^T(\textbf{G}^T\textbf{G})^{-1} \\ 
+= \textbf{S} \boldsymbol{\Sigma}^{-2}\textbf{S}^T\vec{S}_v \vec{S}_v^T \textbf{S} \boldsymbol{\Sigma}^{-2} \textbf{S}^{-1} \\ 
+= \sigma_v^{-4} \vec{S}_v\vec{S}_v^T\]</span></p>
+<pre class="r"><code># Proof of the &quot;because&quot; steps above 
+GSG &lt;- pinvG %*% S_v %*% t(S_v) %*% pinvG
+
+# Check S&#39;Sv = [1 0 0 ...]
+plot(t(S) %*% S_v)</code></pre>
+<p><img src="figure/Proof.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Check Sigma^-2 S&#39; Sv = [sigma_v^2 0 ..]
+plot(diag(1/(diag(Sigma)^2)) %*% t(S) %*% S_v)
+abline(b = 0, a = sigma_v^-2, col = &quot;red&quot;)</code></pre>
+<p><img src="figure/Proof.Rmd/unnamed-chunk-6-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Check (G&#39;G)^-1SvSv&#39;(G&#39;G)^-1 = sigmav^-4SvSv&#39;
+GSGshort &lt;- sigma_v^-4 * (S_v %*% t(S_v))
+all.equal(GSG,GSGshort)</code></pre>
+<pre><code>[1] &quot;Mean relative difference: 3.352822e-07&quot;</code></pre>
+<pre class="r"><code>par(mfrow = c(2,2))
+plot(GSG[,1], GSGshort[,1])
+plot(GSG[,2], GSGshort[,2])
+plot(GSG[,999], GSGshort[,999])
+plot(GSG[,1000], GSGshort[,1000])</code></pre>
+<p><img src="figure/Proof.Rmd/unnamed-chunk-6-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Check the expressions for whole error terms 
+c3 &lt;- (1/c1) * (1/c2)
+error_term3 &lt;- as.numeric(c3) * (t(v) %*% G %*% pinvG %*% S_v %*% t(S_v) %*% pinvG %*% t(G) %*% Lambda)  
+
+c4 &lt;- c3 / sigma_v^4
+error_term4 &lt;- c4 * (t(v) %*% G %*% S_v %*% t(S_v) %*% t(G) %*% Lambda)
+
+error_term3</code></pre>
+<pre><code>             [,1]
+[1,] 3.885866e-07</code></pre>
+<pre class="r"><code>error_term4</code></pre>
+<pre><code>              [,1]
+[1,] -5.527494e-13</code></pre>
+<p>Finally we can show that the error term is zero,</p>
+<p><span class="math display">\[c_4\vec{v}^T\textbf{G}\vec{S}_v\vec{S}_v^T \textbf{G}^T \vec{\Lambda} \\
+= c_3 \vec{v}^T\vec{v} \vec{v}^T \vec{\Lambda} \\
+= c_3 \vec{v}^T \vec{v} 0 \\
+= 0\]</span></p>
+<p>because</p>
+<p><span class="math display">\[\textbf{G}\vec{S}_v\vec{S}_v^T \textbf{G}^T = \textbf{U} \boldsymbol{\Sigma} \textbf{S}^T \vec{S}_v \vec{S}_v^T \textbf{S} \boldsymbol{\Sigma} \textbf{U}^T \\ 
+= \sigma_v^2\vec{v}\vec{v}^T\]</span></p>
+<pre class="r"><code># Proof of the &quot;because&quot; steps above 
+
+# Check SigmaS&#39;SvSv&#39;SSigma = sigmav^4 0 0 0 
+sigma_v_mat &lt;- Sigma %*% t(S) %*% S_v %*% t(S_v) %*% S %*% Sigma
+print(paste0(&quot;This first entry of the matrix is &quot;, sigma_v_mat[1,1]))</code></pre>
+<pre><code>[1] &quot;This first entry of the matrix is 0.250000000000002&quot;</code></pre>
+<pre class="r"><code>print(paste0(&quot;Sigma_v^2 is &quot;, sigma_v^2))</code></pre>
+<pre><code>[1] &quot;Sigma_v^2 is 0.25&quot;</code></pre>
+<pre class="r"><code># Check GSvSv&#39;G = sigmav^2 vv&#39;
+GSvSvG &lt;- G %*% S_v %*% t(S_v) %*% t(G)
+GSvSvGshort &lt;- sigma_v^2 * (v %*% t(v))
+all.equal(GSvSvG, GSvSvGshort)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>par(mfrow = c(2,2))
+plot(GSvSvG[,1], GSvSvGshort[,1])
+plot(GSvSvG[,2], GSvSvGshort[,2])
+plot(GSvSvG[,431], GSvSvGshort[,431])
+plot(GSvSvG[,432], GSvSvGshort[,432])</code></pre>
+<p><img src="figure/Proof.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Check that final expressions are all equal to 0
+(c3/ sigma_v^2) * t(v) %*% v %*% t(v) %*% Lambda</code></pre>
+<pre><code>              [,1]
+[1,] -1.219898e-14</code></pre>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.6.2 (2019-12-12)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.6
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] rstiefel_1.0.1  pracma_2.3.3    MASS_7.3-54     pgenlibr_0.3.1 
+[5] workflowr_1.6.2
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_1.0.7       highr_0.9        pillar_1.6.4     compiler_3.6.2  
+ [5] bslib_0.3.0      later_1.3.0      jquerylib_0.1.4  git2r_0.28.0    
+ [9] tools_3.6.2      digest_0.6.29    jsonlite_1.7.2   evaluate_0.14   
+[13] lifecycle_1.0.1  tibble_3.1.6     pkgconfig_2.0.3  rlang_0.4.12    
+[17] yaml_2.2.1       xfun_0.29        fastmap_1.1.0    stringr_1.4.0   
+[21] knitr_1.37       fs_1.5.2         vctrs_0.3.8      sass_0.4.0      
+[25] rprojroot_2.0.2  glue_1.6.0       R6_2.5.1         fansi_0.5.0     
+[29] rmarkdown_2.10   magrittr_2.0.1   whisker_0.4      promises_1.2.0.1
+[33] ellipsis_0.3.2   htmltools_0.5.2  httpuv_1.6.2     utf8_1.2.2      
+[37] stringi_1.7.6    crayon_1.4.2    </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
