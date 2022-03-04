@@ -622,7 +622,3 @@ ggplot(df3, aes(x = LONG, y = LAT, fill = value)) + geom_tile() + facet_wrap(~va
 
 
 
-
-
-
-

@@ -17,6 +17,19 @@ library(ggpubr)
 
 Here I will reccord the details for the simulations presented in the main text and the supplement. I will also include the code to make the the figures.
 
+## 4PopSplit 
+
+Generate diplois individuals according to the demographic model below 
+
+* T2 = 2200  
+* T1 (deeper split) = 4400 
+* Ne (ancestral = A = B = C = D)  = 10000
+* sample size = 10000 diploids per population  
+* chromosome length = 100000  
+* 200 chromosomes  
+* $\mu$ = 1e-08  
+* $\rho$ = 1e-08  
+
 ## Simple Grid 
 
 ### Msprime simulation 

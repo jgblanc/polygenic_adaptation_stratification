@@ -1,0 +1,449 @@
+---
+title: "Conugate_Gradient"
+author: "Jennifer Blanc"
+date: "3/1/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+library(pgenlibr)
+library(data.table)
+library(dplyr)
+library(pracma)
+```
+
+## Conjugate Gradient Descent 
+
+Read in small example from plink2 files
+```{r}
+# Read GWAS Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.pgen")
+Gmat <- ReadList(d1,seq(1,932), meanimpute=F)
+G <- scale(Gmat, scale = F)
+sG <- G %*% diag(1/sqrt(colSums(G^2)))
+
+# Read in Test Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pgen")
+Xmat <- ReadList(d1,seq(1, 932), meanimpute=F)
+X <- scale(Xmat, scale = F)
+sX <- X %*% diag(1/sqrt(colSums(X^2)))
+
+# Read in Test Vector 
+Tvec <- c(rep(0,100), rep(1,100))
+Tvec <- as.matrix(Tvec - mean(Tvec))
+L <- ncol(X)
+```
+
+#### Compute TGWAS
+
+$$\vec{T}^{GWAS} = (GG^T)GX^T\vec{T}$$
+
+```{r}
+TGWAS <- pinv(G %*% t(G)) %*% G %*% t(X) %*% Tvec
+```
+
+
+#### Compute b
+
+$$\vec{b} = GX^TT$$
+
+Calculate exact epxression in R 
+```{r}
+# Original Expression for b
+b = G %*% t(X) %*% Tvec
+```
+
+Calculate using regression in R
+```{r}
+# Calculating b using R regression coefficients 
+beta_t <- rep(0, L)
+for (i in 1:L) {
+  mod <- lm(Tvec ~ X[,i])
+  beta_t[i] <- coef(mod)[2] * (sum(X[,i]^2))
+}
+b_lm <- G %*% beta_t
+
+# They are identical 
+all.equal(b, b_lm)
+```
+
+Convert Tvec to pheno file 
+```{r}
+ID <- fread("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.psam")
+colnames(ID) <- c("FID", "IID",  "Tvec")
+ID$Tvec <- Tvec
+fwrite(ID, "../data/cgd_example/Tvec.txt", sep = "\t")
+```
+
+Calculate using regression in plink2 
+```{bash}
+# Get betas for X^t T 
+~/Desktop/plink2 \
+  --pfile ../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common \
+  --glm omit-ref \
+  --pheno ../data/cgd_example/Tvec.txt \
+  --pheno-name Tvec \
+  --geno-counts \
+  --out ../data/cgd_example/xt_temp
+```
+
+
+```{r}
+# Need to fix regression coefficients since plink does not make length of columns equal to 1 
+# Plink does the regression on regular genotype counts - we need to figure out the length of these genotype counts so we can multiply by it to get the correct betas 
+
+# Read in betas and genotype counts
+beta_plink <- fread("../data/cgd_example/xt_temp.Tvec.glm.linear")
+count_plink <- fread("../data/cgd_example/xt_temp.gcount")
+
+# Calculate length of mean centered genotypes from counts
+nOBS <- (count_plink$HOM_REF_CT + count_plink$HET_REF_ALT_CTS + count_plink$TWO_ALT_GENO_CTS)
+counts <- (count_plink$HOM_REF_CT * 0) + (count_plink$HET_REF_ALT_CTS * 1) + (count_plink$TWO_ALT_GENO_CTS * 2) 
+mean_gc <- counts / nOBS
+length_mc_genos <- (count_plink$HOM_REF_CT * (-1 * mean_gc)^2) + (count_plink$HET_REF_ALT_CTS * (1 - mean_gc)^2) +  (count_plink$TWO_ALT_GENO_CTS * (2 - mean_gc)^2)
+
+# Fix betas
+betas_plink_norm <- beta_plink$BETA * length_mc_genos
+
+#  Re-write .linear file with correct betas 
+beta_plink$BETA <- betas_plink_norm
+beta_reformat <- beta_plink %>% select(ID, A1, BETA)
+fwrite(beta_reformat, "../data/cgd_example/xt_temp.Tvec.glm.linear", sep = "\t")
+```
+
+
+```{bash}
+# Get b, G * betas
+~/Desktop/plink2 \
+  --pfile ../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common \
+  --score ../data/cgd_example/xt_temp.Tvec.glm.linear header-read center cols=dosagesum,scoresums \
+  --out ../data/cgd_example/b
+```
+
+Check that b calculated in R equals b calculated in plink (assuming the columns of X and the columns of G are only centered)
+```{r}
+b_plink <- fread("../data/cgd_example/b.sscore") 
+b_plink <- as.matrix(b_plink$BETA_SUM) 
+
+all.equal(b_plink, b)
+```
+
+#### Compute rk 
+
+$$r_k = Ax_k - b$$
+
+Calculate exact expression in R
+```{r}
+x0 = as.matrix(runif(200, 0, 0.1))
+r1 = pinv(G %*% t(G)) %*% x0 - b
+```
+
+Convert $x_k$ to pheno file 
+```{r}
+ID <- fread("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.psam")
+colnames(ID) <- c("FID", "IID",  "xk")
+ID$xk <- x0
+fwrite(ID, "../data/cgd_example/xk.txt", sep = "\t")
+```
+
+Calculate $G^Tx_k$ using plink
+```{bash}
+~/Desktop/plink2 \
+  --pfile ../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common \
+  --glm omit-ref \
+  --pheno ../data/cgd_example/xk.txt \
+  --pheno-name xk \
+  --geno-counts \
+  --out ../data/cgd_example/Gxk_temp
+```
+
+```{r}
+# Need to fix regression coefficients since plink does not make length of columns equal to 1 
+# Plink does the regression on regular genotype counts - we need to figure out the length of these genotype counts so we can multiply by it to get the correct betas 
+
+# Read in betas and genotype counts
+beta_plink <- fread("../data/cgd_example/Gxk_temp.xk.glm.linear")
+count_plink <- fread("../data/cgd_example/Gxk_temp.gcount")
+
+# Calculate length of mean centered genotypes from counts
+nOBS <- (count_plink$HOM_REF_CT + count_plink$HET_REF_ALT_CTS + count_plink$TWO_ALT_GENO_CTS)
+counts <- (count_plink$HOM_REF_CT * 0) + (count_plink$HET_REF_ALT_CTS * 1) + (count_plink$TWO_ALT_GENO_CTS * 2) 
+mean_gc <- counts / nOBS
+length_mc_genos <- (count_plink$HOM_REF_CT * (-1 * mean_gc)^2) + (count_plink$HET_REF_ALT_CTS * (1 - mean_gc)^2) +  (count_plink$TWO_ALT_GENO_CTS * (2 - mean_gc)^2)
+
+# Fix betas
+betas_plink_norm <- beta_plink$BETA * length_mc_genos
+
+#  Re-write .linear file with correct betas 
+beta_plink$BETA <- betas_plink_norm
+beta_reformat <- beta_plink %>% select(ID, A1, BETA)
+fwrite(beta_reformat, "../data/cgd_example/Gxk_temp.xk.glm.linear", sep = "\t")
+```
+
+Compute $GG^Tx_k$ using plink
+```{bash}
+# Get GG^Tx
+~/Desktop/plink2 \
+  --pfile ../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common \
+  --score ../data/cgd_example/Gxk_temp.xk.glm.linear header-read center cols=dosagesum,scoresums \
+  --out ../data/cgd_example/GGx
+```
+
+```{r}
+GGx <- fread("../data/cgd_example/GGx.sscore") 
+b_plink <- fread("../data/cgd_example/b.sscore")
+rk_plink <- GGx$BETA_SUM - b_plink$BETA_SUM
+
+plot(r1,rk_plink)
+abline(0,1)
+all.equal(as.matrix(r1), as.matrix(rk_plink))
+```
+
+
+#### Compute alpha k 
+
+$$\alpha_k = \frac{r_k^Tr_k}{p_k^TGG^Tp_k}$$
+
+Compute using R
+```{r}
+p1 = -r1
+alpha_k = (t(r1) %*% r1) / (t(p1) %*% G %*% t(G) %*% p1)
+```
+
+Convert $p_k$ to pheno file 
+```{r}
+ID <- fread("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.psam")
+colnames(ID) <- c("FID", "IID",  "pk")
+ID$xk <- p1
+fwrite(ID, "../data/cgd_example/pk.txt", sep = "\t")
+```
+
+
+Compute $G^Tp_k$ using plink 
+```{bash}
+~/Desktop/plink2 \
+  --pfile ../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common \
+  --glm omit-ref \
+  --pheno ../data/cgd_example/pk.txt \
+  --pheno-name pk \
+  --geno-counts \
+  --out ../data/cgd_example/Gpk_temp
+```
+
+```{r}
+# Need to fix regression coefficients since plink does not make length of columns equal to 1 
+# Plink does the regression on regular genotype counts - we need to figure out the length of these genotype counts so we can multiply by it to get the correct betas 
+
+# Read in betas and genotype counts
+beta_plink <- fread("../data/cgd_example/Gpk_temp.pk.glm.linear")
+count_plink <- fread("../data/cgd_example/Gpk_temp.gcount")
+
+# Calculate length of mean centered genotypes from counts
+nOBS <- (count_plink$HOM_REF_CT + count_plink$HET_REF_ALT_CTS + count_plink$TWO_ALT_GENO_CTS)
+counts <- (count_plink$HOM_REF_CT * 0) + (count_plink$HET_REF_ALT_CTS * 1) + (count_plink$TWO_ALT_GENO_CTS * 2) 
+mean_gc <- counts / nOBS
+length_mc_genos <- (count_plink$HOM_REF_CT * (-1 * mean_gc)^2) + (count_plink$HET_REF_ALT_CTS * (1 - mean_gc)^2) +  (count_plink$TWO_ALT_GENO_CTS * (2 - mean_gc)^2)
+
+# Fix betas
+betas_plink_norm <- beta_plink$BETA * length_mc_genos
+```
+
+Calculate $\alpha_k$ and compare 
+```{r}
+alpha_plink <- (t(rk_plink) %*% rk_plink) / sum(betas_plink_norm^2)
+
+alpha_k
+alpha_plink
+```
+
+
+#### Putting it all together 
+
+```{r}
+compute_b <- function(path_to_test, path_to_gwas, path_to_testvec, outpath) {
+  
+  # Compute t(X)T 
+  outfile_XT <- paste0(outpath, "xt_temp")
+  cmd_XT <- paste("sh ../code/Calculate_TGWAS/compute_XT.sh", path_to_test, path_to_testvec, outfile_XT, sep = " ")
+  system(cmd_XT)
+  
+  # Adjust Betas to account for variance in x
+  
+  # Read in betas and genotype counts
+  beta_plink <- fread(paste0(outpath, "xt_temp.Tvec.glm.linear"))
+  count_plink <- fread(paste0(outpath, "xt_temp.gcount"))
+
+  # Calculate length of mean centered genotypes from counts
+  nOBS <- (count_plink$HOM_REF_CT + count_plink$HET_REF_ALT_CTS + count_plink$TWO_ALT_GENO_CTS)
+  counts <- (count_plink$HOM_REF_CT * 0) + (count_plink$HET_REF_ALT_CTS * 1) + (count_plink$TWO_ALT_GENO_CTS * 2) 
+  mean_gc <- counts / nOBS
+  length_mc_genos <- (count_plink$HOM_REF_CT * (-1 * mean_gc)^2) + (count_plink$HET_REF_ALT_CTS * (1 - mean_gc)^2) +  (count_plink$TWO_ALT_GENO_CTS * (2 - mean_gc)^2)
+
+  # Fix betas
+  betas_plink_norm <- beta_plink$BETA * length_mc_genos
+
+  #  Re-write .linear file with correct betas 
+  beta_plink$BETA <- betas_plink_norm
+  beta_reformat <- beta_plink %>% dplyr::select(ID, A1, BETA)
+  fwrite(beta_reformat, paste0(outpath, "xt_temp.Tvec.glm.linear"), sep = "\t")
+  
+  # Compute b
+  outfile_b <- paste0(outpath, "b")
+  cmd_b <- paste("sh ../code/Calculate_TGWAS/GWAS_score.sh", path_to_gwas, paste0(outpath, "xt_temp.Tvec.glm.linear"), outfile_b, sep = " ")
+  system(cmd_b)  
+  
+  # Read in and return b
+  b = fread(paste0(outpath, "b.sscore"))
+  b = as.matrix(b$BETA_SUM)
+  return(b)
+}
+```
+
+```{r}
+compute_rk <- function(x, path_to_gwas, outpath, gwasID) {
+  
+  # Create pheno file for Xk
+  gwasID$pheno <- x
+  fwrite(gwasID, paste0(outpath,"xk.txt"), sep = "\t")
+  
+  # Use plink to comput t(G)x
+  outfile_Gx <- paste0(outpath, "Gx_temp")
+  path_to_pheno <- paste0(outpath,"xk.txt")
+  cmd_Gx <- paste("sh ../code/Calculate_TGWAS/GWAS_assoc.sh", path_to_gwas, path_to_pheno, outfile_Gx, sep = " ")
+  system(cmd_Gx)
+  
+  # Adjust Betas to account for variance in x
+  
+  # Read in betas and genotype counts
+  beta_plink <- fread(paste0(outpath, "Gx_temp.pheno.glm.linear"))
+  count_plink <- fread(paste0(outpath, "Gx_temp.gcount"))
+
+  # Calculate length of mean centered genotypes from counts
+  nOBS <- (count_plink$HOM_REF_CT + count_plink$HET_REF_ALT_CTS + count_plink$TWO_ALT_GENO_CTS)
+  counts <- (count_plink$HOM_REF_CT * 0) + (count_plink$HET_REF_ALT_CTS * 1) + (count_plink$TWO_ALT_GENO_CTS * 2) 
+  mean_gc <- counts / nOBS
+  length_mc_genos <- (count_plink$HOM_REF_CT * (-1 * mean_gc)^2) + (count_plink$HET_REF_ALT_CTS * (1 - mean_gc)^2) +  (count_plink$TWO_ALT_GENO_CTS * (2 - mean_gc)^2)
+
+  # Fix betas
+  betas_plink_norm <- beta_plink$BETA * length_mc_genos
+
+  #  Re-write .linear file with correct betas 
+  beta_plink$BETA <- betas_plink_norm
+  beta_reformat <- beta_plink %>% dplyr::select(ID, A1, BETA)
+  fwrite(beta_reformat, paste0(outpath, "Gx_temp.pheno.glm.linear"), sep = "\t")
+  
+  # Compute GGx
+  outfile_ggx <- paste0(outpath, "GGx")
+  cmd_ggx <- paste("sh ../code/Calculate_TGWAS/GWAS_score.sh", path_to_gwas, paste0(outpath, "Gx_temp.pheno.glm.linear"), outfile_ggx, sep = " ")
+  system(cmd_ggx) 
+  
+  # Compute rk and return
+  GGx <- fread(paste0(outpath, "GGx.sscore")) 
+  b <- fread(paste0(outpath, "b.sscore"))
+  rk <- GGx$BETA_SUM - b$BETA_SUM
+  return(rk)
+}
+
+```
+
+```{r}
+compute_alpha <- function(r, p, path_to_gwas, outpath, gwasID) {
+  
+  # Create pheno file for pk
+  gwasID$pheno <- p
+  fwrite(gwasID, paste0(outpath,"pk.txt"), sep = "\t")
+  
+  # Compute t(G) %*% pk using plink 
+  outfile_Gp <- paste0(outpath, "Gp_temp")
+  path_to_pheno <- paste0(outpath,"pk.txt")
+  cmd_Gp <- paste("sh ../code/Calculate_TGWAS/GWAS_assoc.sh", path_to_gwas, path_to_pheno, outfile_Gp, sep = " ")
+  system(cmd_Gp)  
+  
+  # Adjust Betas to account for variance in x
+  
+  # Read in betas and genotype counts
+  beta_plink <- fread(paste0(outpath, "Gp_temp.pheno.glm.linear"))
+  count_plink <- fread(paste0(outpath, "Gp_temp.gcount"))
+
+  # Calculate length of mean centered genotypes from counts
+  nOBS <- (count_plink$HOM_REF_CT + count_plink$HET_REF_ALT_CTS + count_plink$TWO_ALT_GENO_CTS)
+  counts <- (count_plink$HOM_REF_CT * 0) + (count_plink$HET_REF_ALT_CTS * 1) + (count_plink$TWO_ALT_GENO_CTS * 2) 
+  mean_gc <- counts / nOBS
+  length_mc_genos <- (count_plink$HOM_REF_CT * (-1 * mean_gc)^2) + (count_plink$HET_REF_ALT_CTS * (1 - mean_gc)^2) +  (count_plink$TWO_ALT_GENO_CTS * (2 - mean_gc)^2)
+
+  # Fix betas
+  betas_plink_norm <- beta_plink$BETA * length_mc_genos
+  
+  # Compute and return alpha
+  alpha <- (t(r) %*% r) / sum(betas_plink_norm^2)
+  return(alpha)
+}
+```
+
+
+```{r}
+# Gather parameters
+gwasID <- fread("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.psam")
+colnames(gwasID) <- c("FID", "IID",  "pheno")
+m <- nrow(gwasID)
+testID <- fread("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.psam")
+colnames(testID) <- c("FID", "IID",  "pheno")
+n <- nrow(testID)
+
+# Compute b
+b = compute_b(path_to_test = "../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common", path_to_gwas = "../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common", path_to_testvec = "../data/cgd_example/Tvec.txt", outpath = "../data/cgd_example/")
+
+# Initialize X0 
+x0 = as.matrix(rep(0, m))
+xk = x0
+# Compute r0
+rk = -b
+# Assign initial direction 
+pk = -rk
+# Initialize stop criteria and iteration counter
+sc = 1
+counter = 1
+while (sc > 1e-5) {
+  
+  if (counter > 100) {
+    break
+  }
+  
+  print(paste0("Iteration: ", counter))
+  
+  # Compute rkrk
+  rkrk = t(rk) %*% rk
+  
+  # Compute alpha
+  alpha_k = compute_alpha(r = rk, p = pk, path_to_gwas = "../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common", outpath = "../data/cgd_example/", gwasID = gwasID)
+  
+  # Compute X_k+1
+  xk_prev = xk
+  xk = xk + (alpha_k[1,1] * pk)
+  
+  # Compute new residual 
+  rk = compute_rk(x = xk, path_to_gwas = "../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common", outpath = "../data/cgd_example/", gwasID = gwasID)
+  
+  # Compute Beta_k 
+  beta_k = t(rk) %*% rk / rkrk
+  
+  # Compute p_k+1
+  pk = -rk + beta_k[1,1] * pk
+  
+  # Update counters
+  counter = counter + 1
+  sc = norm(xk - xk_prev, type = "2") / norm(xk_prev, type = "2")
+  print(sc)
+  
+}
+
+plot(TGWAS, xk)
+abline(0,1)
+```
+
+
+

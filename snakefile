@@ -1,10 +1,10 @@
 CHR =[]
-for i in range(0, 200):
+for i in range(0, 80):
   CHR.append(str(i))
-CONFIG=["C1"]
-REP = []
-for i in range(1,101):
-  REP.append("A"+str(i))
+CONFIG=["C1", "C2"]
+REP = ["S1"]
+#for i in range(1,101):
+#  REP.append("A"+str(i))
 HERITABILITY = ["h2-0.3"]
 ENV=["env_-1.0","env_0.0","env_1.0"]
 TS=["p-0.54", "p-0.57", "p-0.60","p-0.63","p-0.66"]
@@ -78,13 +78,13 @@ rule simulate_genotypes_4popsplit:
 	       --NB 10000 \
 	       --NC 10000 \
 	       --ND 10000 \
-  	     -a 20000 \
-	       -b 20000 \
-	       -c 20000 \
-	       -d 20000 \
+  	     -a 200 \
+	       -b 200 \
+	       -c 200 \
+	       -d 200 \
          -s1 4400 \
           -s2 2200 \
-          -L 100000"
+          -L 10000"
 
 rule format_VCF:
     input:
@@ -435,61 +435,24 @@ rule make_test_vector:
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
         fam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam"
     output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
+        "output/Calculate_TGWAS/4PopSplit/{rep}/{config}/Tvec.txt"
     shell:
-        "Rscript code/Calculate_Tm/4PopSplit_make_tvec.R {input.pops} {input.fam} {output}"
+        "Rscript code/Calculate_TGWAS/4PopSplit_make_tvec.R {input.pops} {input.fam} {output}"
 
-# Project T using Plink2
+# Project T using CGD
 
-rule proj_T:
+rule calc_TGWAS:
     input:
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.pgen",
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.pvar",
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pgen",
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pvar",
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
-    params:
-        n_minus_1 = int(SIZE)-1,
-        col_start = 6,
-        col_end = int(SIZE) + 4
+        genos_test="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
+        genos_gwas="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
+        Tvec="output/Calculate_TGWAS/4PopSplit/{rep}/{config}/Tvec.txt"
     output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec.allele",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/projection.sscore"
+        "output/Calculate_TGWAS/4PopSplit/{rep}/{config}/TGWAS.txt"
     shell:
         """
-        plink2 \
-        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
-       --pca allele-wts {params.n_minus_1} \
-       --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca
-
-        plink2 \
-        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-       --score output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
-       --score-col-nums {params.col_start}-{params.col_end} \
-       --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/projection
-        """
-
-# Calculate Tm using plink output
-
-rule calc_Tm:
-    input:
-        vecs="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec",
-        vals="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval",
-        proj="output/Calculate_Tm/4PopSplit/{rep}/{config}/projection.sscore",
-        tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
-	allele="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec.allele"
-    output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt"
-    shell:
-        """
-	Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} {input.proj} {input.tvec} {output}
-
-	rm {input.allele}
-	"""
+        Rscript code/Calculate_TGWAS/Compute_TGWAS.R output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.Tvec} output/Calculate_TGWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/
+        rm output/Calculate_TGWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/[Gxpb]*
+	      """
 
 # Format Covariate file
 
@@ -501,7 +464,9 @@ rule format_covars:
     output:
         "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
     shell:
-        "Rscript code/Calculate_Tm/format_ID_covars.R {input.pops} {input.Tm} {input.fam} {output}"
+        """
+        Rscript code/Calculate_Tm/format_ID_covars.R {input.pops} {input.Tm} {input.fam} {output}
+        """
 
 
 # Re-run GWAS
