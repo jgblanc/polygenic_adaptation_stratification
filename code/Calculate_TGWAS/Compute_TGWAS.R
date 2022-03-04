@@ -171,7 +171,7 @@ sc = 1
 counter = 1
 while (sc > 1e-5) {
 
-  if (counter > 100) {
+  if (counter > 10) {
     break
   }
 
