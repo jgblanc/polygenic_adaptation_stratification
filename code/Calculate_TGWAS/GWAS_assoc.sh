@@ -3,9 +3,9 @@ pfile_path=$1
 pheno_path=$2
 outfile=$3
 
-~/Desktop/plink2 \
+plink2 \
   --pfile $pfile_path \
-  --glm omit-ref \
+  --glm allow-no-covars omit-ref \
   --pheno $pheno_path \
   --pheno-name pheno \
   --geno-counts \

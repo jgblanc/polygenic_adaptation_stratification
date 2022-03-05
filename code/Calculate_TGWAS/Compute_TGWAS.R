@@ -167,11 +167,12 @@ rk = -b
 # Assign initial direction
 pk = -rk
 # Initialize stop criteria and iteration counter
+save_sc = rep(0,1000)
 sc = 1
 counter = 1
 while (sc > 1e-5) {
 
-  if (counter > 10) {
+  if (counter > 1000) {
     break
   }
 
@@ -199,12 +200,14 @@ while (sc > 1e-5) {
   # Update counters
   counter = counter + 1
   sc = norm(xk - xk_prev, type = "2") / norm(xk_prev, type = "2")
+  #sc = norm(rk, type = "2")
+  save_sc[counter] = sc
   print(sc)
 
 }
 
 fwrite(xk, paste0(out_prefix, "TGWAS.txt"), row.names = F, col.names = F, quote = F, sep = "\t")
-
+write.table(save_sc, paste0(out_prefix, "stop_criteria.txt"), row.names = F, col.names = F, quote = F, sep = "\t")
 
 
 
