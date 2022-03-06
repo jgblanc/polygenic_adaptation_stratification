@@ -47,6 +47,30 @@ TGWAS <- pinv(G %*% t(G)) %*% G %*% t(X) %*% Tvec
 ```
 
 
+```{r}
+l <- 199
+myE <- eigen(G%*%t(G))
+Ug <- myE$vectors
+mySVDg <- svd(G)
+Vg <- mySVDg$v
+mySVDx <- svd(X)
+Vx <- mySVDx$v
+Ux <- mySVDx$u
+
+TGWAS2 <- (mySVDg$u[,1:199]) %*% diag(1/mySVDg$d[1:199]) %*% t(Vg[,1:199]) %*% Vx[,1:199] %*% diag(mySVDx$d[1:199]) %*% t(Ux[,1:199]) %*% Tvec
+
+plot(TGWAS,  TGWAS2)
+
+
+XT <- t(X) %*% Tvec
+XT2 <- Vx[,1:l] %*% diag(mySVDg$d[1:l]) %*% t(Ux[,1:l]) %*% Tvec
+
+GXT <- G %*% t(X) %*% Tvec
+GXT2 <- mySVDg$u[,1:l] %*% diag(mySVDg$d[1:l]) %*% t(Vg[,1:l]) %*% Vx[,1:l] %*% diag(mySVDg$d[1:l]) %*% t(Ux[,1:l]) %*% Tvec
+
+```
+
+
 #### Compute b
 
 $$\vec{b} = GX^TT$$
@@ -445,5 +469,21 @@ plot(TGWAS, xk)
 abline(0,1)
 ```
 
+```{r}
+c_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common.c.betas"
+cp_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common.c.p.betas"
+nc_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common.nc.betas"
+c_TGWAS_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common-TGWAS.c.betas"
+cp_TGWAS_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common-TGWAS.c.p.betas"
+nc_TGWAS_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common-TGWAS.nc.betas"
+c_ID_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common-ID.c.betas"
+cp_ID_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common-ID.c.p.betas"
+nc_ID_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common-ID.nc.betas"
+geno_prefix="output/Simulate_Genotypes/4PopSplit/A1/C1/genos-test_common"
+lambdaT_file="output/PGA_test/4PopSplit/A1/C1/Lambda_T.txt"
+true_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/genos-test_common.true.sscore"
+tvec_file="output/Calculate_TGWAS/4PopSplit/A1/C1/Tvec.txt"
+pops_file="output/Simulate_Genotypes/4PopSplit/A1/genos.pop"
+```
 
 

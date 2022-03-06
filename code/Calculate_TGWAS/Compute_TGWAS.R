@@ -172,7 +172,7 @@ sc = 1
 counter = 1
 while (sc > 1e-5) {
 
-  if (counter > 1000) {
+  if (counter > 400) {
     break
   }
 

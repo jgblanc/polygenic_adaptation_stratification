@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<16){stop("Rscript calc_Tm.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
+if(length(args)!=18){stop("Rscript calc_TGWAS.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
                          <true.sscore> <Tvec.txt> <outfile name> <file with number of snps>")}
 
 suppressWarnings(suppressMessages({
@@ -15,25 +15,21 @@ suppressWarnings(suppressMessages({
 c_file = args[1] # causal betas
 cp_file = args[2] # causal p-value betas
 nc_file = args[3] # clumped betas
-c_Tm_file = args[4] # causal betas
-cp_Tm_file = args[5] # causal p-value betas
-nc_Tm_file = args[6] # clumped betas
+c_TGWAS_file = args[4] # causal betas
+cp_TGWAS_file = args[5] # causal p-value betas
+nc_TGWAS_file = args[6] # clumped betas
 c_ID_file = args[7] # causal betas
 cp_ID_file = args[8] # causal p-value betas
 nc_ID_file = args[9] # clumped betas
 geno_prefix = args[10] # Prefix to pilnk files
 lambdaT_file = args[11]
-Va_file = args[12] # Va
-Va_Tm_file = args[13] # Va Tm
-Va_ID_file = args[14] # Va Tm
-true_file = args[15] # true PGS
-tvec_file = args[16] # test vect
-pops_file = args[17]
-num = as.numeric(args[18]) # number of times to resapme
-out_pre = args[19] # output prefix
-out_pgs = args[20]
-#out_pre = "~/polygenic_adaptation_stratification/output/Empirical_Null/4PopSplit/E1/C1/h2-0/env-0.0/geno-gwas_"
-
+true_file = args[12] # true PGS
+tvec_file = args[13] # test vect
+pops_file = args[14]
+num = as.numeric(args[15]) # number of times to resapme
+out_pre = args[16] # output prefix
+out_pgs = args[17]
+es_file = args[18]
 
 # Function to read in genotype matrix for a set of variants
 read_genos <- function(geno_prefix, betas) {
@@ -51,6 +47,21 @@ read_genos <- function(geno_prefix, betas) {
   return(X)
 }
 
+# Function to calculate Va
+calc_Va <- function(geno_mat, es) {
+
+  # Get allele frequency in test panel
+  freq <- colMeans(geno_mat) /2
+
+  # Pull out effect sizes only
+  effect_size <- es$BETA
+
+  # Compute Va
+  Va <- 2 * sum((effect_size)^2 * freq * (1 - freq))
+  return(Va)
+}
+
+
 # Function to compute PGS
 pgs <- function(X, betas) {
 
@@ -63,7 +74,7 @@ pgs <- function(X, betas) {
   return(out)
 }
 
-# Function to standardize PGS
+# Function to clean PGS
 stand_PGS <- function(prs, gv_file) {
 
   # Load True GV
@@ -74,15 +85,9 @@ stand_PGS <- function(prs, gv_file) {
   df <- as.data.frame(cbind(prs, gvalue$GV))
   colnames(df) <- c("STRAT", "GV")
 
-  # Standardize
-  #mprs.adj = df%>%
-  #  mutate(strat.adjusted = STRAT-GV) %>%
-  #  ungroup() %>% select("strat.adjusted")
-
   mprs.adj = df%>%
     mutate(strat.adjusted = STRAT) %>%
     ungroup() %>% select("strat.adjusted")
-
 
   return(mprs.adj)
 }
@@ -122,40 +127,34 @@ en <- function(betas, tvec, Va, X, true_file, lambda_T) {
 lambda_T <- fread(lambdaT_file)
 lambda_T <- as.numeric(as.character(lambda_T[1,1]))
 
-# Load Va
-Va_all <- as.matrix(fread(Va_file), rownames=1)
-Va_Tm_all <- as.matrix(fread(Va_Tm_file), rownames=1)
-Va_ID_all <- as.matrix(fread(Va_ID_file), rownames=1)
-
 # Load Test vector
 std.tvec <- fread(tvec_file)
-std.tvec <- std.tvec$V1
+std.tvec <- std.tvec$Tvec
 n1 <- table(std.tvec)[1]
 n2 <- table(std.tvec)[2]
 tvec <- c(rep(1,(n1))/(n1), rep(-1,(n2))/(n2)) * (1/2)
 
 
+
 # Wrapper function to calculate Qx and empirical p values
-main <- function(beta_file, Va) {
+main <- function(beta_file) {
 
   # Load effect sizes
   betas <- fread(beta_file)
-  #colnames(betas) <- c("ID", "A1", "BETA_Random", "BETA_Strat")
+  colnames(betas) <- c("ID", "A1", "BETA_Strat")
 
   # Load Genotypes
   X <- read_genos(geno_prefix, betas)
 
+  # Calculate Va
+  Va <- calc_Va(X, betas)
+
   # Calc PGS
   sscore <- pgs(X, betas)
-
-  # Calc Qx
   pgs_stan <- stand_PGS(sscore, true_file)
-  qx <- t(calc_Qx(pgs_stan, tvec, Va, lambda_T))
 
-  # Calculate Ax
-  mod <- lm(scale(tvec) ~ scale(pgs_stan$strat.adjusted))
-  Ax <- coef(mod)[2]
-  p_Ax <- summary(mod)$coefficients[2,4]
+  ## Calc Qx - Test
+  qx <- t(calc_Qx(pgs_stan, tvec, Va, lambda_T))
 
   # Generate Empirical null
   redraws <- matrix(0, ncol = 1, nrow = num)
@@ -170,27 +169,31 @@ main <- function(beta_file, Va) {
   # Calculate p-value from chi-square
   p_strat <- pchisq(qx[1,1], df=1, lower.tail=FALSE)
 
-  # Concatenate output (Qx_random, Qx_strat, p_random, p_strat)
-  out <- c(qx, p_strat , p_strat_en, Ax, p_Ax)
+
+
+  # Concatenate output (Qx, p_strat)
+  out <- c(qx, p_strat , p_strat_en)
   return(out)
 
 }
 
 # Run all types of PGS
-out <- matrix(NA, nrow = 9, ncol =5)
-out[1, ] <- main(c_file, Va_all[1,])
-out[2, ] <- main(cp_file, Va_all[2,])
-out[3, ] <- main(nc_file, Va_all[3,])
-out[4, ] <- main(c_Tm_file, Va_Tm_all[1,])
-out[5, ] <- main(cp_Tm_file, Va_Tm_all[2,])
-out[6, ] <- main(nc_Tm_file, Va_Tm_all[3,])
-out[7, ] <- main(c_ID_file, Va_ID_all[1,])
-out[8, ] <- main(cp_ID_file, Va_ID_all[2,])
-out[9, ] <- main(nc_ID_file, Va_ID_all[3,])
+out <- matrix(NA, nrow = 10, ncol =3)
+out[1, ] <- main(c_file)
+out[2, ] <- main(cp_file)
+out[3, ] <- main(nc_file)
+out[4, ] <- main(c_TGWAS_file)
+out[5, ] <- main(cp_TGWAS_file)
+out[6, ] <- main(nc_TGWAS_file)
+out[7, ] <- main(c_ID_file)
+out[8, ] <- main(cp_ID_file)
+out[9, ] <- main(nc_ID_file)
+out[10,] <- main(es_file)
 print(out)
 
 # Save output
-colnames(out) <- c("Qx", "P-Chi", "P-EN", "Ax", "P-Ax")
+colnames(out) <- c("Qx", "P.Chi", "P.EN")
+rownames(out) <- c("c", "cp", "nc", "c-TGWAS", "cp-TGWAS", "nc-TGWAS", "c-ID", "cp-ID", "nc-ID", "True")
 fwrite(out, out_pre,row.names=F,quote=F,sep="\t", col.names = T)
 
 # Function to just output PGS
@@ -198,6 +201,7 @@ main2 <- function(beta_file) {
 
   # Load effect sizes
   betas <- fread(beta_file)
+  colnames(betas) <- c("ID", "A1", "BETA_Strat")
 
   # Load Genotypes
   X <- read_genos(geno_prefix, betas)
@@ -218,12 +222,13 @@ fam <- fam[,1:2]
 fam$c <- main2(c_file)
 fam$c.p <- main2(cp_file)
 fam$nc <- main2(nc_file)
-fam$c_Tm <- main2(c_Tm_file)
-fam$c.p_Tm <- main2(cp_Tm_file)
-fam$nc_Tm <- main2(nc_Tm_file)
+fam$c_TGWAS <- main2(c_TGWAS_file)
+fam$c.p_TGWAS <- main2(cp_TGWAS_file)
+fam$nc_TGWAS <- main2(nc_TGWAS_file)
 fam$c_ID <- main2(c_ID_file)
 fam$c.p_ID <- main2(cp_ID_file)
 fam$nc_ID <- main2(nc_ID_file)
 fam$Tvec <- tvec
+fam$true <- main2(es_file)
 
 fwrite(fam, out_pgs,row.names=F,quote=F,sep="\t", col.names = T)
