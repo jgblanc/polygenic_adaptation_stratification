@@ -5,10 +5,10 @@ CONFIG=["C1"]
 REP = []
 for i in range(1,101):
   REP.append("A"+str(i))
-HERITABILITY = ["h2-0.3"]
-ENV=["env_-1.0","env_0.0","env_1.0"]
-TS=["p-0.54", "p-0.57", "p-0.60","p-0.63","p-0.66"]
-#TS=["p-0.50","p-0.70"]
+HERITABILITY = ["h2-0.0"]
+ENV=["env_0.0","env_0.5"]
+#TS=["p-0.54", "p-0.57", "p-0.60","p-0.63","p-0.66"]
+TS=["p-0.50"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -17,7 +17,7 @@ wildcard_constraints:
     rep="[A-Z]\d+",
     config="C.",
     h2="h2-[0-1].[0-9]",
-    env="env_-?[0-9].[0-9]",
+    env="env_-?[0-9].[0-9]*",
     ts="p-[0-1].[0-9][0-9]",
     dir="[a-z]*"
 
@@ -58,8 +58,7 @@ def get_seed(rep,config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV),
-        expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/ts_magnitude.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
 
 # Simluate Genotypes
 

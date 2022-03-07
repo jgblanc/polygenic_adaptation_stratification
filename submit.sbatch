@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_A_Test
-#SBATCH --output=logs/4PopSplit_A_Test.out
-#SBATCH --error=logs/4PopSplit_A_Test.err
-#SBATCH --time=06:00:00
+#SBATCH --job-name=4PopSplit_A_h20
+#SBATCH --output=logs/4PopSplit_A_h20.out
+#SBATCH --error=logs/4PopSplit_A_h20.err
+#SBATCH --time=24:00:00
 #SBATCH --partition=broadwl
-#SBATCH --nodes=1
+#SBATCH --nodes=4
 #SBATCH --ntasks-per-node=14
 #SBATCH --mem-per-cpu=4000
 
@@ -16,5 +16,5 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake --cores all output/Calculate_TGWAS/4PopSplit/A1/C1/TGWAS.txt
+snakemake --cores all 
 #sh copy_dir.sh
