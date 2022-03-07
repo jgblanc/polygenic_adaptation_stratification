@@ -36,6 +36,8 @@ sX <- X %*% diag(1/sqrt(colSums(X^2)))
 Tvec <- c(rep(0,100), rep(1,100))
 Tvec <- as.matrix(Tvec - mean(Tvec))
 L <- ncol(X)
+
+X = G
 ```
 
 #### Compute TGWAS
@@ -69,6 +71,9 @@ GXT <- G %*% t(X) %*% Tvec
 GXT2 <- mySVDg$u[,1:l] %*% diag(mySVDg$d[1:l]) %*% t(Vg[,1:l]) %*% Vx[,1:l] %*% diag(mySVDg$d[1:l]) %*% t(Ux[,1:l]) %*% Tvec
 
 ```
+
+
+
 
 
 #### Compute b
@@ -433,7 +438,7 @@ sc = 1
 counter = 1
 while (sc > 1e-5) {
   
-  if (counter > 100) {
+  if (counter > 20) {
     break
   }
   
@@ -469,6 +474,83 @@ plot(TGWAS, xk)
 abline(0,1)
 ```
 
+
+```{r}
+# Gather parameters
+gwasID <- fread("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.psam")
+colnames(gwasID) <- c("FID", "IID",  "pheno")
+m <- nrow(gwasID)
+testID <- fread("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.psam")
+colnames(testID) <- c("FID", "IID",  "pheno")
+n <- nrow(testID)
+
+# Compute b
+b = compute_b(path_to_test = "../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common", path_to_gwas = "../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common", path_to_testvec = "../data/cgd_example/Tvec.txt", outpath = "../data/cgd_example/")
+
+# Initialize X0 
+x0 = as.matrix(rep(0, m))
+xk = x0
+# Compute r0
+rk = -b
+# Assign initial direction 
+pk = -rk
+# Initialize stop criteria and iteration counter
+sc = 1
+counter = 1
+while (sc > 1e-5) {
+  
+  if (counter > 20) {
+    break
+  }
+  
+  print(paste0("Iteration: ", counter))
+  
+  # Compute rkrk
+  rkrk = t(rk) %*% rk
+  
+  # Compute alpha
+  alpha_k = compute_alpha(r = rk, p = pk, path_to_gwas = "../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common", outpath = "../data/cgd_example/", gwasID = gwasID)
+  
+  # Compute X_k+1
+  xk_prev = xk
+  xk = xk + (alpha_k[1,1] * pk)
+  
+  # Compute new residual 
+  rk = compute_rk(x = xk, path_to_gwas = "../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common", outpath = "../data/cgd_example/", gwasID = gwasID)
+  
+  # Compute Beta_k 
+  beta_k = t(rk) %*% rk / rkrk
+  
+  # Compute p_k+1
+  pk = -rk + beta_k[1,1] * pk
+  
+  # Update counters
+  counter = counter + 1
+  sc = norm(xk - xk_prev, type = "2") / norm(xk_prev, type = "2")
+  print(sc)
+  
+}
+
+plot(TGWAS, xk)
+abline(0,1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```{r}
 c_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common.c.betas"
 cp_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common.c.p.betas"
@@ -485,5 +567,6 @@ true_file="output/PRS/4PopSplit/A1/C1/h2-0.3/p-0.50/genos-test_common.true.sscor
 tvec_file="output/Calculate_TGWAS/4PopSplit/A1/C1/Tvec.txt"
 pops_file="output/Simulate_Genotypes/4PopSplit/A1/genos.pop"
 ```
+
 
 

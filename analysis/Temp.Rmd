@@ -1,0 +1,46 @@
+---
+title: "Temp"
+author: "Jennifer Blanc"
+date: "3/6/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+# Read GWAS Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/K1/C1/genos-gwas_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/K1/C1/genos-gwas_common.pgen")
+Gmat <- ReadList(d1,seq(1,2000), meanimpute=F)
+G <- scale(Gmat, scale = F)
+
+
+# Read in Test Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/K1/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/K1/C1/genos-test_common.pgen")
+Xmat <- ReadList(d1,seq(1,2000), meanimpute=F)
+X <- scale(Xmat, scale = F)
+
+
+# Read in Test Vector 
+Tvec <- c(rep(0,100), rep(1,100))
+Tvec <- as.matrix(Tvec - mean(Tvec))
+L <- ncol(X)
+```
+
+```{r}
+TGWAS <- pinv(G %*% t(G)) %*% G %*% t(X) %*% Tvec
+plot(Tvec,TGWAS)
+```
+
+```{r}
+TGWAS <- G %*% t(X) %*% pinv(X %*% t(X)) %*% Tvec
+plot(Tvec,TGWAS)
+```
+
+
+

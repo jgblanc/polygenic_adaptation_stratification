@@ -2,9 +2,9 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = []
-for i in range(1,101):
-  REP.append("A"+str(i))
+REP = ["K1"]
+#for i in range(1,101):
+#  REP.append("A"+str(i))
 HERITABILITY = ["h2-0.3"]
 ENV=["env_-1.0","env_0.0","env_1.0"]
 TS=["p-0.54", "p-0.57", "p-0.60","p-0.63","p-0.66"]
@@ -83,8 +83,8 @@ rule simulate_genotypes_4popsplit:
 	       -b 200 \
 	       -c 200 \
 	       -d 200 \
-         -s1 4400 \
-          -s2 2200 \
+         -s1 22000 \
+          -s2 11000 \
           -L 10000"
 
 rule format_VCF:
