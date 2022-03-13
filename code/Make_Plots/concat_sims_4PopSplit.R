@@ -6,7 +6,7 @@ reps <- rep(NA, n)
 for (i in 1:n){reps[i] <- paste0("A", i)}
 print(reps)
 h2 <- "h2-0.0"
-envs <- c("env_0.0", "env_0.5")
+envs <- c("env_0.0")
 cases <- c("C1")
 ts <- c("p-0.50")
 dat <- expand.grid(reps, cases, h2, ts,  envs)
