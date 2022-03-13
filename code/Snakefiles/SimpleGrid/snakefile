@@ -29,7 +29,7 @@ def get_params(x):
   return out
 
 def get_seed(rep, h2, pheno, env):
-  rep = list(rep)[1]
+  rep = str(sum(list(map(int,list(rep)[1::]))))
   h2 = h2.split("-")[1]
   pheno_list = list(pheno)
   pheno_list = [ord(i) for i in pheno_list]

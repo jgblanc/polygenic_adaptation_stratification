@@ -37,7 +37,6 @@ Tvec <- c(rep(0,100), rep(1,100))
 Tvec <- as.matrix(Tvec - mean(Tvec))
 L <- ncol(X)
 
-X = G
 ```
 
 #### Compute TGWAS
