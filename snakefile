@@ -1,15 +1,15 @@
 CHR =[]
-for i in range(0, 20):
+for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = ["B1"]
-#for i in range(1,101):
-#  REP.append("A"+str(i))
-HERITABILITY = ["h2-0.0"]
-ENV=["env_0.0"]
-#TS=["p-0.54", "p-0.57", "p-0.60","p-0.63","p-0.66"]
-TS=["p-0.50"]
-SIZE=200
+REP = []
+for i in range(1,101):
+  REP.append("B"+str(i))
+HERITABILITY = ["h2-0.3"]
+ENV=["env_0.0", "env_1.0", "env_-1.0"]
+TS=["p-0.54", "p-0.57", "p-0.60","p-0.63","p-0.66"]
+#TS=["p-0.50"]
+SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
 
@@ -59,7 +59,8 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV),
+	expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/ts_magnitude.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS)
 
 # Simluate Genotypes
 
@@ -79,10 +80,10 @@ rule simulate_genotypes_4popsplit:
 	       --NB 10000 \
 	       --NC 10000 \
 	       --ND 10000 \
-  	     -a 200 \
-	       -b 200 \
-	       -c 200 \
-	       -d 200 \
+  	     -a 20000 \
+	       -b 2000 \
+	       -c 20000 \
+	       -d 2000 \
          -s1 22000 \
           -s2 0 \
           -L 100000"
