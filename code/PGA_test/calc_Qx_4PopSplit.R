@@ -129,6 +129,7 @@ lambda_T <- as.numeric(as.character(lambda_T[1,1]))
 
 # Load Test vector
 std.tvec <- fread(tvec_file)
+colnames(std.tvec) <- "Tvec"
 std.tvec <- std.tvec$Tvec
 n1 <- table(std.tvec)[1]
 n2 <- table(std.tvec)[2]
@@ -194,7 +195,7 @@ print(out)
 # Save output
 colnames(out) <- c("Qx", "P.Chi", "P.EN")
 rownames(out) <- c("c", "cp", "nc", "c-TGWAS", "cp-TGWAS", "nc-TGWAS", "c-ID", "cp-ID", "nc-ID", "True")
-fwrite(out, out_pre,row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(out, out_pre,row.names=T,quote=F,sep="\t", col.names = T)
 
 # Function to just output PGS
 main2 <- function(beta_file) {

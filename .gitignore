@@ -35,6 +35,7 @@ output/Simulate_Phenotypes/*/*/*/*.log
 output/Run_GWAS/*
 output/Calculate_Tm/*/*/*/p*
 output/Calculate_Tm/*/*/*/Tm*
+output/*/*/B*
 output/PRS/*/*/*/*.log
 output/PRS/*/*/*/*.betas
 output/PRS/*/*/*/*/*/*.betas

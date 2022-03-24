@@ -17,7 +17,7 @@ vals_file = args[2] # eigenvalues
 proj_file = args[3] # .sscore (project of all test eigenvectors into eigenvalues)
 tvec_file = args[4] # standardized test vector
 out_file = args[5] # Name for Tm file
-out_file_weight=args[6] # Name for wieghts file
+out_file_weight=args[6] # Name for weights file
 
 # Load test eigen vecs
 vecs <- fread(vecs_file)

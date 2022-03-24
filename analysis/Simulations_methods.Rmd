@@ -553,6 +553,18 @@ ggplot(df, aes(x = value, fill = Var2)) + geom_density(alpha=0.5) + theme_classi
 #ggsave("~/Desktop/pgs_sep.png", height = 5, width = 7)
 ```
 
+```{r,eval = FALSE, echo=FALSE}
+D <- rnorm(1000, 3, 1)
+C <- rnorm(1000, 0, 1)
+
+df <- cbind(C,D)
+df <- melt(df)
+mean <- df%>% group_by(Var2)%>%summarise(mean_val=mean(value))
+
+ggplot(df, aes(x = Var2, y = value, color = Var2)) + geom_jitter() + theme_classic(base_size = 16) + ylab("Polygenic Score") + xlab("Population") + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) + scale_color_manual(values = c("darkblue","forestgreen")) 
+ggsave("~/Desktop/pgs_sep.png", height = 6, width = 10)
+```
+
 
 ```{r,eval = FALSE, echo=FALSE}
 D <- rnorm(10000, 3, 1)

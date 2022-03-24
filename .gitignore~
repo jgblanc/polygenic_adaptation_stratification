@@ -40,6 +40,7 @@ output/PRS/*/*/*/*.betas
 output/PRS/*/*/*/*/*/*.betas
 output/PRS/*/*/*/*/*/*.log 
 output/Empirical_Null/*
+output/Calculate_TGWAS/*
 plink2
 logs/*
 .snakemake/*

@@ -12,11 +12,432 @@ library(tidyverse)
 library(MASS)
 library(matrixNormal)
 library(pracma)
+library(pgenlibr)
 ```
 
-## Simulate Data 
+
+### 5 Populations
+
+The tree has the toplogy: ((A, (B, C)), (D, E)))  
+
+GWAS panel: A, B, D  
+Test panel: C, E  
+
+Test Vector: C vs. E  
 
 ```{r}
+# Set sample sizes
+m <- 300
+n <- 200
+L  <- 100
+
+# Set effect sizes
+B <- rep(0.1, L)
+
+# Set covariance matrixes
+CC <- matrix(rep(0.5, (n^2 /4)), nrow = n/2, ncol = n/2)
+CE <- matrix(rep(0, (n^2 /4)), nrow = n/2, ncol = n/2)
+KXX <- rbind(cbind(CC,CE), cbind(CE,CC))
+diag(KXX) <- rep(1, n)
+
+AA <- matrix(rep(0.5, (m^2 /9)), nrow = m/3, ncol = m/3)
+AB <- matrix(rep(0.125, (m^2 /9)), nrow = m/3, ncol = m/3)
+AC <- matrix(rep(0, (m^2 /9)), nrow = m/3, ncol = m/3)
+KGG <- rbind(cbind(AA, AB,AC), cbind(AB, AA, AC), cbind(AC,AC, AA))
+diag(KGG) <- rep(1, m)
+
+AC <- matrix(rep(0.125, (m*n /6)), nrow = m/3, ncol = n/2)
+BC <- matrix(rep(0.25, (m*n /6)), nrow = m/3, ncol = n/2)
+AD <- matrix(rep(0, (m*n /6)), nrow = m/3, ncol = n/2)
+DE <-  matrix(rep(0.125, (m*n /6)), nrow = m/3, ncol = n/2)
+KGX <- rbind(cbind(AC, AD), cbind(BC, AD), cbind(AD,DE))
+KXG <- t(KGX)
+
+# Parameters for MVN 
+Sigma <- rbind(cbind(KGG, KGX), cbind(KXG, KXX))
+mu = rep(0, n + m)
+image(Sigma)
+```
+
+
+$$v_{old} = K_{GX} K_{XX}^{-1}\vec{T}$$
+$$v_{new} = K_{GG}^{-1} K_{GX}\vec{T}$$
+
+```{r}
+# Test vector 
+Tvec <- c(rep(-0.5, n/2), rep(0.5, n/2))
+#Tvec <- scale(runif(n), scale = F)
+
+# Compute v 
+v_new <- solve(KGG) %*% KGX %*% Tvec
+v_new <- v_new * (1/norm(v_new, "2"))
+v_old <- KGX %*% solve(KXX) %*% Tvec
+v_old <- v_old * (1/norm(v_old, "2"))
+v <- v_new
+plot(v_old, v_new)
+abline(0,1)
+```
+
+The two versions of the projected test vector are different but its not clear exactly how or the consequences of this difference.  
+
+
+**Selection Test**  
+
+Unconditioned version:  
+
+$$X \sim MN(0, K_{XX}, I)$$  
+$$\vec{T}^TX\hat{\vec{\beta}} \sim N(0, \vec{T}^T K_{XX}\vec{T}\hat{\vec{\beta}}^T\hat{\vec{\beta}})$$
+
+Get a p-value from a 2 tailed test. These p-values should be uniformly distributed under the null when we include v. Below we simulate the non-genetic effects where $e = \vec{v} + \vec{\eta}$ and $\vec{v}\vec{\eta} = 0$    
+
+```{r}
+run_sim_uncond_eta <- function(v, covar) {
+  
+  # Simulate GX
+  GX <- t(mvrnorm(n=L, mu = mu, Sigma = Sigma))
+  G <- GX[1:m, ]
+  G <- scale(G, scale = F)
+  X <- GX[(m+1):(m+n),]
+  X <- scale(X, scale = F)
+  
+  # Simulate phenotypes
+  eta <-  MASS::Null(v) %*% runif(299)
+  eta <- (eta)/norm(eta, "2")
+  e <- 20 * (v + eta)
+  #e <-  5 * c(rep(0,m/3), rep(1, m/3), rep(0,m/3))
+  y <- G %*% B + e 
+
+  # Do joint regression
+  if (covar == T) {
+    mod <- lm(y ~ G + v)
+    Bhat <- mod$coefficients[2:(L+1)]
+  } 
+  if (covar == F) {
+    mod <- lm(y ~ G )
+    Bhat <- mod$coefficients[2:(L+1)]
+  }
+  
+  # Compute test statistic
+  Q <- t(Tvec) %*% X %*% Bhat
+  
+  # Compute test statistic variance
+  varQ <- t(Tvec) %*% KXX %*% Tvec %*% t(Bhat) %*% Bhat
+  
+  # Calculate p-value
+  pval <- 2 *(1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ))) 
+
+  return(pval)
+}
+```
+
+Run with "new" v
+```{r}
+#nrun <- 100
+#runs <- rbind(rep(0, nrun), rep(0, nrun))
+#runs[1, ] <- replicate(nrun, run_sim_uncond_eta(v = v_new, covar = F))
+#runs[2, ] <- replicate(nrun, run_sim_uncond_eta(v = v_new, covar = T))
+#saveRDS(runs, "../data/proof/uncond_vnew_ortho")
+
+runs <- readRDS("../data/proof/uncond_vnew_ortho")
+par(mfrow = c(1,2))
+hist(runs[1,], breaks = 20, main = "Uncontrolled", xlab = "p-value")
+hist(runs[2,], breaks = 20, main = "Including v (GG')G'XT", xlab = "p-value")
+```
+
+Run with "old" v
+```{r}
+nrun <- 100
+runs <- rbind(rep(0, nrun), rep(0, nrun))
+runs[1, ] <- replicate(nrun, run_sim_uncond_eta(v = v_old, covar = F))
+runs[2, ] <- replicate(nrun, run_sim_uncond_eta(v = v_old, covar = T))
+saveRDS(runs, "../data/proof/uncond_vold_ortho")
+
+runs <- readRDS("../data/proof/uncond_vold_ortho")
+par(mfrow = c(1,2))
+hist(runs[1,], breaks = 20, main = "Uncontrolled", xlab = "p-value")
+hist(runs[2,], breaks = 20, main = "Including v G'X(XX')T", xlab = "p-value")
+```
+
+Now we simulate a confounder such that $e = 0$ for A and D and $e = 5$ for B. 
+
+```{r}
+run_sim_uncond_B <- function(v, covar) {
+  
+  # Simulate GX
+  GX <- t(mvrnorm(n=L, mu = mu, Sigma = Sigma))
+  G <- GX[1:m, ]
+  G <- scale(G, scale = F)
+  X <- GX[(m+1):(m+n),]
+  X <- scale(X, scale = F)
+  
+  # Simulate phenotypes
+  e <-  5 * c(rep(0,m/3), rep(1, m/3), rep(0,m/3))
+  y <- G %*% B + e 
+
+  # Do joint regression
+  if (covar == T) {
+    mod <- lm(y ~ G + v)
+    Bhat <- mod$coefficients[2:(L+1)]
+  } 
+  if (covar == F) {
+    mod <- lm(y ~ G )
+    Bhat <- mod$coefficients[2:(L+1)]
+  }
+  
+  # Compute test statistic
+  Q <- t(Tvec) %*% X %*% Bhat
+  
+  # Compute test statistic variance
+  varQ <- t(Tvec) %*% KXX %*% Tvec %*% t(Bhat) %*% Bhat
+  
+  # Calculate p-value
+  pval <- 2 *(1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ))) 
+
+  return(pval)
+}
+```
+
+Run with "new" v
+```{r}
+nrun <- 100
+runs <- rbind(rep(0, nrun), rep(0, nrun))
+runs[1, ] <- replicate(nrun, run_sim_uncond_B(v = v_new, covar = F))
+runs[2, ] <- replicate(nrun, run_sim_uncond_B(v = v_new, covar = T))
+saveRDS(runs, "../data/proof/uncond_vnew_B")
+
+runs <- readRDS("../data/proof/uncond_vnew_B")
+par(mfrow = c(1,2))
+hist(runs[1,], breaks = 20, main = "Uncontrolled", xlab = "p-value")
+hist(runs[2,], breaks = 20, main = "Including v (GG')G'XT", xlab = "p-value")
+```
+
+Run with "old" v
+```{r}
+nrun <- 100
+runs <- rbind(rep(0, nrun), rep(0, nrun))
+runs[1, ] <- replicate(nrun, run_sim_uncond_B(v = v_old, covar = F))
+runs[2, ] <- replicate(nrun, run_sim_uncond_B(v = v_old, covar = T))
+saveRDS(runs, "../data/proof/uncond_vold_B")
+
+runs <- readRDS("../data/proof/uncond_vold_B")
+par(mfrow = c(1,2))
+hist(runs[1,], breaks = 20, main = "Uncontrolled", xlab = "p-value")
+hist(runs[2,], breaks = 20, main = "Including v GX'(XX')T", xlab = "p-value")
+```
+
+Conditioned version:  
+
+$$X | G \sim MN(K_{XG}K_{GG}^{-1}G, K_{XX} - K_{XG}K_{GG}^{-1}K_{GX}, I)$$
+$$\vec{T}^TE[X|G]\hat{\vec{\beta}} \sim N(\vec{T}^TK_{XG}K_{GG}^{-1}G\hat{\vec{\beta}}, \vec{T}^T(K_{XX} - K_{XG}K_{GG}^{-1}K_{GX})\vec{T}\hat{\vec{\beta}}^T\hat{\vec{\beta}})$$
+
+```{r}
+# Simulate single G
+G <- t(mvrnorm(n=L, mu = rep(0, m), Sigma = KGG))
+G <- scale(G, scale = F)
+
+# Conditional normal parameters
+Sigma_bar <- KXX - KXG %*% pinv(KGG) %*% KGX
+mu_bar <- KXG %*% pinv(KGG) %*% G
+
+run_sim_cond_eta <- function(v, covar) {
+  
+  X <- t(mvrnorm(n=L, mu = rep(0, n), Sigma = Sigma_bar))
+  X <- X + mu_bar
+  X <- scale(X, scale = F)
+  
+  # Simulate phenotypes
+  eta <-  MASS::Null(v) %*% runif(299)
+  eta <- (eta)/norm(eta, "2")
+  e <- 20 * (v + eta)
+  #e <-  5 * c(rep(0,m/3), rep(1, m/3), rep(0,m/3))
+  y <- G %*% B + 40*v 
+
+  # Do joint regression
+  if (covar == T) {
+    mod <- lm(y ~ G + v)
+    Bhat <- mod$coefficients[2:(L+1)]
+  } 
+  if (covar == F) {
+    mod <- lm(y ~ G )
+    Bhat <- mod$coefficients[2:(L+1)]
+  }
+  
+  # Compute test statistic
+  Q <- t(Tvec) %*% X %*% Bhat
+  
+  # Compute test statistic variance
+  varQ <- t(Tvec) %*% Sigma_bar %*% Tvec %*% t(Bhat) %*% Bhat
+  #varQ <- t(Tvec) %*% KXX %*% Tvec %*% t(Bhat) %*% Bhat
+  
+  # Calculate p-value
+  muQ <- t(Tvec) %*% mu_bar %*% Bhat
+  pval <- 2 *(1 - pnorm(abs(Q - muQ), mean = 0, sd = sqrt(varQ))) 
+
+  return(pval)
+}
+```
+
+
+
+
+
+Run with "new" v
+```{r}
+nrun <- 100
+runs <- rbind(rep(0, nrun), rep(0, nrun))
+runs[1, ] <- replicate(nrun, run_sim_cond_eta(v = v_new, covar = F))
+hist(runs[1,])
+runs[2, ] <- replicate(nrun, run_sim_cond_eta(v = v_new, covar = T))
+saveRDS(runs, "../data/proof/cond_vnew_ortho")
+
+runs <- readRDS("../data/proof/cond_vnew_ortho")
+par(mfrow = c(1,2))
+hist(runs[1,], breaks = 20, main = "Uncontrolled", xlab = "p-value")
+hist(runs[2,], breaks = 20, main = "Including v (GG')G'XT", xlab = "p-value")
+```
+
+
+Run with "old" v
+```{r}
+nrun <- 100
+runs <- rbind(rep(0, nrun), rep(0, nrun))
+runs[1, ] <- replicate(nrun, run_sim_cond_eta(v = v_old, covar = F))
+runs[2, ] <- replicate(nrun, run_sim_cond_eta(v = v_old, covar = T))
+saveRDS(runs, "../data/proof/cond_vold_ortho")
+
+runs <- readRDS("../data/proof/cond_vold_ortho")
+par(mfrow = c(1,2))
+hist(runs[1,], breaks = 20, main = "Uncontrolled", xlab = "p-value")
+hist(runs[2,], breaks = 20, main = "Including v GX'(XX')T", xlab = "p-value")
+```
+
+
+
+## Esimating v from emprical matrix
+
+```{r}
+# Set sample sizes
+m <- 300
+n <- 300
+L  <- 10000
+
+# Set effect sizes
+B <- rep(0.1, L)
+
+# Set covariance matrixes
+CC <- matrix(rep(0.05, (n^2 /4)), nrow = n/2, ncol = n/2)
+CE <- matrix(rep(0, (n^2 /4)), nrow = n/2, ncol = n/2)
+KXX <- rbind(cbind(CC,CE), cbind(CE,CC))
+diag(KXX) <- rep(1, n)
+
+AA <- matrix(rep(0.05, (m^2 /9)), nrow = m/3, ncol = m/3)
+AB <- matrix(rep(0.0125, (m^2 /9)), nrow = m/3, ncol = m/3)
+AC <- matrix(rep(0, (m^2 /9)), nrow = m/3, ncol = m/3)
+KGG <- rbind(cbind(AA, AB,AC), cbind(AB, AA, AC), cbind(AC,AC, AA))
+diag(KGG) <- rep(1, m)
+
+AC <- matrix(rep(0.0125, (m*n /6)), nrow = m/3, ncol = n/2)
+BC <- matrix(rep(0.025, (m*n /6)), nrow = m/3, ncol = n/2)
+AD <- matrix(rep(0, (m*n /6)), nrow = m/3, ncol = n/2)
+DE <-  matrix(rep(0.0125, (m*n /6)), nrow = m/3, ncol = n/2)
+KGX <- rbind(cbind(AC, AD), cbind(BC, AD), cbind(AD,DE))
+KXG <- t(KGX)
+
+# Parameters for MVN 
+Sigma <- rbind(cbind(KGG, KGX), cbind(KXG, KXX))
+mu = rep(0, n + m)
+```
+
+```{r}
+# Test vector 
+Tvec <- c(rep(-0.5, n/2), rep(0.5, n/2))
+#Tvec <- scale(runif(n), scale = F)
+
+# Compute v 
+v_new <- solve(KGG) %*% KGX %*% Tvec
+v_new <- v_new * (1/sqrt(sum(v_new^2)))
+v_old <- KGX %*% solve(KXX) %*% Tvec
+v_old <- v_old * (1/norm(v_old, "2"))
+#plot(v_old, v_new)
+#abline(0,1)
+plot(v_new)
+```
+
+```{r}
+# Test vector 
+#Tvec <- c(rep(-0.5, n/2), rep(0.5, n/2))
+Tvec <- scale(runif(n), scale = F)
+
+# Compute v 
+v_new_r <- solve(KGG) %*% KGX %*% Tvec
+v_new_r <- v_new_r * (1/sqrt(sum(v_new_r^2)))
+#v_old <- KGX %*% solve(KXX) %*% Tvec
+#v_old <- v_old * (1/norm(v_old, "2"))
+#plot(v_old, v_new)
+#abline(0,1)
+plot(v_new_r)
+```
+
+```{r}
+plot(v_new, v_new_r)
+abline(0,)
+```
+
+
+
+```{r}
+GX <- t(mvrnorm(n=L, mu = mu, Sigma = Sigma))
+G <- GX[1:m, ]
+G <- scale(G, scale = F)
+X <- GX[(m+1):(m+n),]
+X <- scale(X, scale = F)
+
+
+
+#TGWAS_old <- G %*% t(X) %*% pinv(X %*% t(X)) %*% Tvec
+#plot(v_old, TGWAS_old)
+#abline(0,1)
+
+myG <- eigen(G %*% t(G))
+TGWAS_new <- myG$vectors[,1:(4)] %*% diag(1/myG$values[1:(4)]) %*% t(myG$vectors[,1:(4)])%*% G %*% t(X) %*% Tvec
+TGWAS_new <- pinv(G %*% t(G)) %*% G %*% t(X) %*% Tvec
+plot(v_new, TGWAS_new)
+
+```
+
+
+Switch G and X (now X had 3 pops and G has 2)
+```{r}
+GX <- t(mvrnorm(n=L, mu = mu, Sigma = Sigma))
+X <- GX[1:m, ]
+X <- scale(X, scale = F)
+G <- GX[(m+1):(m+n),]
+G <- scale(G, scale = F)
+
+
+TGWAS_old <- G %*% t(X) %*% pinv(X %*% t(X)) %*% Tvec
+plot(v_old, TGWAS_old)
+
+TGWAS_new <- pinv(G %*% t(G)) %*% G %*% t(X) %*% Tvec
+plot(v_new, TGWAS_new)
+```
+
+```{r}
+x <- G %*% t(X) %*% Tvec
+r <- rep(0, m)
+for (i in 1:m) {
+  mod <- lm(x ~ myG$vectors[,i])
+  r[i] <- coefficients(mod)[2]
+}
+
+TGWAS_new <- k[,1:(m-1)] %*% diag(1/myG$values[1:m-1]) %*% t(k[,1:m-1])  %*% G %*% t(X) %*% Tvec
+```
+
+
+
+```{r}
+# 4 Pop Code
+
 # Set sample sizes
 m <- 200
 n <- 100
@@ -40,335 +461,16 @@ diag(KXX) <- 1
 Sigma <- rbind(cbind(KGG, KGX), cbind(KXG, KXX))
 mu = rep(0, n + m)
 #heatmap(Sigma, Rowv = NA, Colv = NA)
-image(Sigma)
+#image(Sigma)
+
+Tvec <- c(rep(0,n/2), rep(1,n/2))
+Tvec <- as.matrix(Tvec - mean(Tvec))
+v <- KGX %*% Tvec
+v <- (v -  mean(v)) 
+v <- v * (1/norm(v, "2"))
+eta <- MASS::Null(v)[,1]
+t(v) %*% solve(KGG) %*% eta
 ```
-
-```{r}
-GX <- t(mvrnorm(n=L, mu = mu, Sigma = Sigma))
-
-heatmap(GX %*% t(GX), Rowv = NA, Colv = NA)
-G <- GX[1:m, ]
-G <- scale(G, scale = F)
-X <- GX[(m+1):(m+n),]
-X <- scale(X, scale = F)
-```
-
-## Compute coeffecient both ways 
-
-```{r}
-Tvec <- c(rep(-0.5, n/2), rep(0.5, n/2))
-
-v_new <- solve(KGG) %*% KGX %*% Tvec
-v_new <- (1/ norm(v_new, "2")) * v_new
-
-v_old <- KGX %*% solve(KXX) %*% Tvec
-v_old <- (1/ norm(v_old, "2")) * v_old
-
-all.equal(v_new, v_old)
-plot(v_new, v_old)
-
-v <- v_new
-```
-
-```{r}
-TGWAS_new <- pinv(G %*% t(G)) %*% G %*% t(X) %*% Tvec 
-TGWAS_new <- (1/ norm(TGWAS_new, "2")) * TGWAS_new
-
-plot(TGWAS_new, v)
-
-TGWAS_old <- G %*% t(X) %*% pinv(X %*% t(X)) %*% Tvec
-TGWAS_old <- (1/ norm(TGWAS_old, "2")) * TGWAS_old
-
-plot(TGWAS_old, v)
-
-plot(TGWAS_new, TGWAS_old)
-
-
-
-myTest <- eigen(X %*% t(X) * (1/L))
-Tm <- G %*% t(X) %*% myTest$vectors[,1:100] %*% diag(1/myTest$values[1:100]) %*% t(myTest$vectors[,1:100]) %*% Tvec
-for (i in 2:100) {
-  Tm <- G %*% t(X) %*% myTest$vectors[,1:i] %*% diag(1/myTest$values[1:i]) %*% t(myTest$vectors[,1:i]) %*% Tvec
-  plot(Tm)
-}
-
-
-myGWAS <- eigen(G %*% t(G) * (1/L))
-for (i in 2:200) {
-  Tm <- myGWAS$vectors[,1:i] %*% diag(1/myGWAS$values[1:i]) %*% t(myGWAS$vectors[,1:i]) %*% G %*% t(X)  %*% Tvec
-  plot(Tm)
-}
-```
-
-
-
-
-## Generate phenotypes
-
-```{r}
-Beta <- runif(L)
-eta <-  MASS::Null(v)[,sample(1, seq(1,m-1))]
-e <- v + eta
-y <- G %*% Beta + e
-```
-
-## Do joint regression 
-
-```{r}
-P <- diag(rep(1, m)) - (v %*% t(v))
-Bhat <- solve(t(G) %*% P %*% G) %*% t(G) %*% P %*% y
-```
-
-## Compute test statistic
-
-```{r}
-Q <- t(Tvec) %*% X %*% Bhat
-Q_true <-  t(Tvec) %*% X %*% Beta
-```
-
-
-## Simulation loop 
-
-```{r}
-library(MASS)
-library(pracma)
-
-# Set sample sizes
-m <- 200
-n <- 100
-L  <- 101
-
-# Set covariance matrixes
-AA <- matrix(rep(0.5, (m^2 /4)), nrow = m/2, ncol = m/2)
-AB <- matrix(rep(0, (m^2 /4)), nrow = m/2, ncol = m/2)
-AC <- matrix(rep(0.25, (m*n /4)), nrow = m/2, ncol = n/2)
-AD <- matrix(rep(0, (m*n /4)), nrow = m/2, ncol = n/2)
-CC <- matrix(rep(0.5, (n^2 /4)), nrow = n/2, ncol = n/2)
-CD <- matrix(rep(0, (n^2 /4)), nrow = n/2, ncol = n/2)
-
-KGG <- rbind(cbind(AA, AB), cbind(AB, AA))
-diag(KGG) <- 1
-KGX <- rbind(cbind(AC, AD), cbind(AD, AC))
-KXG <- t(KGX)
-KXX <- rbind(cbind(CC, CD), cbind(CD, CC))
-diag(KXX) <- 1
-
-# Constant parameters
-B <- rep(0.1, L)
-Tvec <- c(rep(-0.5, n/2), rep(0.5, n/2))
-
-# Compute v 
-v <- solve(KGG) %*% KGX %*% Tvec
-
-# Parameters for MVN
-Sigma <- rbind(cbind(KGG, KGX), cbind(KXG, KXX))
-mu = rep(0, n + m)
-
-# Simulate single G
-G <- t(mvrnorm(n=L, mu = rep(0, m), Sigma = KGG))
-G <- scale(G, scale = F)
-
-
-# Conditional normal parameters
-Sigma_bar <- KXX - KXG %*% pinv(KGG) %*% KGX
-mu_bar <- KXG %*% pinv(KGG) %*% G ## Check this 
-
-
-# Simulate phenotypes
-eta <-  MASS::Null(v)[,sample(1, seq(1,m-1))]
-e <- v + eta
-y <- G %*% B + e
-
-# Do joint regression
-P <- diag(rep(1, m)) - (v %*% t(v))
-Bhat <- solve(t(G) %*% P %*% G) %*% t(G) %*% P %*% y  
-
-run_sim <- function() {
-  
-  # X | G - repeat for every loci 
-  X <- matrix(NA, ncol = L, nrow = n)
-  for (i in 1:L) {
-    X[,i] <- mvrnorm(n=1, mu = mu_bar[,i], Sigma = Sigma_bar)
-  }
-  X <- scale(X, scale = F)
-  
-  # Compute test statistic
-  Q <- t(Tvec) %*% X %*% Bhat
-
-  return(Q)
-}
-
-runs <- rep(NA, 1000)
-for (i in 1:1000) {
-  print(i)
-  runs[i] <- run_sim()
-}
-
-hist(runs)
-mean(runs)
-```
-
-
-
-```{r}
-### Change pops 
-
-# Set sample sizes
-m <- 300
-n <- 200
-L  <- 101
-
-# Set covariance matrixes
-CC <- matrix(rep(0.5, (n^2 /4)), nrow = n/2, ncol = n/2)
-CE <- matrix(rep(0, (n^2 /4)), nrow = n/2, ncol = n/2)
-KXX <- rbind(cbind(CC,CE), cbind(CE,CC))
-diag(KXX) <- rep(1, n)
-
-AA <- matrix(rep(0.5, (m^2 /9)), nrow = m/3, ncol = m/3)
-AB <- matrix(rep(0.125, (m^2 /9)), nrow = m/3, ncol = m/3)
-AC <- matrix(rep(0, (m^2 /9)), nrow = m/3, ncol = m/3)
-KGG <- rbind(cbind(AA, AB,AC), cbind(AB, AA, AC), cbind(AC,AC, AA))
-diag(KGG) <- rep(1, m)
-
-AC <- matrix(rep(0.125, (m*n /6)), nrow = m/3, ncol = n/2)
-BC <- matrix(rep(0.25, (m*n /6)), nrow = m/3, ncol = n/2)
-AD <- matrix(rep(0, (m*n /6)), nrow = m/3, ncol = n/2)
-KGX <- rbind(cbind(AC, AD), cbind(BC, AD), cbind(AD,AD))
-KXG <- t(KGX)
-
-# Constant parameters
-B <- rep(0.1, L)
-Tvec <- c(rep(-0.5, n/2), rep(0.5, n/2))
-
-# Compute v 
-v_new <- solve(KGG) %*% KGX %*% Tvec
-v_old <- KGX %*% solve(KXX) %*% Tvec
-plot(v_old, v_new)
-abline(0,1)
-
-# Parameters for MVN
-Sigma <- rbind(cbind(KGG, KGX), cbind(KXG, KXX))
-mu = rep(0, n + m)
-
-# Simulate single G
-G <- t(mvrnorm(n=L, mu = rep(0, m), Sigma = KGG))
-G <- scale(G, scale = F)
-
-
-# Conditional normal parameters
-Sigma_bar <- KXX - KXG %*% pinv(KGG) %*% KGX
-mu_bar <- KXG %*% pinv(KGG) %*% G ## Check this 
-
-
-# Simulate phenotypes
-eta <-  MASS::Null(v)[,sample(1, seq(1,m-1))]
-e <- v + eta
-y <- G %*% B + e
-
-# Do joint regression
-P <- diag(rep(1, m)) - (v %*% t(v))
-Bhat <- solve(t(G) %*% P %*% G) %*% t(G) %*% P %*% y  
-
-run_sim <- function() {
-  
-  # X | G
-  #X <- t(mvrnorm(n=L, mu = mu_bar, Sigma = Sigma_bar))
-  X <- matrix(NA, ncol = L, nrow = n)
-  for (i in 1:L) {
-    X[,i] <- mvrnorm(n=1, mu = mu_bar[,i], Sigma = Sigma_bar)
-  }
-  X <- scale(X, scale = F)
-  
-  # Compute test statistic
-  Q <- t(Tvec) %*% X %*% Bhat
-
-  return(Q)
-}
-
-runs <- rep(NA, 100)
-for (i in 1:100) {
-  print(i)
-  runs[i] <- run_sim()
-}
-
-hist(runs)
-mean(runs)
-```
-
-
-
-
-
-
-
-```{r}
-# Set sample sizes
-m <- 200
-n <- 100
-L  <- 101
-
-# Set covariance matrixes
-AA <- matrix(rep(0.5, (m^2 /4)), nrow = m/2, ncol = m/2)
-AB <- matrix(rep(0, (m^2 /4)), nrow = m/2, ncol = m/2)
-AC <- matrix(rep(0.25, (m*n /4)), nrow = m/2, ncol = n/2)
-AD <- matrix(rep(0, (m*n /4)), nrow = m/2, ncol = n/2)
-CC <- matrix(rep(0.5, (n^2 /4)), nrow = n/2, ncol = n/2)
-CD <- matrix(rep(0, (n^2 /4)), nrow = n/2, ncol = n/2)
-
-KGG <- rbind(cbind(AA, AB), cbind(AB, AA))
-diag(KGG) <- 1
-KGX <- rbind(cbind(AC, AD), cbind(AD, AC))
-KXG <- t(KGX)
-KXX <- rbind(cbind(CC, CD), cbind(CD, CC))
-diag(KXX) <- 1
-
-# Constant parameters
-B <- rep(0.1, L)
-Tvec <- c(rep(-0.5, n/2), rep(0.5, n/2))
-
-# Compute v 
-v <- solve(KGG) %*% KGX %*% Tvec
-
-# Parameters for MVN
-Sigma <- rbind(cbind(KGG, KGX), cbind(KXG, KXX))
-mu = rep(0, n + m)  
-
-run_sim <- function() {
-  
-  # Simulate GX
-  GX <- t(mvrnorm(n=L, mu = mu, Sigma = Sigma))
-  G <- GX[1:m, ]
-  G <- scale(G, scale = F)
-  X <- GX[(m+1):(m+n),]
-  X <- scale(X, scale = F)
-  
-  # Simulate phenotypes
-  eta <-  MASS::Null(v)[,1]
-  e <- v + eta
-  y <- G %*% B + e
-
-  # Do joint regression
-  P <- diag(rep(1, m)) - (v %*% t(v))
-  Bhat <- solve(t(G) %*% P %*% G) %*% t(G) %*% P %*% y  
-  
-  # Compute test statistic
-  Q <- t(Tvec) %*% X %*% B
-
-  return(Q)
-}
-
-runs <- rep(NA, 1000)
-for (i in 1:1000) {
-  print(i)
-  runs[i] <- run_sim()
-}
-
-hist(runs)
-mean(runs)
-```
-
-
-
 
 
 ```{r}
@@ -398,11 +500,23 @@ myTest <- eigen(X %*% t(X) * (1/L))
 Tm = G %*% t(X) %*% pinv(X %*% t(X)) %*% Tvec
 plot(Tm)
 
-Tm_eigen = G %*% t(X) %*% myTest$vectors[,1] %*% sqrt(1/myTest$values) %*% myTest$vectors[,1]
-plot(Tm_eigen, Tm)
+Tm_eigen = (1/L) * G %*% t(X) %*% myTest$vectors%*% diag(sqrt(1/myTest$values)) %*% t(myTest$vectors) %*% Tvec
+plot(Tm_eigen)
+
+Tm_new <- pinv(G %*% t(G)) %*% G %*% t(X) %*% Tvec
+plot(Tm_new)
+
+myGWAS <- eigen(G %*% t(G) * (1/L))
+Tm_new_eigen <- (1/L) * myGWAS$vectors %*% diag(sqrt(1/myGWAS$values)) %*% t(myGWAS$vectors) %*% G %*% t(X) %*% Tvec
+plot(Tm_new_eigen)
 ```
 
 
+```{r}
+library(data.table)
+t <- fread("~/TGWAS.txt")
+plot(t$V1)
+```
 
 
 

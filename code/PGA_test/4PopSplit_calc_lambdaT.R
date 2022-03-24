@@ -24,6 +24,7 @@ vecs <- apply(vecs, 2, as.numeric)
 
 # Load test vector
 std.tvec <- fread(tvec_file)
+colnames(std.tvec) <- "Tvec"
 std.tvec <- std.tvec$Tvec
 
 n1 <- table(std.tvec)[1]
