@@ -13,12 +13,13 @@ dat <- expand.grid(reps, cases, h2, ts,  envs)
 colnames(dat) <- c("rep", "case", "h2", "ts", "envs")
 
 agg_all_data <- function(rep, dir_path, case, h2, ts, envs) {
-  
-  Qx <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/", envs, "/",  "Qx.txt"))
-  Qx$type <- c("c", "c.p", "nc", "c-Tm", "c.p-Tm", "nc-Tm", "c-ID", "c.p-ID", "nc-ID", "True")
+
+  #output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/ts_magnitude.txt  
+  Qx <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/",  "ts_magnitude.txt"))
+  #Qx$type <- c("c", "c.p", "nc", "c-Tm", "c.p-Tm", "nc-Tm", "c-ID", "c.p-ID", "nc-ID", "True")
   
   return(Qx)
 }
-df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/4PopSplit/' )
+df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Simulate_Phenotypes/4PopSplit/' )
 
 fwrite(df, "4PopSplit_h23_B.txt", row.names=F,quote=F,sep="\t", col.names = T)
