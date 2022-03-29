@@ -1,7 +1,7 @@
 CHR =[]
-for i in range(0, 200):
+for i in range(0, 20):
   CHR.append(str(i))
-CONFIG=["C1"]
+CONFIG=["C1", "C2"]
 MODEL=["4PopSplit"]
 REP = []
 for i in range(1,101):
@@ -575,7 +575,7 @@ rule Calc_Qx:
         num=NUM_RESAMPLE
     shell:
       """
-          Rscript code/PGA_test/calc_Qx_4PopSplit.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx} {output.pgs} 
+          Rscript code/PGA_test/calc_Qx_4PopSplit.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Va} {input.Va_Tm} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx} {output.pgs}
 	      """
 
 # Remove non-end files

@@ -195,7 +195,7 @@ print(out)
 # Save output
 colnames(out) <- c("Qx", "P.Chi", "P.EN")
 rownames(out) <- c("c", "cp", "nc", "c-TGWAS", "cp-TGWAS", "nc-TGWAS", "c-ID", "cp-ID", "nc-ID", "True")
-fwrite(out, out_pre,row.names=T,quote=F,sep="\t", col.names = T)
+fwrite(out, out_pre,row.names=F,quote=F,sep="\t", col.names = T)
 
 # Function to just output PGS
 main2 <- function(beta_file) {

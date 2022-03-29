@@ -37,6 +37,12 @@ nc <- df %>% filter(type == "nc-ID") %>% filter(case == "C1") %>% group_by(envs,
 ```
 
 
+```{r}
+df <- fread("../code/Make_Plots/4PopSplit_h23_B.txt.gz")
+
+nc <- df %>% filter(type == "True") %>% filter(case == "C1" & envs=="env_0.0") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
+```
+
 
 ## Simple Grid 
 

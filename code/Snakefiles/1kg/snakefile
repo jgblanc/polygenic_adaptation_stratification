@@ -1,0 +1,148 @@
+H2 = ["h2-0.3"]
+TS=["p-1.0"]
+GWAS_SIZE = 403
+
+def get_params(x):
+  out = x.split("-")[1]
+  return out
+
+rule all:
+    input:
+        expand("data/1kg/phenos/{h2}/{ts}/genos-gwas.phenos.txt", h2=H2, ts=TS)
+
+# Process Genotypes
+
+rule convert_to_plink2:
+  input:
+    "data/1kg/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR.bed",
+    "data/1kg/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR.bim",
+    "data/1kg/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR.fam"
+  output:
+    "data/1kg/plink2_files/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR.pgen",
+    "data/1kg/plink2_files/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR.psam",
+    "data/1kg/plink2_files/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR.pvar"
+  shell:
+    """
+    plink2 --bfile data/1kg/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR \
+    --maf 0.05 \
+    --make-pgen \
+    --set-all-var-ids @:# \
+    --rm-dup exclude-all\
+    --out data/1kg/plink2_files/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR
+    """
+
+rule split_into_test_gwas:
+  input:
+    pop="data/1kg/20130606_sample_info.txt",
+    fam="data/1kg/plink2_files/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR.psam"
+  output:
+    gwas="data/1kg/plink2_files/ids.gwas",
+    test="data/1kg/plink2_files/ids.test"
+  shell:
+    """
+    Rscript code/1kg/split_gwas-test.R {input.pop} {input.fam} {output.gwas} {output.test}
+    """
+
+rule split_into_plink_files:
+    input:
+        gwas="data/1kg/plink2_files/ids.gwas",
+	      test="data/1kg/plink2_files/ids.test",
+	      psam="data/1kg/plink2_files/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR.psam"
+    output:
+        "data/1kg/plink2_files/genos-gwas.psam",
+        "data/1kg/plink2_files/genos-test.psam"
+    shell:
+        """
+	      plink2 \
+	      --keep {input.gwas} \
+		    --make-pgen \
+			  --out data/1kg/plink2_files/genos-gwas \
+				--pfile data/1kg/plink2_files/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR
+
+        plink2 \
+        --keep {input.test} \
+		    --make-pgen \
+			  --out data/1kg/plink2_files/genos-test \
+				--pfile data/1kg/plink2_files/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.EUR
+	     """
+
+rule get_approx_indep_sites:
+    input:
+        "data/1kg/plink2_files/genos-gwas.psam",
+    output:
+        "data/1kg/plink2_files/gwas_indep_sites.prune.in",
+        "data/1kg/plink2_files/gwas_indep_sites.prune.out",
+        "data/1kg/plink2_files/gwas_indep_sites.afreq"
+    shell:
+        """
+	      plink2 \
+	      --pfile data/1kg/plink2_files/genos-gwas \
+	      --indep-pairwise 50 10 0.05 \
+	      --out data/1kg/plink2_files/gwas_indep_sites
+
+	      plink2 \
+	      --pfile data/1kg/plink2_files/genos-gwas \
+	      --extract data/1kg/plink2_files/gwas_indep_sites.prune.in \
+	      --freq \
+	      --out data/1kg/plink2_files/gwas_indep_sites
+	     """
+
+# Simluate Phenotypes
+
+rule draw_effect_sizes:
+    input:
+        freq="data/1kg/plink2_files/gwas_indep_sites.afreq",
+        pops="data/1kg/20130606_sample_info.txt"
+    output:
+        "data/1kg/phenos/{h2}/{ts}/genos-gwas.effects.txt"
+    params:
+        her = lambda wildcards: get_params(wildcards.h2),
+        prob = lambda wildcards: get_params(wildcards.ts),
+    shell:
+        "Rscript code/1kg/draw_effect_sizes.R {input.freq} {output} {params.her} 0.4 data/1kg/plink2_files/genos-test {input.pops} {params.prob}"
+
+
+rule generate_genetic_values:
+    input:
+        "data/1kg/plink2_files/genos-gwas.psam",
+        "data/1kg/phenos/{h2}/{ts}/genos-gwas.effects.txt"
+    output:
+        "data/1kg/phenos/{h2}/{ts}/genos-gwas.gvalue.sscore"
+    shell:
+        """
+        plink2 \
+	      --pfile data/1kg/plink2_files/genos-gwas \
+	      --out data/1kg/phenos/{wildcards.h2}/{wildcards.ts}/genos-gwas.gvalue \
+		    --score data/1kg/phenos/{wildcards.h2}/{wildcards.ts}/genos-gwas.effects.txt cols=dosagesum,scoresums
+		    """
+
+rule gwas_pca:
+    input:
+        "data/1kg/plink2_files/genos-gwas.psam"
+    output:
+        "data/1kg/plink2_files/genos-gwas.eigenvec",
+        "data/1kg/plink2_files/genos-gwas.eigenval"
+    params:
+        ncol = int(GWAS_SIZE) - 1
+    shell:
+        """
+        plink2 \
+	      --pfile data/1kg/plink2_files/genos-gwas \
+	      --out data/1kg/plink2_files/genos-gwas \
+		    --pca {params.ncol}
+		    """
+
+rule simulate_phenotype:
+    input:
+        gvalues="data/1kg/phenos/{h2}/{ts}/genos-gwas.gvalue.sscore",
+        pops="data/1kg/plink2_files/ids.gwas",
+        evec="data/1kg/plink2_files/genos-gwas.eigenvec",
+        eval="data/1kg/plink2_files/genos-gwas.eigenval"
+    output:
+        "data/1kg/phenos/{h2}/{ts}/genos-gwas.phenos.txt"
+    params:
+        her = lambda wildcards: get_params(wildcards.h2)
+    shell:
+        "Rscript code/1kg/simulate_phenotypes.R {input.gvalues} {input.pops} {output} {params.her} {input.evec} {input.eval}"
+
+
