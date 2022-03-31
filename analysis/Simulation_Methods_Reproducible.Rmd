@@ -21,27 +21,53 @@ Here I will reccord the details for the simulations presented in the main text a
 
 Generate diplois individuals according to the demographic model below 
 
-* T2 = 2200  
-* T1 (deeper split) = 4400 
+* T2 = 1100  
+* T1 (deeper split) = 22000 
 * Ne (ancestral = A = B = C = D)  = 10000
 * sample size = 10000 diploids per population  
-* chromosome length = 100000  
+* chromosome length = 100000    
 * 200 chromosomes  
 * $\mu$ = 1e-08  
 * $\rho$ = 1e-08  
 
-```{r}
+```{r,eval = TRUE, echo=FALSE, warning=FALSE}
+plot_data <- function(data, color_name) {
+  
+  pl <- ggplot(data = data, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+   xlab(TeX("$\\Delta_{AB}$")) + ylab("False Postive Rate") + theme_classic(base_size = 12) + scale_color_manual(values = c(color_name)) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 12),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.005)
+  
+  return(pl)
+}
+```
+
+```{r,eval = TRUE, echo=FALSE, warning=FALSE}
 df <- fread("../code/Make_Plots/4PopSplit_h20_A.txt.gz")
 
-nc <- df %>% filter(type == "nc-ID") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
+# C1 - no correction
+nc <- df %>% filter(type == "nc") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
+nc$diff <- as.numeric(nc$diff)
+pl1 <- plot_data(nc, "goldenrod2")
+
+# C1 - correction 
+nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl2 <- plot_data(nc, "navy")
+
+# C2 - No correction 
+nc <- df %>% filter(type == "nc") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl3 <- plot_data(nc, "goldenrod2")
+
+# C2 - correction 
+nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl4 <- plot_data(nc, "navy")
+
+ggarrange(pl1, pl2, pl3, pl4)
 ```
 
 
-```{r}
-df <- fread("../code/Make_Plots/4PopSplit_h23_B.txt.gz")
 
-nc <- df %>% filter(type == "True") %>% filter(case == "C1" & envs=="env_0.0") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
-```
+
 
 
 ## Simple Grid 

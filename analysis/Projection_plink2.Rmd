@@ -12,30 +12,39 @@ library(pgenlibr)
 library(data.table)
 ```
 
-## Projecting the Test vector using Plink2 
+## Projecting the Test vector (original) 
 
-$$T_m = \frac{M X^T (XX^T)^{-1}T}{L^2}$$
+$$T_m = G X^T (XX^T)^{-1}T$$
 
 ```{r}
 # Read GWAS Matrix 
-pvar <- NewPvar("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common.pvar")
-d1 <- NewPgen("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-gwas_common.pgen")
-M <- ReadList(d1,seq(1,48383), meanimpute=F)
-M <- scale(M)
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/A1/C1/genos-gwas_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/A1/C1/genos-gwas_common.pgen")
+G <- ReadList(d1,seq(1,2055), meanimpute=F)
+G <- scale(G)
 
 # Read in Test Matrix 
-pvar <- NewPvar("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-test_common.pvar")
-d1 <- NewPgen("../output/Simulate_Genotypes/SimpleGrid/E1/C1/genos-test_common.pgen")
-X <- ReadList(d1,seq(1, 48383), meanimpute=F)
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/A1/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/A1/C1/genos-test_common.pgen")
+X <- ReadList(d1,seq(1, 2055), meanimpute=F)
 X <- scale(X)
 
 # Read in Test Vector 
-Tvec <- fread("../output/Calculate_Tm/SimpleGrid/E1/C1/Tvec.txt")$V1
+Tvec <- fread("../output/Calculate_Tm/4PopSplit/A1/C1/Tvec.txt")$V1
 L <- ncol(X)
-
 ```
 
-Calculate Tm using SVD
+Direct multiplication 
+
+$$T_m = G X^T (XX^T)^{-1}T$$
+
+```{r}
+Tm <- (G %*% t(X) %*% solve(X %*% t(X)) %*% Tvec) 
+plot(Tm)
+```
+
+
+Use SVD decompostion of $X$ in R
 ```{r}
 # Do SVD
 s <- svd(X)
@@ -49,15 +58,12 @@ n <- nrow(X)
 
 # Calculate Tm
 K = (M %*% t(X)) / (L)
-Tm = K %*% u[,1:(n-1)] %*% diag(1/svd_vals[1:(n-1)]) %*% t(u[,1:(n-1)]) %*% Tvec
+Tm_svd = K %*% u[,1:(n-1)] %*% diag(1/svd_vals[1:(n-1)]) %*% t(u[,1:(n-1)]) %*% Tvec
+
+plot(Tm_svd, Tm)
 ```
 
-
-```{r}
-M = X
-```
-
-
+Check loadings
 ```{r}
 t <- t(u) %*% u[,1]
 
@@ -65,20 +71,9 @@ plot(t(X) %*% u[,1] %*% (1/d[1]), v[,1])
 
 plot(t(X) %*% u %*% diag(1/d) %*% t(u) %*% u[,1], v[,1])
 
-plot(M %*% v[,1:199] %*% diag(1/d[1:199]) %*% t(u[,1:199]) %*% std.tvec, Tm)
+plot(G %*% v[,1:199] %*% diag(1/d[1:199]) %*% t(u[,1:199]) %*% Tvec, Tm)
 abline(a = 0, b= 1)
 ```
-
-
-```{r}
-std.tvec <- scale(Tvec)
-std.Tm <- scale(Tm)
-load_T <- t(X) %*% std.tvec
-load_Tm <-  t(M) %*% std.Tm
-
-plot(load_T, load_Tm)
-```
-
 
 
 Calculate Tm via projecting each eigenvector individually and weighting by the Betas
@@ -94,12 +89,40 @@ abline(a = 0, b =1 , col = "red")
 
 Calculate Tm via projecting each eigenvector individually using right singular values (loadings) and weighting by the Betas  
 ```{r}
-tmp <- M %*% v[,1:(n-1)] %*% diag(1/d[1:(n-1)])
+tmp <- G %*% v[,1:(n-1)] %*% diag(1/d[1:(n-1)])
 Tm_weighted_v <- tmp %*% betas[1:(n-1)] 
 
 plot(Tm, Tm_weighted_v)
 abline(a = 0, b =1 , col = "red")
 ```
+
+Check that the $Tm$ from plink 2 matches 
+```{r}
+Tm_plink <- fread("../output/Calculate_Tm/4PopSplit/A1/C1/Tm.txt")
+plot(Tm_plink$Tm, Tm)
+abline(0,1, col = "red")
+```
+
+
+```{r}
+TGX <- (1/(L-1)) * G %*% t(X) %*% Tvec
+TGX <- scale(TGX, scale = F)
+plot(TGX, Tm)
+
+betas <- t(X) %*% Tvec
+out <- G %*% betas 
+plot(scale(out), TGX)
+```
+
+```{r}
+TGGX <- G %*% pinv(t(G) %*% G) %*% t(X) %*% Tvec
+
+
+plot(TGX)
+```
+
+
+
 
 
 ```{r}
