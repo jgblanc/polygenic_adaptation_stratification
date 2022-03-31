@@ -6,7 +6,7 @@ REP = []
 for i in range(1,101):
   REP.append("A"+str(i))
 HERITABILITY = ["h2-0.0"]
-ENV=["env_0.0"]
+ENV=["env_0.0", "env_0.05"]
 TS=["p-0.50"]
 SIZE=2000
 NUM_RESAMPLE=1000
@@ -38,7 +38,7 @@ def get_seed(rep, config, h2, ts, env):
   print(rep)
   config = list(config)[1]
   h2 = h2.split(".")[1]
-  env = float(env.split("_")[1]) + 3.1415
+  env = float(env.split("_")[1]) + 3.141596
   ts_list = ts.split("-")[1].split(".")[1]
   ts_list = [int(i) for i in ts_list]
   ts = sum(ts_list)
