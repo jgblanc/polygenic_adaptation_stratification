@@ -4,10 +4,10 @@ for i in range(0, 200):
 CONFIG=["C1", "C2"]
 REP = []
 for i in range(1,101):
-  REP.append("A"+str(i))
-HERITABILITY = ["h2-0.3"]
+  REP.append("C"+str(i))
+HERITABILITY = ["h2-0.0"]
 #ENV=["env_0.0","env_0.005" ,"env_0.01","env_0.015","env_0.02","env_0.025", "env_0.03", "env_0.035","env_0.04", "env_0.045", "env_0.05", "env_0.055", "env_0.06"]
-ENV = ["env_0.0", "env_0.06"]
+ENV = ["env_0.0", "env_1.0", "env_3.0"]
 TS=["p-0.50"]
 SIZE=2000
 NUM_RESAMPLE=1000
@@ -51,7 +51,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
+        expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV, chr=CHR)
 
 # Simluate Genotypes
 
@@ -75,8 +75,8 @@ rule simulate_genotypes_4popsplit:
 	       -b 20000 \
 	       -c 20000 \
 	       -d 20000 \
-         -s1 22000 \
-          -s2 11000 \
+         -s1 4400 \
+          -s2 2200 \
           -L 100000"
 
 rule format_VCF:

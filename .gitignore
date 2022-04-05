@@ -19,6 +19,8 @@ output/*/*/F*
 output/*/*/S*
 output/*/*/K*
 output/*/*/L*
+output/*/*/B*
+output/*/*/C*
 output/1kg/*
 output/Simulate_Genotypes/*/*/*.pgen
 output/Simulate_Genotypes/*/*/*.pvar
