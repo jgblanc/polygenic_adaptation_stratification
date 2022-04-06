@@ -51,7 +51,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV, chr=CHR)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV, chr=CHR)
 
 # Simluate Genotypes
 

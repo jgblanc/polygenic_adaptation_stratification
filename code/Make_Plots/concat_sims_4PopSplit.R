@@ -3,11 +3,11 @@ library(data.table)
 
 n <- 100
 reps <- rep(NA, n)
-for (i in 1:n){reps[i] <- paste0("B", i)}
+for (i in 1:n){reps[i] <- paste0("C", i)}
 print(reps)
 h2 <- "h2-0.0"
-envs <- c("env_0.0","env_0.005" ,"env_0.01","env_0.015","env_0.02","env_0.025", "env_0.03", "env_0.035","env_0.04", "env_0.045", "env_0.05", "env_0.055", "env_0.06")
-#envs <- c("env_0.0", "env_0.06")
+#envs <- c("env_0.0","env_0.005" ,"env_0.01","env_0.015","env_0.02","env_0.025", "env_0.03", "env_0.035","env_0.04", "env_0.045", "env_0.05", "env_0.055", "env_0.06")
+envs <- c("env_0.0", "env_1.0", "env_3.0")
 cases <- c("C1")
 ts <- c("p-0.50")
 dat <- expand.grid(reps, cases, h2, ts,  envs)
@@ -22,4 +22,4 @@ agg_all_data <- function(rep, dir_path, case, h2, ts, envs) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/4PopSplit/' )
 
-fwrite(df, "4PopSplit_B_h20.txt", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "4PopSplit_C_h20.txt", row.names=F,quote=F,sep="\t", col.names = T)
