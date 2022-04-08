@@ -7,7 +7,7 @@ for i in range(1,101):
   REP.append("C"+str(i))
 HERITABILITY = ["h2-0.0"]
 #ENV=["env_0.0","env_0.005" ,"env_0.01","env_0.015","env_0.02","env_0.025", "env_0.03", "env_0.035","env_0.04", "env_0.045", "env_0.05", "env_0.055", "env_0.06"]
-ENV = ["env_0.0", "env_1.0", "env_3.0"]
+ENV = ["env_0.05", "env_0.1"]
 TS=["p-0.50"]
 SIZE=2000
 NUM_RESAMPLE=1000

@@ -7,7 +7,7 @@ for (i in 1:n){reps[i] <- paste0("C", i)}
 print(reps)
 h2 <- "h2-0.0"
 #envs <- c("env_0.0","env_0.005" ,"env_0.01","env_0.015","env_0.02","env_0.025", "env_0.03", "env_0.035","env_0.04", "env_0.045", "env_0.05", "env_0.055", "env_0.06")
-envs <- c("env_0.0", "env_1.0", "env_3.0")
+envs <- c("env_0.0", "env_0.1", "env_0.05")
 cases <- c("C1")
 ts <- c("p-0.50")
 dat <- expand.grid(reps, cases, h2, ts,  envs)
