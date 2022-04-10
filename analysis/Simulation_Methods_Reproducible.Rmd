@@ -40,7 +40,7 @@ plot_data <- function(data, color_name) {
 ```
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE}
-df <- fread("../code/Make_Plots/4PopSplit_h20_A.txt.gz")
+df <- fread("../code/Make_Plots/4PopSplit_C_h20.txt.gz")
 
 # C1 - no correction
 nc <- df %>% filter(type == "nc") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  

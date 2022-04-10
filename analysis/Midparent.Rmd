@@ -1,0 +1,556 @@
+---
+title: "Midparent"
+author: "Jennifer Blanc"
+date: "4/8/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+library(tidyverse)
+library(MASS)
+library(matrixNormal)
+library(pracma)
+library(pgenlibr)
+```
+
+
+```{r}
+make_genotype_matrix <- function(p, n, L) {
+  G <- matrix(NA, nrow = n, ncol = L)
+  for (i in 1:length(p)) {
+    G[,i] <- rbinom(n,2,p[i])
+  }
+  return(G)
+}
+
+sim_evo <- function(m, n, L) {
+  
+  # Draw alleles from Beta
+  p_start <- rbeta(L, 1,1)
+
+  # Evolve alleles to first split via drift
+  p1 <- p_start + rnorm(L, 0, sqrt((p_start)*(1-p_start)* 0.01))
+  p2 <- p_start + rnorm(L, 0, sqrt((p_start)*(1-p_start)* 0.01))
+  rm <- which(p1 < 0 | p1 > 1 | p2 < 0 | p2 > 1)
+  if (length(rm) > 0) {
+    p1 <- p1[-rm]
+    p2 <- p2[-rm]
+  }
+  L <- length(p1)
+  
+  # Evolve alleles to second split via drift
+  pA <- p1 + rnorm(L, 0, sqrt((p1)*(1-p1)* 0.01))
+  pB <- p1 + rnorm(L, 0, sqrt((p1)*(1-p1)* 0.01))
+  pC <- p2 + rnorm(L, 0, sqrt((p2)*(1-p2)* 0.01))
+  pD <- p2 + rnorm(L, 0, sqrt((p2)*(1-p2)* 0.01))
+  rm <- which(pC < 0 | pC > 1 | pD < 0 | pD > 1 | pA < 0 | pA > 1 | pB < 0 | pB > 1)
+  if (length(rm) > 0) {
+    pA <- pA[-rm]
+    pB <- pB[-rm]
+    pC <- pC[-rm]
+    pD <- pD[-rm]
+  }
+  
+  # Make genotype matrix by drawing from population 
+  iA <- make_genotype_matrix(pA, m/2, length(pA))
+  iB <- make_genotype_matrix(pB, n/2, length(pB))
+  iC <- make_genotype_matrix(pC, m/2, length(pC))
+  iD <- make_genotype_matrix(pD, n/2, length(pD))  
+  
+  # GWAS Gentotype Matrix 
+  G <- rbind(iA, iC)
+
+  # GWAS Gentotype Matrix 
+  X <- rbind(iB, iD)
+
+  # Get rid of fixed sites 
+  rmG <- which(colSums(G) == 0 | colSums(G) == 2*m)
+  rmX <- which(colSums(X) == 0 | colSums(X) == 2*n)
+  rm <- c(rmG, rmX)
+  if (length(rm) > 0) {
+    G <- G[,-rm]
+    X <- X[,-rm]
+  }
+ return(list(G,X)) 
+}
+
+calc_varQ <- function(Bhat, X) {
+  
+  # Compute GRM  
+  H <- matrix(0, ncol(X),ncol(X))
+  diag(H) <- 1 / (2 * colMeans(X/2) * (1 - colMeans(X/2)))
+  Tmat <- matrix(-1/n, ncol = n, nrow = n)
+  diag(Tmat) <- (n-1)/n
+  cov_mat <- (1/(ncol(X)-1)) * Tmat %*% X %*% H %*% t(X) %*% t(Tmat) 
+  
+  # Do Eigen decomposition and calculate Ftest
+  myE <- eigen(cov_mat)
+  K <- myE$vectors %*% diag(myE$values) %*% t(myE$vectors)
+  Fmat <-  (Tvec %*% K %*% Tvec)
+  
+  # Compute Va 
+  Va <- 2*sum(Bhat^2 * (colMeans(X/2) * (1 - colMeans(X/2))))
+  
+  # Get varQ 
+  varQ = Va * Fmat
+  
+  return(varQ)
+}
+```
+
+
+
+## Uncorrected GWAS on parents
+
+```{r}
+parent_gwas <- function(m, n, L, plot = FALSE) {
+  
+  # Sim genotypec matrices
+  sim <- sim_evo(m, n, L)
+  G <- sim[[1]]
+  X <- sim[[2]]
+  
+  # Simulate phenotypes 
+  B <- rnorm(ncol(G), 0,1)
+  eta <- c(rep(3, m/2), rep(0, m/2))
+  e <- rnorm(nrow(G), 0,0.1)
+  y <- G %*% B + eta + e
+  
+  if (plot == TRUE) {
+     dfGWAS <- data.frame(c(rep("A", m/2), rep("C", m/2)))
+     colnames(dfGWAS) <- c("Pop") 
+     dfGWAS$Parent_Phenotypes <- y
+     dfGWAS <- dfGWAS %>% group_by(Pop) %>% mutate(mean = mean(Parent_Phenotypes)) %>% ungroup()
+     print(ggplot(dfGWAS) + 
+      geom_density(aes(x=Parent_Phenotypes, colour=Pop, fill=Pop), alpha=0.5) + geom_vline(aes(xintercept = mean, col = Pop)))
+  }
+
+  # Do GWAS 
+  Bhat <- rep(NA, ncol(G))
+  for (i in 1:ncol(G)) {
+    mod <- lm(y ~ G[,i])
+    Bhat[i] <- coef(mod)[2]
+  }
+  
+  # Compute Individual PGS 
+  Z <- rowSums(X %*% diag(Bhat))
+  
+  # Make test vector and compute Ztest
+  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Q <- Z %*% Tvec 
+  
+  if (plot == TRUE) {
+     dfTest <- data.frame(c(rep("B", n/2), rep("D", n/2)))
+     colnames(dfTest) <- c("Pop") 
+     dfTest$PGS <- Z
+     dfTest <- dfTest %>% group_by(Pop) %>% mutate(mean = mean(PGS)) %>% ungroup()
+     print(ggplot(dfTest) + 
+      geom_density(aes(x=PGS, colour=Pop, fill=Pop), alpha=0.5) + geom_vline(aes(xintercept = mean, col = Pop)))
+  }
+  
+  # Calculate varQ 
+  varQ <- calc_varQ(Bhat, X)
+  
+  # Get p-value 
+  pval <- 2 *(1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ))) 
+  
+  return(pval)
+}
+  
+reps <- 100  
+pvals <- rep(NA, reps) 
+pvals[1] <- parent_gwas(2000, 100, 100, plot = T)
+for (i in 2:reps) {
+  pvals[i] <- parent_gwas(2000, 100, 100)
+}
+hist(pvals)
+```
+
+
+# Do GWAS on children 
+
+```{r}
+children_gwas <- function(m, n, L, plot = FALSE) {
+  
+  # Sim genotypec matrices
+  sim <- sim_evo(m, n, L)
+  G <- sim[[1]]
+  X <- sim[[2]]
+  L <- ncol(G)
+  
+  # Simulate 1 generation of random mating in GWAS panel 
+  G_children <- G
+  G_midparent <- G
+  for (i in 1:(m/2)) {
+    p1 <- G[sample(seq(1,m/2),1), ]
+    p2 <- G[sample(seq(1,m/2),1), ]
+    G_midparent[i,] <- (p1 + p2) / 2
+    g1 <- rbinom(L,1, p1/2)
+    g2 <- rbinom(L,1, p2/2)
+    G_children[i, ] <- g1 + g2
+  }
+  for (i in ((m/2)+1):m) {
+    p1 <- G[sample(seq((m/2)+1,m),1), ]
+    p2 <- G[sample(seq((m/2)+1,m),1), ]
+    G_midparent[i,] <- (p1 + p2) / 2
+    g1 <- rbinom(L,1, p1/2)
+    g2 <- rbinom(L,1, p2/2)
+    G_children[i, ] <- g1 + g2
+  }
+  
+  # Remove fixed sites
+  indx0 = which(colSums(G_children) == 0)
+  indx1 = which(colSums(G_children) == 2*m)
+  indx = c(indx0, indx1)
+  if (length(indx) > 0){
+    G_children = G_children[,-indx] 
+    G_midparent = G_midparent[, -indx]
+    X = X[, -indx]
+  }
+
+  # Simulate phenotypes 
+  B <- rnorm(ncol(G_children), 0,1)
+  eta <- c(rep(3, m/2), rep(0, m/2))
+  e <- rnorm(nrow(G_children), 0,0.1)
+  y <- G_children %*% B + eta + e
+  
+  if (plot == TRUE) {
+     dfGWAS <- data.frame(c(rep("A", m/2), rep("C", m/2)))
+     colnames(dfGWAS) <- c("Pop") 
+     dfGWAS$Children_Phenotypes <- y
+     dfGWAS <- dfGWAS %>% group_by(Pop) %>% mutate(mean = mean(Children_Phenotypes)) %>% ungroup()
+     print(ggplot(dfGWAS) + 
+      geom_density(aes(x=Children_Phenotypes, colour=Pop, fill=Pop), alpha=0.5) + geom_vline(aes(xintercept = mean, col = Pop)))
+  }
+
+  # Do GWAS 
+  Bhat <- rep(NA, ncol(G_children))
+  for (i in 1:ncol(G_children)) {
+    mod <- lm(y ~ G_children[,i])
+    Bhat[i] <- coef(mod)[2]
+  }
+  
+  # Compute Individual PGS 
+  Z <- rowSums(X %*% diag(Bhat))
+  
+  # Make test vector and compute Ztest
+  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Q <- Z %*% Tvec 
+  
+  if (plot == TRUE) {
+     dfTest <- data.frame(c(rep("B", n/2), rep("D", n/2)))
+     colnames(dfTest) <- c("Pop") 
+     dfTest$PGS <- Z
+     dfTest <- dfTest %>% group_by(Pop) %>% mutate(mean = mean(PGS)) %>% ungroup()
+     print(ggplot(dfTest) + 
+      geom_density(aes(x=PGS, colour=Pop, fill=Pop), alpha=0.5) + geom_vline(aes(xintercept = mean, col = Pop)))
+  }
+  
+  # Calculate varQ 
+  varQ <- calc_varQ(Bhat, X)
+  
+  # Get p-value 
+  pval <- 2 *(1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ))) 
+  
+  return(pval)
+}
+  
+reps <- 100  
+pvals <- rep(NA, reps) 
+pvals[1] <- children_gwas(2000, 100, 100, plot = T)
+for (i in 2:reps) {
+  pvals[i] <- children_gwas(2000, 100, 100, plot = F)
+}
+hist(pvals)
+```
+
+
+# Do GWAS on children, controlling for midparent genotypes 
+
+```{r}
+children_midparent_gwas <- function(m, n, L, plot = FALSE) {
+  
+  # Sim genotypec matrices
+  sim <- sim_evo(m, n, L)
+  G <- sim[[1]]
+  X <- sim[[2]]
+  L <- ncol(G)
+  
+  # Simulate 1 generation of random mating in GWAS panel 
+  G_children <- G
+  G_midparent <- G
+  for (i in 1:(m/2)) {
+    p1 <- G[sample(seq(1,m/2),1), ]
+    p2 <- G[sample(seq(1,m/2),1), ]
+    G_midparent[i,] <- (p1 + p2) / 2
+    g1 <- rbinom(L,1, p1/2)
+    g2 <- rbinom(L,1, p2/2)
+    G_children[i, ] <- g1 + g2
+  }
+  for (i in ((m/2)+1):m) {
+    p1 <- G[sample(seq((m/2)+1,m),1), ]
+    p2 <- G[sample(seq((m/2)+1,m),1), ]
+    G_midparent[i,] <- (p1 + p2) / 2
+    g1 <- rbinom(L,1, p1/2)
+    g2 <- rbinom(L,1, p2/2)
+    G_children[i, ] <- g1 + g2
+  }
+  
+  # Remove fixed sites
+  indx0 = which(colSums(G_children) == 0)
+  indx1 = which(colSums(G_children) == 2*m)
+  indx = c(indx0, indx1)
+  if (length(indx) > 0){
+    G_children = G_children[,-indx] 
+    G_midparent = G_midparent[, -indx]
+    X = X[, -indx]
+  }
+
+  # Simulate phenotypes 
+  B <- rnorm(ncol(G_children), 0,1)
+  eta <- c(rep(3, m/2), rep(0, m/2))
+  e <- rnorm(nrow(G_children), 0,0.1)
+  y <- G_children %*% B + eta + e
+  
+  if (plot == TRUE) {
+     dfGWAS <- data.frame(c(rep("A", m/2), rep("C", m/2)))
+     colnames(dfGWAS) <- c("Pop") 
+     dfGWAS$Children_Phenotypes <- y
+     dfGWAS <- dfGWAS %>% group_by(Pop) %>% mutate(mean = mean(Children_Phenotypes)) %>% ungroup()
+     print(ggplot(dfGWAS) + 
+      geom_density(aes(x=Children_Phenotypes, colour=Pop, fill=Pop), alpha=0.5) + geom_vline(aes(xintercept = mean, col = Pop)))
+  }
+
+  # Do GWAS 
+  Bhat <- rep(NA, ncol(G_children))
+  for (i in 1:ncol(G_children)) {
+    x = G_children[,i] - G_midparent[,i]
+    mod <- lm(y ~ x)
+    Bhat[i] <- coef(mod)[2]
+  }
+  
+  # Compute Individual PGS 
+  Z <- rowSums(X %*% diag(Bhat))
+  
+  # Make test vector and compute Ztest
+  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Q <- Z %*% Tvec 
+  
+  if (plot == TRUE) {
+     dfTest <- data.frame(c(rep("B", n/2), rep("D", n/2)))
+     colnames(dfTest) <- c("Pop") 
+     dfTest$PGS <- Z
+     dfTest <- dfTest %>% group_by(Pop) %>% mutate(mean = mean(PGS)) %>% ungroup()
+     print(ggplot(dfTest) + 
+      geom_density(aes(x=PGS, colour=Pop, fill=Pop), alpha=0.5) + geom_vline(aes(xintercept = mean, col = Pop)))
+  }
+  
+  # Calculate varQ 
+  varQ <- calc_varQ(Bhat, X)
+  
+  # Get p-value 
+  pval <- 2 *(1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ))) 
+  
+  return(pval)
+}
+  
+reps <- 100  
+pvals <- rep(NA, reps) 
+pvals[1] <- children_midparent_gwas(2000, 100, 100, plot = T)
+for (i in 2:reps) {
+  pvals[i] <- children_midparent_gwas(2000, 100, 100, plot = F)
+}
+hist(pvals)
+```
+
+# Do GWAS controlling for estimated midparent genotype 
+```{r}
+children_est_midparent_gwas <- function(m, n, L, plot = FALSE) {
+  
+  # Sim genotypec matrices
+  sim <- sim_evo(m, n, L)
+  G <- sim[[1]]
+  X <- sim[[2]]
+  L <- ncol(G)
+  
+  # Simulate 1 generation of random mating in GWAS panel 
+  G_children <- G
+  G_midparent <- G
+  for (i in 1:(m/2)) {
+    p1 <- G[sample(seq(1,m/2),1), ]
+    p2 <- G[sample(seq(1,m/2),1), ]
+    G_midparent[i,] <- (p1 + p2) / 2
+    g1 <- rbinom(L,1, p1/2)
+    g2 <- rbinom(L,1, p2/2)
+    G_children[i, ] <- g1 + g2
+  }
+  for (i in ((m/2)+1):m) {
+    p1 <- G[sample(seq((m/2)+1,m),1), ]
+    p2 <- G[sample(seq((m/2)+1,m),1), ]
+    G_midparent[i,] <- (p1 + p2) / 2
+    g1 <- rbinom(L,1, p1/2)
+    g2 <- rbinom(L,1, p2/2)
+    G_children[i, ] <- g1 + g2
+  }
+  
+  # Remove fixed sites
+  indx0 = which(colSums(G_children) == 0)
+  indx1 = which(colSums(G_children) == 2*m)
+  indx = c(indx0, indx1)
+  if (length(indx) > 0){
+    G_children = G_children[,-indx] 
+    G_midparent = G_midparent[, -indx]
+    X = X[, -indx]
+  }
+
+  # Simulate phenotypes 
+  B <- rnorm(ncol(G_children), 0,1)
+  eta <- c(rep(3, m/2), rep(0, m/2))
+  e <- rnorm(nrow(G_children), 0,0.1)
+  y <- G_children %*% B + eta + e
+  
+  if (plot == TRUE) {
+     dfGWAS <- data.frame(c(rep("A", m/2), rep("C", m/2)))
+     colnames(dfGWAS) <- c("Pop") 
+     dfGWAS$Children_Phenotypes <- y
+     dfGWAS <- dfGWAS %>% group_by(Pop) %>% mutate(mean = mean(Children_Phenotypes)) %>% ungroup()
+     print(ggplot(dfGWAS) + 
+      geom_density(aes(x=Children_Phenotypes, colour=Pop, fill=Pop), alpha=0.5) + geom_vline(aes(xintercept = mean, col = Pop)))
+  }
+
+  # Estimate midparent genotypes
+  Gmp_hat <- t(X) %*% pinv(X %*% t(X)) %*% X %*% t(G_children) 
+  Gmp_hat <- t(Gmp_hat)
+  
+  # Do GWAS 
+  Bhat <- rep(NA, ncol(G_children))
+  for (i in 1:ncol(G_children)) {
+    x = G_children[,i] - Gmp_hat[,i]
+    mod <- lm(y ~ x)
+    Bhat[i] <- coef(mod)[2]
+  }
+  
+  # Compute Individual PGS 
+  Z <- rowSums(X %*% diag(Bhat))
+  
+  # Make test vector and compute Ztest
+  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  Q <- Z %*% Tvec 
+  
+  if (plot == TRUE) {
+     dfTest <- data.frame(c(rep("B", n/2), rep("D", n/2)))
+     colnames(dfTest) <- c("Pop") 
+     dfTest$PGS <- Z
+     dfTest <- dfTest %>% group_by(Pop) %>% mutate(mean = mean(PGS)) %>% ungroup()
+     print(ggplot(dfTest) + 
+      geom_density(aes(x=PGS, colour=Pop, fill=Pop), alpha=0.5) + geom_vline(aes(xintercept = mean, col = Pop)))
+  }
+  
+  # Calculate varQ 
+  varQ <- calc_varQ(Bhat, X)
+  
+  # Get p-value 
+  pval <- 2 *(1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ))) 
+  
+  return(pval)
+}
+  
+reps <- 100  
+pvals <- rep(NA, reps) 
+pvals[1] <- children_est_midparent_gwas(2000, 100, 100, plot = T)
+for (i in 2:reps) {
+  pvals[i] <- children_est_midparent_gwas(2000, 100, 100, plot = F)
+}
+hist(pvals)
+```
+
+
+
+# Do GWAS controlling for Test axis 
+```{r}
+parent_v_gwas <- function(m, n, L, plot = FALSE) {
+  
+  # Sim genotypec matrices
+  sim <- sim_evo(m, n, L)
+  G <- sim[[1]]
+  X <- sim[[2]]
+  L <- ncol(G)
+  
+  # Simulate phenotypes 
+  B <- rnorm(ncol(G), 0,1)
+  eta <- c(rep(3, m/2), rep(0, m/2))
+  e <- rnorm(nrow(G), 0,0.1)
+  y <- G %*% B + eta + e
+  
+  if (plot == TRUE) {
+     dfGWAS <- data.frame(c(rep("A", m/2), rep("C", m/2)))
+     colnames(dfGWAS) <- c("Pop") 
+     dfGWAS$Children_Phenotypes <- y
+     dfGWAS <- dfGWAS %>% group_by(Pop) %>% mutate(mean = mean(Children_Phenotypes)) %>% ungroup()
+     print(ggplot(dfGWAS) + 
+      geom_density(aes(x=Children_Phenotypes, colour=Pop, fill=Pop), alpha=0.5) + geom_vline(aes(xintercept = mean, col = Pop)))
+  }
+
+  # Calculate v 
+  Tvec <- c(rep(1,(n/2))/(n/2), rep(-1,(n/2))/(n/2)) * 0.5
+  v <- G %*% t(X) %*% pinv(X %*% t(X)) %*% Tvec
+  v <- (v - mean(v))
+  v <- 1/sqrt(sum(v^2)) * v
+  
+  # Sample 100 sites to include in PGS
+  sites <- sample(seq(1, ncol(G)), 100)
+  G <- G[,sites]
+  X <- X[,sites]
+  
+  # Do GWAS 
+  Bhat <- rep(NA, ncol(G))
+  for (i in 1:ncol(G)) {
+    mod <- lm(y ~ G[,i] + v)
+    Bhat[i] <- coef(mod)[2]
+  }
+  
+  # Compute Individual PGS 
+  Z <- rowSums(X %*% diag(Bhat))
+  
+  # Make test vector and compute Ztest
+  Q <- Z %*% Tvec 
+  
+  if (plot == TRUE) {
+     dfTest <- data.frame(c(rep("B", n/2), rep("D", n/2)))
+     colnames(dfTest) <- c("Pop") 
+     dfTest$PGS <- Z
+     dfTest <- dfTest %>% group_by(Pop) %>% mutate(mean = mean(PGS)) %>% ungroup()
+     print(ggplot(dfTest) + 
+      geom_density(aes(x=PGS, colour=Pop, fill=Pop), alpha=0.5) + geom_vline(aes(xintercept = mean, col = Pop)))
+  }
+  
+  # Calculate varQ 
+  varQ <- calc_varQ(Bhat, X)
+  
+  # Get p-value 
+  pval <- 2 *(1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ))) 
+  
+  return(pval)
+}
+  
+reps <- 100  
+pvals <- rep(NA, reps) 
+pvals[1] <- parent_v_gwas(2000, 100, 10000, plot = T)
+for (i in 2:reps) {
+  print(i)
+  pvals[i] <- parent_v_gwas(2000, 100, 10000, plot = F)
+}
+hist(pvals)
+```
+
+
+
+
+
+
+
+
+
+

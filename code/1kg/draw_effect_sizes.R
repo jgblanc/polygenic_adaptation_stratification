@@ -132,6 +132,8 @@ for (i in 1:nrow(causal.variants)){
   b <- causal.variants[i,"beta"]
   if (diff[i] >= 0) {
     causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c((1-prob), prob)) * b
+  } else {
+    causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c(prob, 1-prob)) * b
   }
 }
 

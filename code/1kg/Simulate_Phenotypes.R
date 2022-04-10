@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<6){stop("Rscript simphenotype_ge.R <genetic value file> <pop file> <output_file> <hertaibility> <environmental shift> <eigenvectors> <eigenvalues>")}
+if(length(args)<7){stop("Rscript simphenotype_ge.R <genetic value file> <pop file> <output_file> <hertaibility> <environmental shift> <eigenvectors> <eigenvalues> <env>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -15,6 +15,7 @@ output_file = args[3] #name of output file
 h2 = as.numeric(args[4]) #target heritability
 evec_file = args[5]
 eval_file = args[6]
+env=as.numeric(args[7])
 
 print(paste0("The heritability is " , as.numeric(h2)))
 
@@ -44,7 +45,7 @@ weighted_vecs <- vec_mat %*% diag(vals$V1)
 #pc_w <- rbeta(nrow(prs) -1, 1, 3)
 pc_w <- c(1, rep(0,nrow(prs) -2 ))
 strat_env <- weighted_vecs %*% pc_w
-prs$strat <- strat_env[,1]
+prs$strat <- strat_env[,1] * env
 prs$pheno_strat <- prs$prs + prs$env + prs$strat
 
 
@@ -59,8 +60,7 @@ print(paste("h2 :",
 # Write to output file
 fwrite(
   prs%>%
-    mutate(FID=IID)%>%
     ungroup() %>%
-    select(FID,IID,pheno_strat),
+    select(IID,pheno_strat),
   output_file,
   col.names=T,row.names=F,quote=F,sep="\t")

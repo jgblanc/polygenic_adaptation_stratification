@@ -1,6 +1,8 @@
-H2 = ["h2-0.3"]
-TS=["p-1.0"]
+H2 = ["h2-0"]
+TS=["p-0.5"]
+ENV=["env-1.0"]
 GWAS_SIZE = 403
+TEST_SIZE = 100
 
 def get_params(x):
   out = x.split("-")[1]
@@ -8,7 +10,7 @@ def get_params(x):
 
 rule all:
     input:
-        expand("data/1kg/phenos/{h2}/{ts}/genos-gwas.phenos.txt", h2=H2, ts=TS)
+        expand("data/1kg/prs/{h2}/{ts}/{env}/genos-gwas-Tm.c.betas", h2=H2, ts=TS, env=ENV)
 
 # Process Genotypes
 
@@ -94,7 +96,7 @@ rule draw_effect_sizes:
         freq="data/1kg/plink2_files/gwas_indep_sites.afreq",
         pops="data/1kg/20130606_sample_info.txt"
     output:
-        "data/1kg/phenos/{h2}/{ts}/genos-gwas.effects.txt"
+        "data/1kg/phenos/{h2}/{ts}/{env}/genos-gwas.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
         prob = lambda wildcards: get_params(wildcards.ts),
@@ -105,15 +107,15 @@ rule draw_effect_sizes:
 rule generate_genetic_values:
     input:
         "data/1kg/plink2_files/genos-gwas.psam",
-        "data/1kg/phenos/{h2}/{ts}/genos-gwas.effects.txt"
+        "data/1kg/phenos/{h2}/{ts}/{env}/genos-gwas.effects.txt"
     output:
-        "data/1kg/phenos/{h2}/{ts}/genos-gwas.gvalue.sscore"
+        "data/1kg/phenos/{h2}/{ts}/{env}/genos-gwas.gvalue.sscore"
     shell:
         """
         plink2 \
 	      --pfile data/1kg/plink2_files/genos-gwas \
-	      --out data/1kg/phenos/{wildcards.h2}/{wildcards.ts}/genos-gwas.gvalue \
-		    --score data/1kg/phenos/{wildcards.h2}/{wildcards.ts}/genos-gwas.effects.txt cols=dosagesum,scoresums
+	      --out data/1kg/phenos/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas.gvalue \
+		    --score data/1kg/phenos/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas.effects.txt cols=dosagesum,scoresums
 		    """
 
 rule gwas_pca:
@@ -134,15 +136,135 @@ rule gwas_pca:
 
 rule simulate_phenotype:
     input:
-        gvalues="data/1kg/phenos/{h2}/{ts}/genos-gwas.gvalue.sscore",
+        gvalues="data/1kg/phenos/{h2}/{ts}/{env}/genos-gwas.gvalue.sscore",
         pops="data/1kg/plink2_files/ids.gwas",
         evec="data/1kg/plink2_files/genos-gwas.eigenvec",
         eval="data/1kg/plink2_files/genos-gwas.eigenval"
     output:
-        "data/1kg/phenos/{h2}/{ts}/genos-gwas.phenos.txt"
+        "data/1kg/phenos/{h2}/{ts}/{env}/genos-gwas.phenos.txt"
     params:
-        her = lambda wildcards: get_params(wildcards.h2)
+        her = lambda wildcards: get_params(wildcards.h2),
+        env_s = lambda wildcards: get_params(wildcards.env)
     shell:
-        "Rscript code/1kg/simulate_phenotypes.R {input.gvalues} {input.pops} {output} {params.her} {input.evec} {input.eval}"
+        "Rscript code/1kg/simulate_phenotypes.R {input.gvalues} {input.pops} {output} {params.her} {input.evec} {input.eval} {params.env_s}"
+
+# Run GWAS
+
+rule gwas_no_correction:
+    input:
+        genos="data/1kg/plink2_files/genos-gwas.psam",
+        pheno="data/1kg/phenos/{h2}/{ts}/{env}/genos-gwas.phenos.txt"
+    output:
+        "data/1kg/gwas/{h2}/{ts}/{env}/genos-gwas.pheno_strat.glm.linear"
+    shell:
+        "plink2 \
+        --pfile data/1kg/plink2_files/genos-gwas \
+        --glm \
+        --pheno {input.pheno} \
+        --pheno-name pheno_strat \
+        --out data/1kg/gwas/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas"
+
+# Select causal sites to include in PGS
+
+rule pick_SNPS:
+    input:
+        causal_effect="data/1kg/phenos/{h2}/{ts}/{env}/genos-gwas.effects.txt",
+        gwas_strat="data/1kg/gwas/{h2}/{ts}/{env}/genos-gwas.pheno_strat.glm.linear"
+    output:
+        "data/1kg/prs/{h2}/{ts}/{env}/genos-gwas.c.betas",
+    shell:
+        "Rscript code/1kg/clump.R {input.causal_effect} {input.gwas_strat} {output}"
+
+# Make Test vector
+
+rule make_test_vector:
+    input:
+        "data/1kg/plink2_files/ids.test",
+    output:
+        "data/1kg/calculate_Tm/Tvec.txt"
+    shell:
+        "Rscript code/1kg/make_tvec.R {input} {output}"
+
+# Project test vector
+
+rule proj_T:
+    input:
+        "data/1kg/plink2_files/genos-test.psam",
+        "data/1kg/plink2_files/genos-gwas.psam",
+        "data/1kg/calculate_Tm/Tvec.txt"
+    params:
+        n_minus_1 = int(TEST_SIZE)-1,
+        col_start = 6,
+        col_end = int(TEST_SIZE) + 4
+    output:
+        "data/1kg/calculate_Tm/pca-test.eigenvec",
+        "data/1kg/calculate_Tm/pca-test.eigenval",
+        "data/1kg/calculate_Tm/pca-test.eigenvec.allele",
+        "data/1kg/calculate_Tm/projection.sscore"
+    shell:
+        """
+        ~/Desktop/plink2 \
+        --pfile data/1kg/plink2_files/genos-test \
+       --pca allele-wts {params.n_minus_1} \
+       --out data/1kg/calculate_Tm/pca-test
+
+        ~/Desktop/plink2 \
+        --pfile data/1kg/plink2_files/genos-gwas \
+       --score data/1kg/calculate_Tm/pca-test.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
+       --score-col-nums {params.col_start}-{params.col_end} \
+       --out data/1kg/calculate_Tm/projection
+        """
+
+# Calculate Tm using plink output
+
+rule calc_Tm:
+    input:
+        vecs="data/1kg/calculate_Tm/pca-test.eigenvec",
+        vals="data/1kg/calculate_Tm/pca-test.eigenval",
+        proj="data/1kg/calculate_Tm/projection.sscore",
+        tvec="data/1kg/calculate_Tm/Tvec.txt",
+        allele="data/1kg/calculate_Tm/pca-test.eigenvec.allele",
+        id="data/1kg/plink2_files/ids.gwas"
+    output:
+        Tm="data/1kg/calculate_Tm/Tm.txt",
+        weights="data/1kg/calculate_Tm/Test_weights.txt"
+    shell:
+        """
+        Rscript code/1kg/calc_Tm.R {input.vecs} {input.vals} {input.proj} {input.tvec} {input.id} {output.Tm} {output.weights}
+        rm {input.allele}
+        """
+
+# Re-run GWAS
+
+rule gwas_Tm:
+    input:
+        genos="data/1kg/plink2_files/genos-gwas.psam",
+        pheno="data/1kg/phenos/{h2}/{ts}/{env}/genos-gwas.phenos.txt",
+        Tm="data/1kg/calculate_Tm/Tm.txt"
+    output:
+        "data/1kg/gwas/{h2}/{ts}/{env}/genos-gwas-Tm.pheno_strat.glm.linear"
+    shell:
+        "plink2 \
+        --pfile data/1kg/plink2_files/genos-gwas\
+        --glm hide-covar \
+        --covar {input.Tm} \
+        --covar-col-nums 3 \
+        --pheno {input.pheno} \
+        --pheno-name pheno_strat \
+        --out data/1kg/gwas/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas-Tm"
+
+# Select causal sites to include in PGS
+
+rule pick_SNPS_tm:
+    input:
+        causal_effect="data/1kg/phenos/{h2}/{ts}/{env}/genos-gwas.effects.txt",
+        gwas_strat="data/1kg/gwas/{h2}/{ts}/{env}/genos-gwas-Tm.pheno_strat.glm.linear"
+    output:
+        "data/1kg/prs/{h2}/{ts}/{env}/genos-gwas-Tm.c.betas",
+    shell:
+        "Rscript code/1kg/clump.R {input.causal_effect} {input.gwas_strat} {output}"
+
+# Calculate Qx
+
 
 

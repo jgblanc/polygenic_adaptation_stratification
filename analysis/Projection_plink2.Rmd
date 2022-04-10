@@ -34,6 +34,17 @@ Tvec <- fread("../output/Calculate_Tm/4PopSplit/A1/C1/Tvec.txt")$V1
 L <- ncol(X)
 ```
 
+
+```{r}
+mat_Tm <- matrix(NA, ncol = L, nrow = nrow(G))
+for (i in 1:L) {
+        mat_Tm[,i] <- G[,i] %*% t(X[,i]) %*% Tvec        
+}
+
+plot(Tm, mat_Tm[,100])
+plot(Tm, rowSums(mat_Tm))
+```
+
 Direct multiplication 
 
 $$T_m = G X^T (XX^T)^{-1}T$$
