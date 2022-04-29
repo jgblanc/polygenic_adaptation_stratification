@@ -20,9 +20,8 @@ This website contains all the code used for the analysis.
 
 This pipline is written in snakemake. To run the entire simulation pipeline you simply need to swap in the correct snakefile.   
 
-* `code/Snakefiles/4PopSplit/snakefile` is the correct file to run the 4 population toy model from figure 1  
-* `code/Snakefiles/SimpleGrid/snakefile/Lat/snakefile` runs the stepping stone grid simulations, simulates a latitudinal gradient, and uses latitude as the test vector   
-* `code/Snakefiles/SimpleGrid/snakefile/StratD/snakefile` runs the stepping stone grid simultations, simulates stratifcation along the diagonal, uses latitude as the test vector, and does a PGA test along latitude and longitude  
+* `code/Snakefiles/4PopSplit/snakefile` is the correct file to run the 4 population toy model from Figure 1.  
+* `code/Snakefiles/SimpleGrid/snakefile` runs the stepping stone grid simulations and has options to simulate the confounders and do the polygenic adaptation tests from Figure 2.    
 
 The detailed methods and results for each simulation can be found [here](Simulations_methods.html).  
 
@@ -30,9 +29,9 @@ The pages below explain the 5 major steps of the pipeline:
 
 1. [Simulate Genotypes](Simulate_Genotypes.html) 
 2. [Simulate Phenotypes](Simulate_Phenotypes.html) 
-3. Project Test Vector 
-4. Run GWAS 
-5. Polygenic Adaptation Test 
+3. [Project Test Vector](Calculate_TGWAS.html) 
+4. [Run GWAS and Ascertain SNPs](Run_GWAS.html)
+5. [Polygenic Adaptation Test](Polygenic_Selection_Test.html) 
 
 
 <br />

@@ -1,0 +1,343 @@
+---
+title: "Run GWAS"
+author: "Jennifer Blanc"
+date: "4/26/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+library(data.table)
+library(pgenlibr)
+library(tidyr)
+```
+
+## Run GWAS and Ascertain SNPs 
+
+Here we will go through the steps to run the 3 different GWASs shown in the main text and outline our procedure to select SNPs to include in the polygenic score calculation done in the selection test. 
+
+### Format Covariates 
+
+We want to run 3 separate GWASs: 
+
+1. No correction  
+2. Including $\vec{T}^{GWAS}$  
+3. Including population ID  
+
+This will allow us to compare our correction method, $\vec{T}^{GWAS}$, to both no using any correction method and to the best case scenario of including the confounder (in this case population ID). 
+
+First we will format a covariate file that includes $\vec{T}^{GWAS}$ and population ID.  
+```{python, eval=FALSE}
+# Snakemake rule
+rule format_covars:
+    input:
+      pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
+      fam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
+      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt"
+    output:
+      "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt",
+    shell:
+      "Rscript code/Calculate_Tm/format_ID_covars.R {input.pops} {input.Tm} {input.fam} {output}"
+```
+
+```{r}
+# Read in GWAS panel information
+pops <- fread("../output/Simulate_Genotypes/4PopSplit/B1/genos.pop", header = T)
+fam <- fread("../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-gwas_common.psam")
+
+# Read in TGWAS
+Tm <- fread("../output/Calculate_Tm/4PopSplit/B1/C1/Tm.txt")
+
+# Format covariate file
+tmp <- dplyr::inner_join(pops, fam, by = c("IID"= "IID")) %>% select("IID", "POP")
+df <- as.data.frame(cbind(tmp$IID, tmp$IID, Tm, tmp$POP))
+colnames(df) <- c("FID","IID", "Tm", "PopID")
+pops <- unique(df$PopID)
+df <- df %>% mutate(PopID = case_when((PopID == pops[1]) ~ 1, (PopID == pops[2]) ~ 0))
+
+kable(head(df))
+```
+
+### Run GWAS 
+
+We first want to run a GWAS with no correction using the model below where $\vec{Y}$ are phenotypes and $\vec{g}_{\ell}$ are the genotype counts of the alternate allele.   
+$$\vec{Y} \sim \vec{g}_{\ell}$$  
+
+Here we demonstrate how this GWAS can be done using R and show that it is equivalent to using `--glm` function in plink2. We do note that plink2 returns the effect size estimate of the minor allele rather than the alternate allele. We account for this fact by flipping the sign of the effect size when ascertaining SNPs in the next step.
+```{r}
+# Read in GWAS Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-gwas_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-gwas_common.pgen")
+G <- ReadList(d1,seq(1,10905), meanimpute=F)
+
+# Read in phenotypes 
+phenos <- fread("../output/Simulate_Phenotypes/4PopSplit/B1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common.phenos.txt")
+
+# Run GWAS 
+betas <- rep(0, ncol(G))
+for (i in 1:ncol(G)) {
+  mod <- lm(phenos$pheno_strat ~ G[,i])
+  betas[i] <- coef(mod)[2]
+}
+
+# Read in betas from plink 
+plinkB <- fread("../output/Run_GWAS/4PopSplit/B1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common.pheno_strat.glm.linear")
+
+# Copmare to estimated effect sizes from plink 
+plot(abs(betas), abs(plinkB$BETA), xlab = "Estimated Effect Sizes",  ylab = "Plink estimated effect sizes")
+abline(a = 0, b = 1, col = "red")
+```
+
+We then repeat the GWAS using our covariate $\vec{T}^{GWAS}$.  
+$$\vec{Y} \sim \vec{g}_{\ell} + \vec{T}^{GWAS}$$  
+
+```{r}
+# Read in covariate file 
+covars <- fread("../output/Calculate_Tm/4PopSplit/B1/C1/Tm-ID_covars.txt")
+
+# Run GWAS 
+betas <- rep(0, ncol(G))
+for (i in 1:ncol(G)) {
+  mod <- lm(phenos$pheno_strat ~ G[,i] + covars$Tm)
+  betas[i] <- coef(mod)[2]
+}
+
+# Read in betas from plink 
+plinkB <- fread("../output/Run_GWAS/4PopSplit/B1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common-Tm.pheno_strat.glm.linear")
+
+# Copmare to estimated effect sizes from plink 
+plot(abs(betas), abs(plinkB$BETA), xlab = "Estimated Effect Sizes",  ylab = "Plink estimated effect sizes")
+abline(a = 0, b = 1, col = "red")
+```
+
+
+Finally, we repeat the GWAS a third time using population ID as a covariate.  
+$$\vec{Y} \sim \vec{g}_{\ell} + \vec{\text{ID}}$$ 
+```{r}
+# Run GWAS 
+betas <- rep(0, ncol(G))
+for (i in 1:ncol(G)) {
+  mod <- lm(phenos$pheno_strat ~ G[,i] + covars$PopID)
+  betas[i] <- coef(mod)[2]
+}
+
+# Read in betas from plink 
+plinkB <- fread("../output/Run_GWAS/4PopSplit/B1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common-ID.pheno_strat.glm.linear")
+
+# Copmare to estimated effect sizes from plink 
+plot(abs(betas), abs(plinkB$BETA), xlab = "Estimated Effect Sizes",  ylab = "Plink estimated effect sizes")
+abline(a = 0, b = 1, col = "red")
+```
+
+Here are the snakemake rules to run these GWASs using plink2.  
+```{python, eval = FALSE}
+# Snakemake rule  
+rule gwas_no_correction:
+  input:
+      genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
+      pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt"
+  output:
+      "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat.glm.linear"
+  shell:
+      """
+      ~/plink2 \
+      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+      --glm allow-no-covars\
+      --pheno {input.pheno} \
+      --pheno-name pheno_strat \
+      --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common
+      """
+
+rule gwas_Tm:
+    input:
+      genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
+      pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt",
+      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
+    output:
+      "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
+    shell:
+      """
+      plink2 \
+      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+      --glm hide-covar \
+      --covar {input.Tm} \
+      --covar-col-nums 3 \
+      --pheno {input.pheno} \
+      --pheno-name pheno_strat \
+      --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-Tm
+      """
+
+rule gwas_PopID:
+    input:
+      genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
+      pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt",
+      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
+    output:
+      "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear"
+    shell:
+      """
+      plink2 \
+      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+      --glm hide-covar \
+      --covar {input.Tm} \
+      --covar-col-nums 4 \
+      --pheno {input.pheno} \
+      --pheno-name pheno_strat \
+      --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-ID
+      """
+```
+
+### Ascertain SNPs 
+
+Next we want to ascertain SNPs to include in the polygenic scores we compute in the selection test. We ascertain 3 sets of SNPs that can be used to build the PGSs. Recall that we have simulated 200 separate chromosomes and will always choose one SNP per chromosome for a maximum of 200 SNPs. In practice we set the p-value threshold to 1 so we are always ascertaining 200 variants to include.    
+
+1. Causal sites (note if the trait is not heritable these are randomly chosen sites)  
+2. Causal sites whose p-value is bellow a given threshold  
+3. Non-causal sites that are chosen as the minimum p-value (that passes a given threshold) per chromosome.  
+
+First we select the causal variants
+```{r}
+# Read in causal effects
+causal <- fread("../output/Simulate_Phenotypes/4PopSplit/B1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common.effects.txt")
+colnames(causal)=c("rsid","allele","esize")
+causal=causal%>%
+  tidyr::separate(rsid,into=c("CHROM","POS","ref","alt"),sep="_",remove=F)
+causal$POS=as.numeric(causal$POS)
+causal$CHROM=as.numeric(causal$CHROM)
+
+# Read in the GWAS estimates 
+gwas <- fread("../output/Run_GWAS/4PopSplit/B1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common.pheno_strat.glm.linear")
+colnames(gwas)[1]="CHROM"
+gwas$Index <- seq(1, nrow(gwas))
+
+# Flip effects sizes to get effect size of the ALT allele 
+flip_effect = function(gwas_df,beta_colname){
+  gwas_df = gwas_df[A1=="A", beta_colname := -BETA]
+  gwas_df = gwas_df[A1=="T", beta_colname := BETA]
+  gwas_df$A1="T"
+  gwas_df = gwas_df[,.(CHROM,POS,ID,A1,beta_colname,P, Index)]
+  colnames(gwas_df)[5] = beta_colname
+  return(gwas_df)
+}
+gwas = flip_effect(gwas,beta_colname = "BETA1")
+
+# Select effect sizes for causal variants
+gwas.causal= gwas[ID%in%causal$rsid]
+gwas.causal=gwas.causal[,c("ID","A1","BETA1", "P", "Index")]
+colnames(gwas.causal) <- c("ID", "A1", "BETA_Strat", "P", "Index")
+
+# Plot GWAS results, highlighting ascertained SNPS 
+plot(gwas$Index, -log10(gwas$P), xlab = "Index", ylab = "-log10(P)")
+points(gwas.causal$Index, -log10(gwas.causal$P), col = "red", pch = 18)
+```
+
+We can also compare estimated effect sizes to causal effect sizes
+```{r}
+plot(causal$esize,gwas.causal$BETA_Strat, xlab = "Causal Effect Size", ylab = "Estimated Effect Size")
+abline(0, 1, col = "red")
+```
+
+Next, we can filter these causal sites to only ascertain those under a given p-value (ex. 1e-3).
+```{r}
+# Function to select variants under a threshold
+fcausal_p = function(df,pvalue=pval_threshold){
+  df=df%>%
+    filter(P < pvalue)
+  return(df)
+}
+gwas.thresh = fcausal_p(gwas.causal,1e-3)
+gwas.thresh=gwas.thresh[,c("ID","A1","BETA_Strat", "P", "Index")]
+
+# Plot GWAS results, highlighting ascertained SNPS 
+plot(gwas$Index, -log10(gwas$P), xlab = "Index", ylab = "-log10(P)")
+points(gwas.thresh$Index, -log10(gwas.thresh$P), col = "green", pch = 18)
+```
+
+Finally, we will ascertain a third set of SNPs where we select the SNP with the lowest p-value, below a threshold, per chromosome.  
+```{r}
+# Function to select lowest p-value per chromosome
+fclump <- function(df, pt, CHR) {
+
+  # Select only SNPS under threshold
+  df <-  gwas1 %>% filter(P < pt) %>% filter(CHROM == CHR)
+
+  # Select lowest p-value
+  min_p <- df %>% slice_min(P, with_ties = F)
+
+  return(min_p)
+}
+
+# Extract chromosome info
+tmp = gwas %>% mutate(ID2 = ID) %>% separate(ID2, c("chr", "pos", "a1", "a2"), "_")
+gwas1= tmp %>% mutate(CHROM = chr) %>% select("CHROM", "POS", "ID", "A1", "BETA1", "P", "Index")
+
+# Set pvalue threshold
+pval_threshold = 1
+
+# Pick the minimum p-value SNP on chrom 1 
+nchrms = unique(gwas1$CHROM)
+gwas.red = fclump(gwas1, pval_threshold, 1)
+
+# Repeat selection for each chromosome
+for (i in 2:length(nchrms)) {
+  new = fclump(gwas1, pval_threshold, nchrms[i])
+  new = new[order(new), ]
+  gwas.red = rbind(gwas.red, new)
+}
+
+# Plot GWAS results, highlighting ascertained SNPS 
+plot(gwas$Index, -log10(gwas$P), xlab = "Index", ylab = "-log10(P)")
+points(gwas.red$Index, -log10(gwas.red$P), col = "purple", pch = 18)
+```
+
+Here are the snakemake rules to run all three ascertainment steps. 
+```{python, eval = FALSE}
+rule pick_SNPS:
+    input:
+      causal_effect="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
+      gwas_strat="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat.glm.linear"
+    output:
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.betas",
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.p.betas",
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.nc.betas"
+    params:
+      pt = PVALUE_THRESHOLD
+    shell:
+      """
+      Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common {params.pt} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common
+      """
+
+rule pick_SNPS_Tm:
+    input:
+      causal_effect="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
+      gwas_strat="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
+    output:
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.betas",
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.p.betas",
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.nc.betas"
+    params:
+      pt = PVALUE_THRESHOLD
+    shell:
+      """
+      Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-Tm {params.pt} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-Tm
+      """
+
+rule pick_SNPS_ID:
+    input:
+      causal_effect="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
+      gwas_strat="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear"
+    output:
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.c.betas",
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.c.p.betas",
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.nc.betas"
+    params:
+      pt = PVALUE_THRESHOLD
+    shell:
+      """
+      Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-ID {params.pt} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-ID
+      """
+```
+
+

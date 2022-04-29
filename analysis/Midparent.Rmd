@@ -76,7 +76,9 @@ sim_evo <- function(m, n, L) {
  return(list(G,X)) 
 }
 
-calc_varQ <- function(Bhat, X) {
+calc_varQ <- function(Bhat, X, Tvec) {
+  
+  n = nrow(X)
   
   # Compute GRM  
   H <- matrix(0, ncol(X),ncol(X))
@@ -151,7 +153,7 @@ parent_gwas <- function(m, n, L, plot = FALSE) {
   }
   
   # Calculate varQ 
-  varQ <- calc_varQ(Bhat, X)
+  varQ <- calc_varQ(Bhat, X, Tvec)
   
   # Get p-value 
   pval <- 2 *(1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ))) 
@@ -249,7 +251,7 @@ children_gwas <- function(m, n, L, plot = FALSE) {
   }
   
   # Calculate varQ 
-  varQ <- calc_varQ(Bhat, X)
+  varQ <- calc_varQ(Bhat, X, Tvec)
   
   # Get p-value 
   pval <- 2 *(1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ))) 
@@ -327,7 +329,8 @@ children_midparent_gwas <- function(m, n, L, plot = FALSE) {
   Bhat <- rep(NA, ncol(G_children))
   for (i in 1:ncol(G_children)) {
     x = G_children[,i] - G_midparent[,i]
-    mod <- lm(y ~ x)
+    v =  G_midparent[,i]
+    mod <- lm(y ~ G_children[,i] + v)
     Bhat[i] <- coef(mod)[2]
   }
   
@@ -348,7 +351,7 @@ children_midparent_gwas <- function(m, n, L, plot = FALSE) {
   }
   
   # Calculate varQ 
-  varQ <- calc_varQ(Bhat, X)
+  varQ <- calc_varQ(Bhat, X, Tvec)
   
   # Get p-value 
   pval <- 2 *(1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ))) 
@@ -366,6 +369,7 @@ hist(pvals)
 ```
 
 # Do GWAS controlling for estimated midparent genotype 
+
 ```{r}
 children_est_midparent_gwas <- function(m, n, L, plot = FALSE) {
   
@@ -449,7 +453,7 @@ children_est_midparent_gwas <- function(m, n, L, plot = FALSE) {
   }
   
   # Calculate varQ 
-  varQ <- calc_varQ(Bhat, X)
+  varQ <- calc_varQ(Bhat, X, Tvec)
   
   # Get p-value 
   pval <- 2 *(1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ))) 
@@ -457,7 +461,7 @@ children_est_midparent_gwas <- function(m, n, L, plot = FALSE) {
   return(pval)
 }
   
-reps <- 100  
+reps <- 500  
 pvals <- rep(NA, reps) 
 pvals[1] <- children_est_midparent_gwas(2000, 100, 100, plot = T)
 for (i in 2:reps) {
@@ -547,6 +551,19 @@ hist(pvals)
 
 
 
+```{r}
+x1 <- rnorm(100)
+x2 <- rnorm(100)
+E  <-  0.5*x1
+Y <- x2 + E 
+
+lm(Y  ~ x2)
+
+x <- x2 - x1
+lm(Y ~ x)
+
+lm(Y ~ x1 + x2)
+```
 
 
 

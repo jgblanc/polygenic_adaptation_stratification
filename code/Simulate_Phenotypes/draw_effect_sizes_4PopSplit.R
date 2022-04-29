@@ -77,7 +77,7 @@ causal.variants$beta = sapply( causal.variants$ALT_FREQS , function(x){
 })
 causal.variants$beta <- abs(causal.variants$beta)
 
-#let's calculate sigma2_g to confirm that the total genetic variance is indeed 0.8
+#let's calculate sigma2_g to confirm that the total genetic variance is indeed 0.3
 sigma2_g = sum( mapply(function(b,p){ b^2* 2*p*(1-p) }, causal.variants$beta, causal.variants$ALT_FREQS))
 print(sigma2_g)
 
@@ -101,7 +101,7 @@ read_genos <- function(geno_prefix, betas) {
 pop <- fread(popfile, header = F)
 colnames(pop) <- c("FID", "IID", "POP")
 
-# Read in fam file
+# Read in test fam file
 fam <- fread(paste0(geno_prefix, ".psam"))
 
 # Get only test individuals
@@ -110,7 +110,6 @@ test_inds <- inner_join(fam, pop)
 # Get number of individuals in each population
 n1 <- as.numeric(count(test_inds, POP)[1,2])
 n2 <- as.numeric(count(test_inds, POP)[2,2])
-print(c(n1, n2))
 
 # Read in genotype matrix for causal variants
 G <- read_genos(geno_prefix, causal.variants[,"ID"])
@@ -121,18 +120,22 @@ p2 <- colMeans(G[(n1+1):(n1+n2),])/2
 
 # Get allele frequency difference
 diff <- p1 - p2
-print(max(diff))
 
 # Create correlation between effect size and pop ID
 for (i in 1:nrow(causal.variants)){
   b <- causal.variants[i,"beta"]
   if (diff[i] >= 0) {
     causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c((1-prob), prob)) * b
-  } 
+  } else {
+    causal.variants[i,"beta"] <- sample(c(1, -1),1, prob = c((1-prob), prob)) * b
+  }
 }
 
 # Print probability of positive beta
-print(sum(causal.variants$beta > 0)/length(causal.variants$beta))
+indx_greater = which(diff > 0)
+indx_smaller = which(diff < 0)
+print(sum(causal.variants[indx_greater,]$beta > 0)/sum(diff > 0))
+print(sum(causal.variants[indx_smaller,]$beta < 0)/sum(diff < 0))
 
 #save the effect sizes to file and use plink2 to generate PRS
 fwrite(causal.variants%>%

@@ -49,8 +49,12 @@ if (env_s >= 0) {
   prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[2], env + abs(env_s), env ))
 }
 
+# Draw environmental component
+prs$env = sapply(prs$pop, function(x){ if(x == pops[1]){rnorm(n = 1, mean = env_s, sd = sqrt(1 - h2)) }
+  else{rnorm(n = 1, mean = 0, sd = sqrt(1 - h2))}})
+prs$env <- scale(prs$env , scale = T) * sqrt(1 - h2)
 
-# Calculate average phenotype
+# Calculate average environmental component
 Z1 = prs %>% group_by(pop) %>% summarise(avg = mean(env)) %>% filter(pop == pops[1]) %>% pull(avg)
 Z2 = prs %>% group_by(pop) %>% summarise(avg = mean(env)) %>% filter(pop == pops[2]) %>% pull(avg)
 
@@ -60,7 +64,7 @@ N2 = nrow(prs %>% filter(pop == pops[2]))
 Z1_gwas = sqrt(N1/N1_gwas) * Z1
 Z2_gwas = sqrt(N2/N2_gwas) * Z2
 
-# Recalulate individual phenotypes
+# Recalulate individual environmental components
 delta1 = Z1 - Z1_gwas
 delta2 = Z2 - Z2_gwas
 prs = prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env - delta1, env - delta2))

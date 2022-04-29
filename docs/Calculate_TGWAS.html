@@ -12,7 +12,7 @@
 <meta name="author" content="Jennifer Blanc" />
 
 
-<title>Simulate Phenotypes</title>
+<title>Calculate TGWAS</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -354,9 +354,9 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Simulate Phenotypes</h1>
+<h1 class="title toc-ignore">Calculate TGWAS</h1>
 <h4 class="author">Jennifer Blanc</h4>
-<h4 class="date">9/28/2021</h4>
+<h4 class="date">4/14/2022</h4>
 
 </div>
 
@@ -381,10 +381,10 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2022-04-29
+<strong>Last updated:</strong> 2022-04-26
 </p>
 <p>
-<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 5 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 2
 </p>
 <p>
 <strong>Knit directory:</strong> <code>polygenic_adaptation_stratification/analysis/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
@@ -405,7 +405,7 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 </div>
 <div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+<p>The R Markdown is untracked by Git. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
 </div>
 </div>
 </div>
@@ -448,12 +448,18 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongdetected"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>Cache:</strong> detected </a>
 </p>
 </div>
-<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div id="strongCachestrongdetected" class="panel-collapse collapse">
 <div class="panel-body">
-<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+The following chunks had caches available:
+<ul>
+<li>
+unnamed-chunk-5
+</li>
+</ul>
+<p>To ensure reproducibility of the results, delete the cache directory <code>Calculate_TGWAS_cache</code> and re-run the analysis. To have workflowr automatically delete the cache directory prior to building the file, set <code>delete_cache = TRUE</code> when running <code>wflow_build()</code> or <code>wflow_publish()</code>.</p>
 </div>
 </div>
 </div>
@@ -549,9 +555,11 @@ Ignored files:
 Untracked files:
     Untracked:  _workflowr.yml~
     Untracked:  analysis/Calculate_TGWAS.Rmd
-    Untracked:  analysis/Polygenic_Selection_Test.Rmd
     Untracked:  analysis/Run_GWAS.Rmd
     Untracked:  code/Snakefiles/SimpleGrid/North-South-Meta/
+    Untracked:  plink2.acount
+    Untracked:  plink2.fst.summary
+    Untracked:  plink2.log
     Untracked:  temp.R
 
 Unstaged changes:
@@ -565,14 +573,11 @@ Unstaged changes:
     Modified:   code/Calculate_Tm/4PopSplit_make_tvec.R
     Modified:   code/Calculate_Tm/calc_Tm.R
     Modified:   code/Calculate_Tm/format_ID_covars.R
-    Modified:   code/PGA_test/4PopSplit_calc_lambdaT.R
-    Modified:   code/PGA_test/calc_Qx_4PopSplit.R
     Modified:   code/PRS/clump.R
     Modified:   code/Simulate_Genotypes/generate_genotypes_4PopSplit.py
     Modified:   code/Simulate_Genotypes/split_gwas-test_4PopSplit.R
     Modified:   code/Simulate_Phenotypes/draw_effect_sizes_4PopSplit.R
     Modified:   code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit.R
-    Modified:   code/Simulate_Phenotypes/simulate_phenotypes_SimpleGrid.R
     Deleted:    code/Snakefiles/4PopSplit/Signal/snakefile
     Modified:   snakefile
 
@@ -587,403 +592,160 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
-
 <p>
-These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/Simulate_Phenotypes.Rmd</code>) and HTML (<code>docs/Simulate_Phenotypes.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+There are no past versions. Publish this analysis with <code>wflow_publish()</code> to start tracking its development.
 </p>
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-File
-</th>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-<th>
-Message
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/3c774bfa756e4900af963112d14deb7ed000f4e8/docs/Simulate_Phenotypes.html" target="_blank">3c774bf</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-05
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/cba0a794d92676b31dc4ac30147503c02840d20d/analysis/Simulate_Phenotypes.Rmd" target="_blank">cba0a79</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-05
-</td>
-<td>
-Publish website
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/d395ec753b671275347ed497cdb3d84aed17816f/analysis/Simulate_Phenotypes.Rmd" target="_blank">d395ec7</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-04
-</td>
-<td>
-transfer true signal up
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/d395ec753b671275347ed497cdb3d84aed17816f/docs/Simulate_Phenotypes.html" target="_blank">d395ec7</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-04
-</td>
-<td>
-transfer true signal up
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/3f39fdcfdbabcb78f630b3e0d276167b7fd1568e/analysis/Simulate_Phenotypes.Rmd" target="_blank">3f39fdc</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-01
-</td>
-<td>
-send up
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/3f39fdcfdbabcb78f630b3e0d276167b7fd1568e/docs/Simulate_Phenotypes.html" target="_blank">3f39fdc</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-01
-</td>
-<td>
-send up
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/4a478051738fc7e6fb2d027da74d1a0b02c9722c/analysis/Simulate_Phenotypes.Rmd" target="_blank">4a47805</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-09-29
-</td>
-<td>
-organizing website
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jgblanc/polygenic_adaptation_stratification/4a478051738fc7e6fb2d027da74d1a0b02c9722c/docs/Simulate_Phenotypes.html" target="_blank">4a47805</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-09-29
-</td>
-<td>
-organizing website
-</td>
-</tr>
-</tbody>
-</table>
-</div>
 <hr>
 </div>
 </div>
 </div>
-<div id="simulate-phenotypes" class="section level2">
-<h2>Simulate Phenotypes</h2>
-<p>Please see (<a href="https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html" class="uri">https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html</a>) for an explanation of the orginal code which we modified for our models.</p>
-<div id="draw-effect-sizes" class="section level3">
-<h3>Draw effect sizes</h3>
-<p>This rule takes the target heritability as a parameter and will select a single site per chromosome and randomly draw its “true” effect size. If the heritability is set to zero then all sites will have an effect size of zero. Below we walk through an example to demonstrate how effect sizes are drawn.</p>
-<pre class="python"><code># Snakemake rule
-rule draw_effect_sizes:
+<div id="calculate-tgwas" class="section level2">
+<h2>Calculate <span class="math inline">\(T^{GWAS}\)</span></h2>
+<p>Here we will walk through our procedure for estimating <span class="math inline">\(T^{GWAS}\)</span>.</p>
+<div id="make-test-vector" class="section level3">
+<h3>Make Test Vector</h3>
+<p>First we need to make the test vector along which will we test for selection. In our 4 population toy model this is simply population ID so we create a <span class="math inline">\(n \times1\)</span> vector, where <span class="math inline">\(n\)</span> is the number of individuals in the test panel, where individuals in the first test population are coded as <span class="math inline">\(1\)</span> and individuals in the second test population are <span class="math inline">\(0\)</span>. We then mean center the test vector.</p>
+<pre class="python"><code># Snakemake rule 
+rule make_test_vector:
     input:
-        &quot;output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.afreq&quot;
+        pops=&quot;output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop&quot;,
+        fam=&quot;output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam&quot;
     output:
-        &quot;output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt&quot;
+        &quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt&quot;
+    shell:
+        &quot;Rscript code/Calculate_Tm/4PopSplit_make_tvec.R {input.pops} {input.fam} {output}&quot;</code></pre>
+<p>Example:</p>
+<pre class="r"><code># Read in Fam file
+fam &lt;- fread(&quot;../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-test_common.psam&quot;)
+colnames(fam) &lt;- c(&quot;FID&quot;, &quot;IID&quot;, &quot;SEX&quot;)
+
+# Read in population information 
+pops &lt;- fread(&quot;../output/Simulate_Genotypes/4PopSplit/B1/genos.pop&quot;, header = F)
+colnames(pops)  &lt;- c(&quot;FID&quot;, &quot;IID&quot;, &quot;POP&quot;)
+
+# Join tables
+pop &lt;- dplyr::inner_join(pops, fam) %&gt;% dplyr::select(c(&quot;FID&quot;, &quot;IID&quot;, &quot;POP&quot;))
+test_pops &lt;- unique(pop$POP)
+
+# Make test vector as a new column
+pop &lt;- pop %&gt;% mutate(Tvec = case_when(POP == test_pops[1] ~ 1, POP == test_pops[2] ~ 0)) %&gt;% mutate(Tvec = Tvec - mean(Tvec))
+
+# Dispaly test vector 
+table(pop$POP, pop$Tvec)</code></pre>
+<pre><code>   
+    -0.5  0.5
+  B    0 1000
+  D 1000    0</code></pre>
+</div>
+<div id="compute-covariate" class="section level3">
+<h3>Compute covariate</h3>
+<p>In the main text we derive a single covariate, <span class="math inline">\(T^{GWAS}\)</span>, to control for stratification specific to the test of interest.</p>
+<p><span class="math display">\[\vec{T}^{GWAS} = GX^T(XX^T)^{-1}\vec{T}\]</span></p>
+<p>Here <span class="math inline">\(G\)</span> is the GWAS genotype matrix while <span class="math inline">\(X\)</span> is the test genotype matrix. Due to the size of the genotype matrices we cannot simply multiply the matrices in R. Instead we use plink2 to project each test panel principal component into the GWAS panel and then weight them according to their covariance with the test vector.</p>
+<p>First we can write the test panel genotype matrix in terms of its singular value decomposition, <span class="math display">\[\vec{T}^{GWAS} = GV_X\Lambda_XU_X^T(U_X\Lambda^{2}U_X^T)^{-1}\vec{T} \\ 
+= GV_X\Lambda_XU_X^TU_X\Lambda^{-2}U_X^T\vec{T} \\ 
+= GV_X\Lambda_X^{-1}U_X^T\vec{T}\]</span></p>
+<p>We can then write our test vector as a sum of eigenvectors of the test panel, <span class="math inline">\(\vec{T} = \sum\limits_{n=1}^N\alpha_n\vec{U}_{X,n}\)</span></p>
+<p><span class="math display">\[\vec{T}^{GWAS} = \sum\limits_{n=1}^N \frac{\alpha_n}{\lambda_n} G \vec{V}_{X, n}\]</span></p>
+<p>Using the above express we can see that one way to compute <span class="math inline">\(\vec{T}^{GWAS}\)</span> is to:</p>
+<ol style="list-style-type: decimal">
+<li>Use plink2 <code>--pca allele-wts</code> on the test panel genotype matrix to get the eigenvectors <span class="math inline">\(U_X\)</span>, the SNP loadings <span class="math inline">\(V_X\)</span>, and the eigenvalues <span class="math inline">\(\Lambda_X\)</span>.<br />
+</li>
+<li>Use R to calculate the weight of each test panel eigenvector on the test vector: <span class="math inline">\(\alpha_k = \vec{U}_{X,k}^T \vec{T}\)</span><br />
+</li>
+<li>Use plink2 <code>--sccore</code> to multiply the rows of <span class="math inline">\(G\)</span> by all the columns of <span class="math inline">\(V_X\)</span>. This is equivalent to projecting each of the test panel eigenvectors in <span class="math inline">\(G\)</span>.<br />
+</li>
+<li>Use R to weight each projected eigenvalue by <span class="math inline">\(\frac{\alpha_k}{\lambda_k}\)</span> and sum across <span class="math inline">\(N\)</span>.</li>
+</ol>
+<pre class="python"><code># Snakemake rules
+rule proj_T:
+    input:
+        &quot;output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam&quot;,
+        &quot;output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam&quot;,
+        &quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt&quot;
     params:
-        her = lambda wildcards: get_params(wildcards.h2),
-        seed = lambda wildcards: get_seed1(wildcards.rep, wildcards.h2)
-    shell:
-        &quot;Rscript code/Simulate_Phenotypes/simgeffects.R {input} {output} {params.her} 0.4 {params.seed}&quot;</code></pre>
-<p>Frist we need to read in the frequency of all variants included in our GWAS panel. Here we are looking at variants of a scaled down simulation of the model depicted in Figure 1A. We also set the heritability to be 0.3.</p>
-<pre class="r"><code># Read in allele frequencies and format data frame 
-p &lt;- fread(&quot;../output/Simulate_Genotypes/4PopSplit/E2/C1/genos-gwas_common.afreq&quot;)
-colnames(p)=c(&quot;chr&quot;,&quot;ID&quot;,&quot;REF&quot;,&quot;ALT&quot;,&quot;ALT_FREQS&quot;,&quot;COUNT&quot;)
-p=p[,c(&quot;chr&quot;,&quot;ID&quot;,&quot;ALT_FREQS&quot;)]
-p[, c(&quot;CHROM&quot;, &quot;position&quot;,&quot;ref&quot;,&quot;alt&quot;) := tstrsplit(ID, &quot;_&quot;, fixed=TRUE)]
-p = p[,c(&quot;CHROM&quot;,&quot;ID&quot;,&quot;position&quot;,&quot;ALT_FREQS&quot;)]
-p$position = as.numeric(p$position)
-
-# Choose heritability 
-h2 &lt;- 0.3</code></pre>
-<p>Next, we randomly sample 1 variant per chromosome to get the “causal” sites (note that these sites are not causal when the trait is non-heritable).</p>
-<pre class="r"><code># Function to randomly choose a single SNP
-sample.variant &lt;- function(df) {
-  return(sample_n(df,1))
-}
-
-# Choose one causal SNP per chromosome
-df = p %&gt;% filter(CHROM == 1)
-nchrms &lt;- length(unique(p$CHROM))
-causal.variants &lt;- sample.variant(as.data.table(df))
-for (i in 2:nchrms){
-  df = p %&gt;% filter(CHROM == i)
-  out &lt;- sample.variant(as.data.table(df))
-  causal.variants &lt;- rbind(causal.variants, out)
-}</code></pre>
-<p>We now have a single independent causal variant per chromosome. The next step is to draw an effect size for each variant such that <span class="math inline">\(h^2 = 0.3\)</span>. Below we provide a brief explanation of the “alpha model” used to mimick the genetic architecture of height; please see for an explanation of the model and code <a href="https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html">Zaidi and Mathieson</a> for more detail.</p>
-<p>Under this model effect sizes are drawn according to:<br />
-<span class="math display">\[\beta_{\ell} \sim N(0, \sigma_{i} [p_{\ell} (1-p_{\ell})]^\alpha )\]</span></p>
-<p>where:</p>
-<p><span class="math inline">\(\sigma_{i} =\)</span> the frequency independent component of genetic variance asspciated with variant <span class="math inline">\(\ell\)</span><br />
-<span class="math inline">\(p_{\ell} =\)</span> the frequency of the alternate allele at site <span class="math inline">\(\ell\)</span><br />
-<span class="math inline">\(\alpha =\)</span> a scaling factor that determines how effect size is related to frequency</p>
-<p>First we calculate <span class="math inline">\(\sigma_{i}\)</span> based on the frequencies of the causal sites, the target heritability, and the chosen value of <span class="math inline">\(\alpha\)</span>. Here we use <span class="math inline">\(\alpha = 0.4\)</span></p>
-<pre class="r"><code>alpha = 0.4
-sigma2_l = h2 / sum( sapply( causal.variants$ALT_FREQS,function(x){
-  beta= ( 2*x*(1-x)) ^ (1-alpha)
-  return(beta)
-}))</code></pre>
-<p>Next, we use <span class="math inline">\(\sigma_{i}\)</span> and the individual variant allele frequncies to draw and effect size for each site. Here we plot the minor allele frequency vs. the absolute value of the effect size. There is a general relationship between frequency and effect size in that alleles at intermediate frequency are less likely to have larger effect sizes. This is meant to reflect the hypothesis that negative selection keeps large effect alleles at lower-frequency in the population (see Schoech et al. 2019).</p>
-<pre class="r"><code>causal.variants$beta = sapply( causal.variants$ALT_FREQS , function(x){
-  beta = rnorm( 1 , mean = 0, sd = sqrt(sigma2_l * (2*x*(1-x))^-alpha ))
-})
-causal.variants$beta &lt;- abs(causal.variants$beta)
-
-df &lt;- causal.variants %&gt;% mutate(maf = case_when(ALT_FREQS &gt; 0.5 ~ 1 - ALT_FREQS, ALT_FREQS &lt;= 0.5 ~ ALT_FREQS))
-plot(df$maf, abs(causal.variants$beta), xlab = &quot;Minor allele frequency&quot;, ylab = &quot;|Effect Size|&quot;, pch = 19 , col = &quot;navy&quot;) </code></pre>
-<p><img src="figure/Simulate_Phenotypes.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-5-1">
-Past versions of unnamed-chunk-5-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-5-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/jgblanc/polygenic_adaptation_stratification/blob/d395ec753b671275347ed497cdb3d84aed17816f/docs/figure/Simulate_Phenotypes.Rmd/unnamed-chunk-5-1.png" target="_blank">d395ec7</a>
-</td>
-<td>
-jgblanc
-</td>
-<td>
-2021-10-04
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div id="true-signal" class="section level4">
-<h4>True signal</h4>
-<p>For some of our simulations, we want to create a “true signal” of polygenic adaptation. To do this, we create a correlation between true effect sizes and allele frequency difference in the test panel such that alleles more common in one of the test populations are also more likely to have a positive effect size. In the example below we have a vector of hypothetical frequency differences in the test panel and flip the effect sizes so that 75% of of the time the allele at higher frequency in pop X also has a positive effect size on the trait.</p>
-<pre class="r"><code># Hypothetical allele frequency differences in the test panel 
-diff &lt;- rnorm(200,0,1)
-
-# Probability allele with higher frequence also has a positive effect
-prob &lt;- 0.75
-
-# Flip effect sizes to create true signal
-for (i in 1:nrow(causal.variants)){
-  b &lt;- causal.variants[i,&quot;beta&quot;]
-  if (diff[i] &gt;= 0) {
-    causal.variants[i,&quot;beta&quot;] &lt;- sample(c(-1, 1),1, prob = c((1-prob), prob)) * b
-  } else {
-    causal.variants[i,&quot;beta&quot;] &lt;- sample(c(1, -1),1, prob = c((1-prob), prob)) * b
-  }
-}
-
-# Check that the observed probabilities are close to `prob`
-indx_greater = which(diff &gt; 0)
-indx_smaller = which(diff &lt; 0)
-print(sum(causal.variants[indx_greater,]$beta &gt; 0)/sum(diff &gt; 0))</code></pre>
-<pre><code>[1] 0.8380952</code></pre>
-<pre class="r"><code>print(sum(causal.variants[indx_smaller,]$beta &lt; 0)/sum(diff &lt; 0))</code></pre>
-<pre><code>[1] 0.7473684</code></pre>
-</div>
-</div>
-<div id="calculate-genetic-values" class="section level3">
-<h3>Calculate genetic values</h3>
-<p>Now that we have effect sizes, we can compute the genetic value for each individual in the GWAS panel as:<br />
-<span class="math display">\[Z_{i} = \sum\limits_{\ell = 1}^L \beta_{\ell} g_{i,\ell}\]</span></p>
-<p>where <span class="math inline">\(g_{i,\ell}\)</span> is the genotype of the <span class="math inline">\(i^{th}\)</span> individual at site <span class="math inline">\(\ell\)</span> and <span class="math inline">\(L\)</span> is the total number of causal sites. We compute this value using the plink –score function as show below.</p>
-<pre class="python"><code># Snakemake rule
-rule generate_genetic_values:
-    input:
-        &quot;output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam&quot;,
-        &quot;output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pvar&quot;,
-        &quot;output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.pgen&quot;,
-        &quot;output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.effects.txt&quot;
+        n_minus_1 = int(SIZE)-1,
+        col_start = 6,
+        col_end = int(SIZE) + 4
     output:
-        &quot;output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore&quot;
+        &quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec&quot;,
+        &quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval&quot;,
+        &quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec.allele&quot;,
+        &quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/projection.sscore&quot;
     shell:
-        &quot;plink2 \
-         --pfile output/Simulate_Genotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-        --out output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-gwas_common.gvalue \
-        --score output/Simulate_Phenotypes/{wildcards.model}/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/genos-gwas_common.effects.txt cols=dosagesum,scoresums&quot;</code></pre>
-</div>
-<div id="simulate-phenotype" class="section level3">
-<h3>Simulate Phenotype</h3>
-<p>Finally, we need to use the true genetic values to simulate a phenotype for each individual in the GWAS panel.</p>
-<pre class="python"><code># Snakemake rule
-rule simulate_phenotype_4PopSplit:
+        &quot;&quot;&quot;
+        plink2 \
+        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --pca allele-wts {params.n_minus_1} \
+        --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca
+
+        plink2 \
+        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+        --score output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
+        --score-col-nums {params.col_start}-{params.col_end} \
+        --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/projection
+        &quot;&quot;&quot;
+
+rule calc_Tm:
     input:
-        gvalues=&quot;output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore&quot;,
-        pops=&quot;output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop&quot;
+        vecs=&quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec&quot;,
+        vals=&quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval&quot;,
+        proj=&quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/projection.sscore&quot;,
+        tvec=&quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt&quot;,
+        allele=&quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec.allele&quot;
     output:
-        &quot;output/Simulate_Phenotypes/{model}/{rep}/{config}/{h2}/{env}/genos-gwas_common.phenos.txt&quot;
-    params:
-        her = lambda wildcards: get_params(wildcards.h2),
-        en = lambda wildcards: get_params(wildcards.env),
-        seed = lambda wildcards: get_seed(wildcards.rep,wildcards.h2,wildcards.env)
+        Tm=&quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt&quot;,
+        weights=&quot;output/Calculate_Tm/4PopSplit/{rep}/{config}/Test_weights.txt&quot;
     shell:
-        &quot;Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit_meanshift.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}&quot;</code></pre>
-<p>To generate the phenotype we first draw the environmental component of an individual’s phenotype according to their population:</p>
-<p><span class="math display">\[e_i | i \in A  \sim N(\mu, 1 - h^2)\]</span> <span class="math display">\[e_i | i \notin A  \sim N(0, 1 - h^2)\]</span></p>
-<p>Here <span class="math inline">\(\mu\)</span> is the magnitude of the stratifcation effect so population A will have a larger mean phenotype due to non-genetic reasons. Addditionally, because we are using scaled down simulations in order to run many replicates, we want to ensure the difference across populations in the average environmental component of the phenotype reflect a realistic GWAS sample size.</p>
-<p><span class="math display">\[\hat{\bar{e}}^{GWAS}_{i,k} = \left[ \frac{N_k^{sim}}{N_k^{GWAS}}\right]^{\frac{1}{2}}\hat{\bar{e}}_k^{sim}\]</span></p>
-<p>Here <span class="math inline">\(N_k^{sim}\)</span> is the sample GWAS sample size in population <span class="math inline">\(k\)</span> and <span class="math inline">\(N_k^{GWAS}\)</span> is the desired GWAS sample size for population <span class="math inline">\(k\)</span> which we set to <span class="math inline">\(\frac{500,000}{K}\)</span> where <span class="math inline">\(K\)</span> are the total number of populations/demes in the GWAS panel. We then calculate,</p>
-<p><span class="math display">\[\Delta_k = \hat{\bar{e}}_k^{sim} - \hat{\bar{e}}^{GWAS}_{i,k}\]</span></p>
-<p>and substract <span class="math inline">\(\Delta_k\)</span> from <span class="math inline">\(e_i\)</span> for all individuals in population <span class="math inline">\(k\)</span>.</p>
-<p>Finally, we add the environmental component to the genetic value to generate each individuals final phenotype.</p>
-<p><span class="math display">\[Y_i = Z_i + e_i\]</span></p>
-<pre class="r"><code># Load true genetic values
-prs=fread(&quot;../output/Simulate_Phenotypes/4PopSplit/E2/C1/h2-0/genos-gwas_common.gvalue.sscore&quot;)
-colnames(prs)&lt;-c(&quot;IID&quot;,&quot;dosage&quot;,&quot;prs&quot;)
+        &quot;&quot;&quot;
+        Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} {input.proj} {input.tvec} {output.Tm} {output.weights}
+        rm {input.allele}
+        &quot;&quot;&quot;</code></pre>
+<p>Next we walk through our 4 population example. In this example we are working in the configuration where there is shared structure between the GWAS and test panels (i.e Figure 1A). Here our test vector is separating populations on opposite sides of the deepest split. Because there is overlapping structure and shared drift between panels, we expect that <span class="math inline">\(\vec{T}^{GWAS}\)</span> will also separate the two population that comprise the GWAS panel.</p>
+<p>Let’s read in both the test and GWAS genotype matrices.</p>
+<pre class="r"><code># Read GWAS Matrix 
+pvar &lt;- NewPvar(&quot;../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-gwas_common.pvar&quot;)
+d1 &lt;- NewPgen(&quot;../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-gwas_common.pgen&quot;)
+G &lt;- ReadList(d1,seq(1,10905), meanimpute=F)
+G &lt;- scale(G)
 
-# Load file containing the pop ID for each inidividual
-pop=fread(&quot;../output/Simulate_Genotypes/4PopSplit/E2/genos.pop&quot;,header=F)
-colnames(pop)&lt;-c(&quot;IID&quot;,&quot;FID&quot;,&quot;pop&quot;)
+# Read in Test Matrix 
+pvar &lt;- NewPvar(&quot;../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-test_common.pvar&quot;)
+d1 &lt;- NewPgen(&quot;../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-test_common.pgen&quot;)
+X &lt;- ReadList(d1,seq(1, 10905), meanimpute=F)
+X &lt;- scale(X)</code></pre>
+<p>First, let’s calculate <span class="math inline">\(\vec{T}^{GWAS}\)</span> just by doing matrix multiplication.</p>
+<pre class="r"><code>Tvec &lt;- pop$Tvec
+TGWAS_mat &lt;-  G %*% t(X) %*% pinv(X %*% t(X)) %*% Tvec
+plot(TGWAS_mat)</code></pre>
+<p><img src="figure/Calculate_TGWAS.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /> We can see that <span class="math inline">\(\vec{T}^{GWAS}\)</span> is recapitulating the population structure we expect.</p>
+<p>Now let’s check that the our plink procedure get’s us the same answer.</p>
+<pre class="r"><code># Load test eigen vecs
+vecs &lt;- fread(&quot;../output/Calculate_Tm/4PopSplit/B1/C1/pca.eigenvec&quot;)
+vecs &lt;- vecs[,3:ncol(vecs)]
+vecs &lt;- apply(vecs, 2, as.numeric)
 
-# Merge populaiton and PRS tables
-prs=merge(prs, pop, by=&quot;IID&quot;, sort=F)
+# Get the weights of each eigenvector
+B &lt;- t(vecs) %*% Tvec
+Br = abs(B) / sum(abs(B))
 
-# Get list of populations
-pops &lt;- unique(prs$pop)
+# Load Projected eigenvectors
+proj_vecs &lt;- fread(&quot;../output/Calculate_Tm/4PopSplit/B1/C1/projection.sscore&quot;)
+proj_vecs &lt;- proj_vecs[,5:ncol(proj_vecs)]
+proj_vecs &lt;- apply(proj_vecs, 2, as.numeric)
 
-# Assign a value for the environmental shift 
-env_s = 10
+# Load Eigenvalues
+vals &lt;- fread(&quot;../output/Calculate_Tm/4PopSplit/B1/C1/pca.eigenval&quot;)
+vals &lt;- vals$V1
 
-# Draw random environment and shift mean phenotype by `env_s` in population A 
-prs$env = sapply(prs$pop, function(x){ 
-  if(x == &quot;A&quot;){rnorm(n = 1, mean = env_s, sd = sqrt(1 - h2))}
-  else{rnorm(n = 1, mean = 0, sd = sqrt(1 - h2))}})
-prs$env &lt;- scale(prs$env , scale = T) * sqrt(1 - h2)
+# Calculate Tm (for some reason need to scale by -2)
+Tm &lt;- proj_vecs %*% diag(1/sqrt(vals)) %*% B
+TGWAS &lt;- -2 * Tm
 
-# Rescale envrionmental differences between pops 
-
-# Sample sizes 
-sample_size=nrow(prs)
-NGWAS = 500000
-N1_gwas = NGWAS / 2
-N2_gwas = NGWAS / 2
-
-# Calculate average environmental component
-Z1 = prs %&gt;% group_by(pop) %&gt;% summarise(avg = mean(env)) %&gt;% filter(pop == pops[1]) %&gt;% pull(avg)
-Z2 = prs %&gt;% group_by(pop) %&gt;% summarise(avg = mean(env)) %&gt;% filter(pop == pops[2]) %&gt;% pull(avg)
-
-# Rescale averages
-N1 = nrow(prs %&gt;% filter(pop == pops[1]))
-N2 = nrow(prs %&gt;% filter(pop == pops[2]))
-Z1_gwas = sqrt(N1/N1_gwas) * Z1
-Z2_gwas = sqrt(N2/N2_gwas) * Z2
-
-# Recalulate individual environmental components
-delta1 = Z1 - Z1_gwas
-delta2 = Z2 - Z2_gwas
-prs = prs %&gt;% group_by(pop) %&gt;% mutate(env = ifelse(pop == pops[1], env - delta1, env - delta2))
-
-# Add environmental effect to genetic value
-prs = prs %&gt;%
-  mutate(pheno_strat = prs + env)
-
-# Plot phenotype distribution 
-ggplot(data = prs, aes(x = pheno_strat, fill = pop)) + geom_density(alpha = 0.5) + theme_classic(base_size = 16) + xlab(&quot;Phenotype&quot;) </code></pre>
-<p><img src="figure/Simulate_Phenotypes.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+plot(TGWAS, TGWAS_mat)
+abline(0,1, col = &quot;red&quot;)</code></pre>
+<p><img src="figure/Calculate_TGWAS.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Using plink2 to compute <span class="math inline">\(\vec{T}^{GWAS}\)</span> allows us to efficiently calculate our covariate of interest while avoiding any larger scale matrix multiplication.</p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -1007,23 +769,21 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] ggplot2_3.3.5     dplyr_1.0.7       data.table_1.14.2
+[1] pracma_2.3.3      dplyr_1.0.7       data.table_1.14.2 pgenlibr_0.3.1   
 
 loaded via a namespace (and not attached):
- [1] reticulate_1.20  tidyselect_1.1.1 xfun_0.29        bslib_0.3.0     
- [5] purrr_0.3.4      lattice_0.20-44  colorspace_2.0-2 vctrs_0.3.8     
- [9] generics_0.1.0   htmltools_0.5.2  yaml_2.2.1       utf8_1.2.2      
-[13] rlang_0.4.12     jquerylib_0.1.4  later_1.3.0      pillar_1.6.4    
-[17] glue_1.6.0       withr_2.4.3      DBI_1.1.1        lifecycle_1.0.1 
-[21] stringr_1.4.0    munsell_0.5.0    gtable_0.3.0     workflowr_1.6.2 
-[25] evaluate_0.14    labeling_0.4.2   knitr_1.37       fastmap_1.1.0   
-[29] httpuv_1.6.2     fansi_0.5.0      highr_0.9        Rcpp_1.0.7      
-[33] promises_1.2.0.1 scales_1.1.1     jsonlite_1.7.2   farver_2.1.0    
-[37] fs_1.5.2         png_0.1-7        digest_0.6.29    stringi_1.7.6   
-[41] rprojroot_2.0.2  grid_3.6.2       tools_3.6.2      magrittr_2.0.1  
-[45] sass_0.4.0       tibble_3.1.6     crayon_1.4.2     whisker_0.4     
-[49] pkgconfig_2.0.3  ellipsis_0.3.2   Matrix_1.3-4     assertthat_0.2.1
-[53] rmarkdown_2.10   R6_2.5.1         git2r_0.28.0     compiler_3.6.2  </code></pre>
+ [1] Rcpp_1.0.7       highr_0.9        pillar_1.6.4     compiler_3.6.2  
+ [5] bslib_0.3.0      later_1.3.0      jquerylib_0.1.4  git2r_0.28.0    
+ [9] workflowr_1.6.2  tools_3.6.2      digest_0.6.29    lattice_0.20-44 
+[13] jsonlite_1.7.2   evaluate_0.14    lifecycle_1.0.1  tibble_3.1.6    
+[17] png_0.1-7        pkgconfig_2.0.3  rlang_0.4.12     Matrix_1.3-4    
+[21] DBI_1.1.1        yaml_2.2.1       xfun_0.29        fastmap_1.1.0   
+[25] stringr_1.4.0    knitr_1.37       generics_0.1.0   fs_1.5.2        
+[29] vctrs_0.3.8      sass_0.4.0       grid_3.6.2       tidyselect_1.1.1
+[33] rprojroot_2.0.2  reticulate_1.20  glue_1.6.0       R6_2.5.1        
+[37] fansi_0.5.0      rmarkdown_2.10   purrr_0.3.4      magrittr_2.0.1  
+[41] promises_1.2.0.1 ellipsis_0.3.2   htmltools_0.5.2  assertthat_0.2.1
+[45] httpuv_1.6.2     utf8_1.2.2       stringi_1.7.6    crayon_1.4.2    </code></pre>
 </div>
 </div>
 </div>

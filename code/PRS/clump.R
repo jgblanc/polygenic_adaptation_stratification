@@ -30,8 +30,8 @@ colnames(gwas1)[1]="CHROM"
 
 # Function to get the effect size for the T allele
 flip_effect = function(gwas_df,beta_colname){
-  gwas_df = gwas_df[ A1=="A", beta_colname := -BETA]
-  gwas_df = gwas_df[ A1=="T", beta_colname := BETA]
+  gwas_df = gwas_df[A1=="A", beta_colname := -BETA]
+  gwas_df = gwas_df[A1=="T", beta_colname := BETA]
   gwas_df$A1="T"
   gwas_df = gwas_df[,.(CHROM,POS,ID,A1,beta_colname,P)]
   colnames(gwas_df)[5] = beta_colname
@@ -41,26 +41,19 @@ flip_effect = function(gwas_df,beta_colname){
 # Flip to get correct effect sizes
 gwas1 = flip_effect(gwas1,beta_colname = "BETA1")
 
-
-print("filtering causal variants")
-#select effect sizes for causal variants
+# Select effect sizes for causal variants
 gwas1.1 = gwas1[ID%in%causal$rsid]
 gwas.causal=gwas1.1[,c("ID","A1","BETA1")]
 colnames(gwas.causal) <- c("ID", "A1", "BETA_Strat")
 
+# Write Beta hat for causal effects
 fwrite(gwas.causal,
        paste(output_file_prefix,".c.betas",sep=""),
        col.names=T,row.names=F,quote=F,sep="\t")
 
+##################################
 
-print("filtering variants under a pvalue threshold")
-#write function to select causal variants below some p-value threshold
-fcausal_p = function(gwas_df,beta_colname,pvalue=pval_threshold){
-
-  gwas_df[ P > pvalue, (beta_colname) := 0]
-  return(gwas_df)
-}
-
+# Write function to select causal variants below some p-value threshold
 fcausal_p = function(df,pvalue=pval_threshold){
 
   df=df%>%
@@ -79,13 +72,13 @@ if (nrow(gwas.causal.p) < 1) {
   gwas.causal.p[1,4] <- 0
 }
 
+# Write Beta hat for causal effects under a p-value threshold
 fwrite(gwas.causal.p,
        paste(output_file_prefix, ".c.p.betas" , sep=""),
        col.names=T, row.names=F , quote=F , sep="\t")
 
+#################################
 
-
-print("ld clumping")
 # Function to select lowest p-value per chromosome
 fclump <- function(df, pt, CHR) {
 
@@ -103,6 +96,7 @@ gwas1= tmp %>% mutate(CHROM = chr) %>% select("CHROM", "POS", "ID", "A1", "BETA1
 nchrms = unique(gwas1$CHROM)
 gwas.red = fclump(gwas1, pval_threshold, 1)
 gwas.red = gwas.red[order(gwas.red), ]
+
 # Repeat clumping for each chromosome
 for (i in 2:length(nchrms)) {
   new = fclump(gwas1, pval_threshold, nchrms[i])
@@ -121,6 +115,7 @@ if (nrow(gwas.red) < 1) {
   gwas.red[1,4] <- 0
 }
 
+# Write Beta hat from LD clumping
 fwrite(gwas.red,
        paste(output_file_prefix,".nc.betas",sep=""),
        col.names=T,row.names=F,quote=F,sep="\t")

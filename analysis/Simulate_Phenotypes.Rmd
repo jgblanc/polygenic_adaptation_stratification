@@ -1,5 +1,5 @@
 ---
-title: "Simulate_Phenotypes"
+title: "Simulate Phenotypes"
 author: "Jennifer Blanc"
 date: "9/28/2021"
 output: html_document
@@ -34,7 +34,7 @@ rule draw_effect_sizes:
         "Rscript code/Simulate_Phenotypes/simgeffects.R {input} {output} {params.her} 0.4 {params.seed}"
 ```
 
-Frist we need to read in the frequency of all variants included in our GWAS panel. Here we are looking at variants of a scaled down simulation of the model depicted in Figure 1A. We also set the heritability to be 0.8.  
+Frist we need to read in the frequency of all variants included in our GWAS panel. Here we are looking at variants of a scaled down simulation of the model depicted in Figure 1A. We also set the heritability to be 0.3.  
 ```{r}
 # Read in allele frequencies and format data frame 
 p <- fread("../output/Simulate_Genotypes/4PopSplit/E2/C1/genos-gwas_common.afreq")
@@ -45,15 +45,17 @@ p = p[,c("CHROM","ID","position","ALT_FREQS")]
 p$position = as.numeric(p$position)
 
 # Choose heritability 
-h2 <- 0.8
+h2 <- 0.3
 ```
 
 Next, we randomly sample 1 variant per chromosome to get the "causal" sites (note that these sites are not causal when the trait is non-heritable).
 ```{r}
+# Function to randomly choose a single SNP
 sample.variant <- function(df) {
   return(sample_n(df,1))
 }
 
+# Choose one causal SNP per chromosome
 df = p %>% filter(CHROM == 1)
 nchrms <- length(unique(p$CHROM))
 causal.variants <- sample.variant(as.data.table(df))
@@ -64,7 +66,7 @@ for (i in 2:nchrms){
 }
 ```
 
-We now have a single independent causal variant per chromosome. The next step is to draw an effect size for each variant such that $h^2 = 0.8$. Below we provide a brief explanation of the "alpha model" used to mimick the genetic architecture of height; please see for an explanation of the model and code [Zaidi and Mathieson](https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html) for more detail.
+We now have a single independent causal variant per chromosome. The next step is to draw an effect size for each variant such that $h^2 = 0.3$. Below we provide a brief explanation of the "alpha model" used to mimick the genetic architecture of height; please see for an explanation of the model and code [Zaidi and Mathieson](https://arslan-zaidi.github.io/popstructure/Simulating_heritable_phenotypes.html) for more detail.
 
 Under this model effect sizes are drawn according to:  
 $$\beta_{\ell} \sim N(0, \sigma_{i} [p_{\ell} (1-p_{\ell})]^\alpha )$$
@@ -89,6 +91,7 @@ Next, we use $\sigma_{i}$ and the individual variant allele frequncies to draw a
 causal.variants$beta = sapply( causal.variants$ALT_FREQS , function(x){
   beta = rnorm( 1 , mean = 0, sd = sqrt(sigma2_l * (2*x*(1-x))^-alpha ))
 })
+causal.variants$beta <- abs(causal.variants$beta)
 
 df <- causal.variants %>% mutate(maf = case_when(ALT_FREQS > 0.5 ~ 1 - ALT_FREQS, ALT_FREQS <= 0.5 ~ ALT_FREQS))
 plot(df$maf, abs(causal.variants$beta), xlab = "Minor allele frequency", ylab = "|Effect Size|", pch = 19 , col = "navy") 
@@ -96,14 +99,30 @@ plot(df$maf, abs(causal.variants$beta), xlab = "Minor allele frequency", ylab = 
 
 #### True signal
 
-```{r, eval=FALSE}
-# Create correlation between effect size and pop ID
+For some of our simulations, we want to create a "true signal" of polygenic adaptation. To do this, we create a correlation between true effect sizes and allele frequency difference in the test panel such that alleles more common in one of the test populations are also more likely to have a positive effect size. In the example below we have a vector of hypothetical frequency differences in the test panel and flip the effect sizes so that 75% of of the time the allele at higher frequency in pop X also has a positive effect size on the trait.    
+
+```{r}
+# Hypothetical allele frequency differences in the test panel 
+diff <- rnorm(200,0,1)
+
+# Probability allele with higher frequence also has a positive effect
+prob <- 0.75
+
+# Flip effect sizes to create true signal
 for (i in 1:nrow(causal.variants)){
   b <- causal.variants[i,"beta"]
   if (diff[i] >= 0) {
-    causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c(0.25, 0.75)) * abs(b)
+    causal.variants[i,"beta"] <- sample(c(-1, 1),1, prob = c((1-prob), prob)) * b
+  } else {
+    causal.variants[i,"beta"] <- sample(c(1, -1),1, prob = c((1-prob), prob)) * b
   }
 }
+
+# Check that the observed probabilities are close to `prob`
+indx_greater = which(diff > 0)
+indx_smaller = which(diff < 0)
+print(sum(causal.variants[indx_greater,]$beta > 0)/sum(diff > 0))
+print(sum(causal.variants[indx_smaller,]$beta < 0)/sum(diff < 0))
 ```
 
 
@@ -115,6 +134,7 @@ $$Z_{i} = \sum\limits_{\ell = 1}^L \beta_{\ell} g_{i,\ell}$$
 where $g_{i,\ell}$ is the genotype of the $i^{th}$ individual at site $\ell$ and $L$ is the total number of causal sites. We compute this value using the plink --score function as show below.  
 
 ```{python, eval = FALSE}
+# Snakemake rule
 rule generate_genetic_values:
     input:
         "output/Simulate_Genotypes/{model}/{rep}/{config}/genos-gwas_common.psam",
@@ -132,7 +152,10 @@ rule generate_genetic_values:
 
 ### Simulate Phenotype  
 
+Finally, we need to use the true genetic values to simulate a phenotype for each individual in the GWAS panel.
+
 ```{python, eval = FALSE}
+# Snakemake rule
 rule simulate_phenotype_4PopSplit:
     input:
         gvalues="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/genos-gwas_common.gvalue.sscore",
@@ -146,4 +169,84 @@ rule simulate_phenotype_4PopSplit:
     shell:
         "Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit_meanshift.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
 ```
+
+
+To generate the phenotype we first draw the environmental component of an individual's phenotype according to their population: 
+
+$$e_i | i \in A  \sim N(\mu, 1 - h^2)$$
+$$e_i | i \notin A  \sim N(0, 1 - h^2)$$
+
+Here $\mu$ is the magnitude of the stratifcation effect so population A will have a larger mean phenotype due to non-genetic reasons. Addditionally, because we are using scaled down simulations in order to run many replicates, we want to ensure the difference across populations in the average environmental component of the phenotype reflect a realistic GWAS sample size.
+
+$$\hat{\bar{e}}^{GWAS}_{i,k} = \left[ \frac{N_k^{sim}}{N_k^{GWAS}}\right]^{\frac{1}{2}}\hat{\bar{e}}_k^{sim}$$
+
+Here $N_k^{sim}$ is the sample GWAS sample size in population $k$ and $N_k^{GWAS}$ is the desired GWAS sample size for population $k$ which we set to $\frac{500,000}{K}$ where $K$ are the total number of populations/demes in the GWAS panel. We then calculate, 
+
+$$\Delta_k = \hat{\bar{e}}_k^{sim} - \hat{\bar{e}}^{GWAS}_{i,k}$$ 
+
+and substract $\Delta_k$ from $e_i$ for all individuals in population $k$. 
+
+Finally, we add the environmental component to the genetic value to generate each individuals final phenotype. 
+
+$$Y_i = Z_i + e_i$$
+
+```{r}
+# Load true genetic values
+prs=fread("../output/Simulate_Phenotypes/4PopSplit/E2/C1/h2-0/genos-gwas_common.gvalue.sscore")
+colnames(prs)<-c("IID","dosage","prs")
+
+# Load file containing the pop ID for each inidividual
+pop=fread("../output/Simulate_Genotypes/4PopSplit/E2/genos.pop",header=F)
+colnames(pop)<-c("IID","FID","pop")
+
+# Merge populaiton and PRS tables
+prs=merge(prs, pop, by="IID", sort=F)
+
+# Get list of populations
+pops <- unique(prs$pop)
+
+# Assign a value for the environmental shift 
+env_s = 10
+
+# Draw random environment and shift mean phenotype by `env_s` in population A 
+prs$env = sapply(prs$pop, function(x){ 
+  if(x == "A"){rnorm(n = 1, mean = env_s, sd = sqrt(1 - h2))}
+  else{rnorm(n = 1, mean = 0, sd = sqrt(1 - h2))}})
+prs$env <- scale(prs$env , scale = T) * sqrt(1 - h2)
+
+# Rescale envrionmental differences between pops 
+
+# Sample sizes 
+sample_size=nrow(prs)
+NGWAS = 500000
+N1_gwas = NGWAS / 2
+N2_gwas = NGWAS / 2
+
+# Calculate average environmental component
+Z1 = prs %>% group_by(pop) %>% summarise(avg = mean(env)) %>% filter(pop == pops[1]) %>% pull(avg)
+Z2 = prs %>% group_by(pop) %>% summarise(avg = mean(env)) %>% filter(pop == pops[2]) %>% pull(avg)
+
+# Rescale averages
+N1 = nrow(prs %>% filter(pop == pops[1]))
+N2 = nrow(prs %>% filter(pop == pops[2]))
+Z1_gwas = sqrt(N1/N1_gwas) * Z1
+Z2_gwas = sqrt(N2/N2_gwas) * Z2
+
+# Recalulate individual environmental components
+delta1 = Z1 - Z1_gwas
+delta2 = Z2 - Z2_gwas
+prs = prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env - delta1, env - delta2))
+
+# Add environmental effect to genetic value
+prs = prs %>%
+  mutate(pheno_strat = prs + env)
+
+# Plot phenotype distribution 
+ggplot(data = prs, aes(x = pheno_strat, fill = pop)) + geom_density(alpha = 0.5) + theme_classic(base_size = 16) + xlab("Phenotype") 
+```
+
+
+
+
+
 

@@ -1,20 +1,36 @@
+args=commandArgs(TRUE)
+
 # Split Population IDs into two sets of test/gwas pairs
 
 library(data.table)
+library(dplyr)
+
+set.seed(as.numeric(args[7]))
+
 
 # Read in pop info
-pop <- fread(snakemake@input[[1]], header = F)
+pop <- fread(args[1], header = T)
+
+# Get test set size
+size = as.numeric(args[2])
+print(size)
 
 # Case 1: A,C gwas B,D test
-gwas <- subset(pop, pop$V3 == "A" | pop$V3 == "C")
-test <- subset(pop, pop$V3 == "B" | pop$V3 == "D")
+gwas <- subset(pop, pop$POP == "A" | pop$POP == "C")
+test <- subset(pop, pop$POP == "B" | pop$POP == "D")
 
-write.table(gwas, snakemake@output[[1]], quote = F, col.names = F, row.names = F)
-write.table(test, snakemake@output[[2]], quote = F, col.names = F, row.names = F)
+# Down sample test set
+test <- test %>% group_by(POP) %>% sample_n(size/2)
+
+write.table(gwas, args[3], quote = F, col.names = T, row.names = F)
+write.table(test, args[4], quote = F, col.names = T, row.names = F)
 
 # Case 2: A,B gwas, C,D test
-gwas <- subset(pop, pop$V3 == "A" | pop$V3 == "B")
-test <- subset(pop, pop$V3 == "C" | pop$V3 == "D")
+gwas <- subset(pop, pop$POP == "A" | pop$POP == "B")
+test <- subset(pop, pop$POP == "C" | pop$POP == "D")
 
-write.table(gwas, snakemake@output[[3]], quote = F, col.names = F, row.names = F)
-write.table(test, snakemake@output[[4]], quote = F, col.names = F, row.names = F)
+# Down sample test set
+test <- test %>% group_by(POP) %>% sample_n(size/2)
+
+write.table(gwas, args[5], quote = F, col.names = T, row.names = F)
+write.table(test, args[6], quote = F, col.names = T, row.names = F)

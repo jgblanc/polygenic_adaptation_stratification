@@ -26,7 +26,7 @@ colnames(prs)<-c("IID","dosage","prs")
 sample_size=nrow(prs)
 
 # Set larger GWAS sample size (we will match errors to this sample size)
-N_GWAS = 500000
+N_GWAS = 500000 #### Fix to be per pop
 
 # Load file containing the pop ID for each inidividual
 pop=fread(popfile,header=F)

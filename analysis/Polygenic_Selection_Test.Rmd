@@ -1,0 +1,185 @@
+---
+title: "Polygenic_Selection_Test"
+author: "Jennifer Blanc"
+date: "4/27/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(autodep = TRUE)
+library(data.table)
+library(dplyr)
+library(pgenlibr)
+```
+
+```{r, echo=FALSE}
+read_genos <- function(geno_prefix, betas) {
+
+  pvar <- pgenlibr::NewPvar(paste0(geno_prefix, ".pvar"))
+  d1 <- pgenlibr::NewPgen(paste0(geno_prefix, ".pgen"))
+  var.ids <- betas$ID
+  var.indx <- rep(0, length(var.ids))
+  for (i in 1:length(var.indx)) {
+    var.indx[i] <- pgenlibr::GetVariantsById(pvar,var.ids[i])
+  }
+  X <- ReadList(d1,var.indx, meanimpute=F)
+  colnames(X) <- var.ids
+
+  return(X)
+}
+```
+
+
+## Polygenic Selection Test 
+
+Here we will go through the steps to conduct the polygenic selection tests shown in the main text. We will outline how to compute both $Q$ and $Q_x$ as well as our procedure for checking the significance of the statistics. 
+
+### Calculate Q
+
+Our statistic of interest is, 
+
+$$\hat{Q} := \vec{T}^TX\hat{\vec{\beta}}$$
+
+where $\hat{\vec{\beta}}$ is a vector that contains the GWAS effect sizes for the sites ascertained in the previous step and 0 for non-ascertained sites. $X$ is the mean centered genotype matrix of the test panel individuals and $\vec{T}$ is our pre-determined mean-centered test vector. For the 4 Population example presented here we assume the test vector is population ID and will therfore have 0.5 entries for the first population and -0.5 for the second.  
+
+First we read in a set of ascertained effect sizes, the genotype matrix at those corresponding sites, and the test vector. Then we calculate $Q$ as defined above. Note that we only include ascertained in $X$ as non-ascertained sites have $\hat{\beta}_{\ell} = 0$.    
+```{r}
+# Read in betas 
+betas <- fread("../output/PRS/4PopSplit/B1/C1/h2-0.3/p-0.50/env_0.0/genos-gwas_common-Tm.nc.betas")
+
+# Read in genotype matrix at ascertained sites and mean center
+Xcounts <- read_genos("../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-test_common", betas = betas)
+X <- scale(Xcounts, scale = F)
+
+# Read in test vector 
+df_Tvec <- fread("../output/Calculate_Tm/4PopSplit/B1/C1/Tvec.txt")
+Tvec <- df_Tvec$Tvec
+
+# Calculate Q 
+Q <- Tvec %*% X %*% betas$BETA_Strat
+```
+
+
+### Calculate neutral distribution of Q 
+
+To derive the null distribution of $Q$ first consider that the joint distibution of polygenic scores $X\hat{\vec{\beta}}$ is given by, 
+
+$$X\hat{\vec{\beta}} \sim MVN(0, \hat{V_a}F)$$
+
+where $F$ is an $N \times N$ matrix descibing the correlation structure of allele frequencies relative to the mean frequency and $\hat{V_a} = 2 \sum_{\ell} \hat{\beta}_{\ell} p_{\ell}(1 - p_{\ell})$ is the additive genetic variance of associated sites. 
+
+We then multiply the vector of polygenic scores $X\hat{\vec{\beta}}$ by the mean centered test vector $\vec{T}$ to get, 
+
+$$\vec{T}^TX\hat{\vec{\beta}} \sim N(0, \hat{V_a}\vec{T}^TF\vec{T})$$
+
+where $\vec{T}^TF\vec{T}$ is the amount of variance in $F$ explained by the test vector. Finally we can calculate $F$ by defining $\tilde{X} = XS$ where $S$ is a diagonal matrix such that $s_{\ell \ell} = \frac{1}{\sqrt{2p_{\ell}(1 - p_{\ell})}}$ and computing $F = \frac{1}{L-1}\tilde{X}\tilde{X}^T$. Therefore, under neutrality, the distibution of $Q$ is 
+
+$$\hat{Q} \sim N(0, \frac{\hat{V_a}}{L-1}\vec{T}^T\tilde{X}\tilde{X}^T\vec{T})$$
+
+To actually caclulate this additive genetic variance from associated sites, we will first compute $\hat{V_a} = 2 \sum_{\ell} \hat{\beta}_{\ell} p_{\ell}(1 - p_{\ell})$.
+```{r}
+# Calculate allele frequency 
+p <- colMeans(Xcounts)/2
+
+# Compute Va
+Va <- 2 * sum(betas$BETA_Strat^2 * p * (1 - p))
+```
+
+
+Next we compute $\vec{T}^T\frac{\tilde{X}\tilde{X}^T}{L-1}\vec{T}$. Note that we must read in the genotype matrix for all $L$ sites, not just the ascertained ones.  
+```{r, cache=TRUE}
+# Read in entire test panel genotype matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-test_common.pgen")
+Xall <- ReadList(d1,seq(1, 10905), meanimpute=F)
+
+# Calculate standardized GRM 
+n <- nrow(Xall)
+het <- 1 / (2 * colMeans(Xall/2) * (1 - colMeans(Xall/2)))
+Tmat <- matrix(-1/n, ncol = n, nrow = n)
+diag(Tmat) <- (n-1)/n
+cov_mat <- (1/(ncol(Xall))-1) * Tmat %*% t(t(Xall) * het) %*% t(Xall) %*% t(Tmat) 
+
+# Calculate variance explained by test vector
+lambdaT <- t(Tvec) %*% cov_mat %*% Tvec
+```
+
+Here we have directly computed the covariance matrix in R. In the simulation pipeline we use the eigen decomposition of the covariance matrix $\vec{T}^TU_X \Lambda_XU_X^T\vec{T}$ from `--pca` in plink2 to compute the variance explained. 
+```{r}
+# Load Eigen vectors 
+vecs <- fread("../output/Calculate_Tm/4PopSplit/B1/C1/pca.eigenvec")
+vecs <- vecs[,3:ncol(vecs)]
+vecs <- apply(vecs, 2, as.numeric)
+
+# Load Eigenvalues
+vals <- fread("../output/Calculate_Tm/4PopSplit/B1/C1/pca.eigenval")
+vals <- vals$V1
+
+# Calculate Lambda T
+lambda_T <- t(Tvec) %*% vecs %*% diag(vals) %*% t(vecs) %*% Tvec
+```
+
+Now we can put these pieces together to get the variance of $Q$.
+```{r}
+varQ <- Va * lambda_T
+```
+
+
+### Assessing the significance of Q 
+
+Now that we have $Q$ and the variance of $Q$ under neutrality, we can compute a p-value for our selection test. Inutitively, if the value of $Q$ falls into the tails of the distribution, then selection has caused frequencies to diverge at associated sites more than we would expect under neutral drift. First we do a simple 2-tailed test and get the p-value using the variance we derived above. 
+
+```{r}
+pvalNorm <- 2 * (1 - pnorm(abs(Q), mean = 0, sd = sqrt(varQ)))
+paste0("The p-value is ", round(pvalNorm,3))
+```
+
+To avoid relying on the assumption that $X\hat{\vec{\beta}}$ follows a multivariate distribution we also computed p-values using an sign-flipping empirical null. We obtain pseudo-samples by randomizing the sign of the effect sizes and recomputing $Q$. We then obtain a new p-value,
+
+$$P = 2 * \frac{\sum_i^S I(Q_i > |Q_{True}|)}{S}$$
+
+where $S$ is the number of pseudo samples, here set to 1,000, and $I()$ is an indicator function.
+
+```{r}
+# Function to flip betas
+flip <- function(betas) {
+  new_betas <- sample(c(-1,1), length(betas),  replace = T) * betas
+  return(new_betas)
+}
+
+# Generate pseudo random samples
+qs <- rep(0, 1000)
+for (i in 1:1000) {
+  b <- flip(betas$BETA_Strat)
+  qs[i] <- Tvec %*% X %*% b
+}
+
+# Get pvalue
+pEN <- 2 * sum(qs > abs(Q[1,1])) / length(qs)
+paste0("That p-value from the empirical null is ", round(pEN, 2))
+```
+
+### Relationship to Qx 
+
+As introduced in [Berg and Coop 2014](https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1004412#abstract0), 
+
+$$Q_x =\frac{(\vec{Z} - \mu)^TF^{-1}(\vec{Z} - \mu)}{2V_a}$$
+
+where $\vec{Z}$ is a vector of average population polygenic scores ($Z_i = 2 \sum\limits_{\ell = 1}^L \hat{\beta}_{\ell}p_{\ell}$). Under neutrality $Q_X$ is expected to follow a chi-squared distribution with $M-1$ degrees of freedom where $M$ is the number of populations. Above we have derived $Q$ in terms of individual level polygenic scores and a single test vector. The relationship between these statistics is  
+
+$$\frac{Q^2}{\frac{\hat{V_a}}{L-1}\vec{T}^T\tilde{X}\tilde{X}^T\vec{T}} = Q_X$$
+
+```{r}
+# Calculate Qx
+Qx <- Q^2 / varQ
+
+# Calculate Chi-square p-value
+pCHI <- pchisq(Qx, df=1, lower.tail=FALSE)
+paste("The Chi-squared p-value is ", round(pCHI,  3))
+```
+
+
+
+
+

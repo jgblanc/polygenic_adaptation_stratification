@@ -1,0 +1,202 @@
+---
+title: "Calculate TGWAS"
+author: "Jennifer Blanc"
+date: "4/14/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(autodep = TRUE)
+library(pgenlibr)
+library(data.table)
+library(dplyr)
+library(pracma)
+```
+
+## Calculate $T^{GWAS}$
+
+Here we will walk through our procedure for estimating $T^{GWAS}$.
+
+### Make Test Vector 
+
+First we need to make the test vector along which will we test for selection. In our 4 population toy model this is simply population ID so we create a $n \times1$ vector, where $n$ is the number of individuals in the test panel, where individuals in the first test population are coded as $1$ and individuals in the second test population are $0$. We then mean center the test vector. 
+
+```{python, eval = FALSE}
+# Snakemake rule 
+rule make_test_vector:
+    input:
+        pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
+        fam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam"
+    output:
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
+    shell:
+        "Rscript code/Calculate_Tm/4PopSplit_make_tvec.R {input.pops} {input.fam} {output}"
+```
+
+Example:  
+```{r, warning=FALSE, message=FALSE}
+# Read in Fam file
+fam <- fread("../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-test_common.psam")
+colnames(fam) <- c("FID", "IID", "SEX")
+
+# Read in population information 
+pops <- fread("../output/Simulate_Genotypes/4PopSplit/B1/genos.pop", header = F)
+colnames(pops)  <- c("FID", "IID", "POP")
+
+# Join tables
+pop <- dplyr::inner_join(pops, fam) %>% dplyr::select(c("FID", "IID", "POP"))
+test_pops <- unique(pop$POP)
+
+# Make test vector as a new column
+pop <- pop %>% mutate(Tvec = case_when(POP == test_pops[1] ~ 1, POP == test_pops[2] ~ 0)) %>% mutate(Tvec = Tvec - mean(Tvec))
+
+# Dispaly test vector 
+table(pop$POP, pop$Tvec)
+```
+
+
+### Compute covariate 
+
+In the main text we derive a single covariate, $T^{GWAS}$, to control for stratification specific to the test of interest. 
+
+$$\vec{T}^{GWAS} = GX^T(XX^T)^{-1}\vec{T}$$
+
+Here $G$ is the GWAS genotype matrix while $X$ is the test genotype matrix. Due to the size of the genotype matrices we cannot simply multiply the matrices in R. Instead we use plink2 to project each test panel principal component into the GWAS panel and then weight them according to their covariance with the test vector.  
+
+First we can write the test panel genotype matrix in terms of its singular value decomposition, 
+$$\vec{T}^{GWAS} = GV_X\Lambda_XU_X^T(U_X\Lambda^{2}U_X^T)^{-1}\vec{T} \\ 
+= GV_X\Lambda_XU_X^TU_X\Lambda^{-2}U_X^T\vec{T} \\ 
+= GV_X\Lambda_X^{-1}U_X^T\vec{T}$$
+
+We can then write our test vector as a sum of eigenvectors of the test panel, $\vec{T} = \sum\limits_{n=1}^N\alpha_n\vec{U}_{X,n}$
+
+$$\vec{T}^{GWAS} = \sum\limits_{n=1}^N \frac{\alpha_n}{\lambda_n} G \vec{V}_{X, n}$$
+
+Using the above express we can see that one way to compute $\vec{T}^{GWAS}$ is to:   
+
+1. Use plink2 `--pca allele-wts` on the test panel genotype matrix to get the eigenvectors $U_X$, the SNP loadings $V_X$, and the eigenvalues $\Lambda_X$.  
+2. Use R to calculate the weight of each test panel eigenvector on the test vector: $\alpha_k = \vec{U}_{X,k}^T \vec{T}$  
+3. Use plink2 `--sccore` to multiply the rows of $G$ by all the columns of $V_X$. This is equivalent to projecting each of the test panel eigenvectors in $G$.  
+4. Use R to weight each projected eigenvalue by $\frac{\alpha_k}{\lambda_k}$ and sum across $N$.  
+
+```{python, eval = FALSE}
+# Snakemake rules
+rule proj_T:
+    input:
+        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
+        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
+    params:
+        n_minus_1 = int(SIZE)-1,
+        col_start = 6,
+        col_end = int(SIZE) + 4
+    output:
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec",
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval",
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec.allele",
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/projection.sscore"
+    shell:
+        """
+        plink2 \
+        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --pca allele-wts {params.n_minus_1} \
+        --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca
+
+        plink2 \
+        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+        --score output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
+        --score-col-nums {params.col_start}-{params.col_end} \
+        --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/projection
+        """
+
+rule calc_Tm:
+    input:
+        vecs="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec",
+        vals="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval",
+        proj="output/Calculate_Tm/4PopSplit/{rep}/{config}/projection.sscore",
+        tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
+        allele="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec.allele"
+    output:
+        Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt",
+        weights="output/Calculate_Tm/4PopSplit/{rep}/{config}/Test_weights.txt"
+    shell:
+        """
+	    Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} {input.proj} {input.tvec} {output.Tm} {output.weights}
+	    rm {input.allele}
+	    """
+
+```
+
+
+Next we walk through our 4 population example. In this example we are working in the configuration where there is shared structure between the GWAS and test panels (i.e Figure 1A). Here our test vector is separating populations on opposite sides of the deepest split. Because there is overlapping structure and shared drift between panels, we expect that $\vec{T}^{GWAS}$ will also separate the two population that comprise the GWAS panel.   
+
+Let's read in both the test and GWAS genotype matrices. 
+```{r}
+# Read GWAS Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-gwas_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-gwas_common.pgen")
+G <- ReadList(d1,seq(1,10905), meanimpute=F)
+G <- scale(G)
+
+# Read in Test Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-test_common.pgen")
+X <- ReadList(d1,seq(1, 10905), meanimpute=F)
+X <- scale(X)
+```
+
+First, let's calculate $\vec{T}^{GWAS}$ just by doing matrix multiplication. 
+```{r, cache=TRUE}
+Tvec <- pop$Tvec
+TGWAS_mat <-  G %*% t(X) %*% pinv(X %*% t(X)) %*% Tvec
+plot(TGWAS_mat)
+```
+We can see that $\vec{T}^{GWAS}$ is recapitulating the population structure we expect. 
+
+Now let's check that the our plink procedure get's us the same answer.  
+```{r}
+# Load test eigen vecs
+vecs <- fread("../output/Calculate_Tm/4PopSplit/B1/C1/pca.eigenvec")
+vecs <- vecs[,3:ncol(vecs)]
+vecs <- apply(vecs, 2, as.numeric)
+
+# Get the weights of each eigenvector
+B <- t(vecs) %*% Tvec
+Br = abs(B) / sum(abs(B))
+
+# Load Projected eigenvectors
+proj_vecs <- fread("../output/Calculate_Tm/4PopSplit/B1/C1/projection.sscore")
+proj_vecs <- proj_vecs[,5:ncol(proj_vecs)]
+proj_vecs <- apply(proj_vecs, 2, as.numeric)
+
+# Load Eigenvalues
+vals <- fread("../output/Calculate_Tm/4PopSplit/B1/C1/pca.eigenval")
+vals <- vals$V1
+
+# Calculate Tm (for some reason need to scale by -2)
+Tm <- proj_vecs %*% diag(1/sqrt(vals)) %*% B
+TGWAS <- -2 * Tm
+
+plot(TGWAS, TGWAS_mat)
+abline(0,1, col = "red")
+```
+
+Using plink2 to compute $\vec{T}^{GWAS}$ allows us to efficiently calculate our covariate of interest while avoiding any direct large scale matrix multiplication.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

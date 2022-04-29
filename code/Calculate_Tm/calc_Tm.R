@@ -15,7 +15,7 @@ suppressWarnings(suppressMessages({
 vecs_file = args[1] # eigenvectors
 vals_file = args[2] # eigenvalues
 proj_file = args[3] # .sscore (project of all test eigenvectors into eigenvalues)
-tvec_file = args[4] # standardized test vector
+tvec_file = args[4] # mean centered test vector
 out_file = args[5] # Name for Tm file
 out_file_weight=args[6] # Name for weights file
 
@@ -27,11 +27,11 @@ vecs <- apply(vecs, 2, as.numeric)
 
 # Load test vector
 std.tvec <- fread(tvec_file)
-std.tvec$V1 <- as.numeric(std.tvec$V1)
+std.tvec$Tvec <- as.numeric(std.tvec$Tvec)
 
 
 # Get the weights of each eigenvector
-B <- t(vecs) %*% std.tvec$V1
+B <- t(vecs) %*% std.tvec$Tvec
 Br = abs(B) / sum(abs(B))
 out <- as_tibble(cbind(B, Br))
 colnames(out) <- c("PC_weights", "Relative_PC_weights")

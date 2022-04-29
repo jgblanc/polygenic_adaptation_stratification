@@ -30,7 +30,7 @@ X <- ReadList(d1,seq(1, 2055), meanimpute=F)
 X <- scale(X)
 
 # Read in Test Vector 
-Tvec <- fread("../output/Calculate_Tm/4PopSplit/A1/C1/Tvec.txt")$V1
+Tvec <- fread("../output/Calculate_Tm/4PopSplit/A2/C1/Tvec.txt")$V1
 L <- ncol(X)
 ```
 
@@ -434,3 +434,47 @@ Calculate Tm via plink2
 # plot(Tvec, Tm_plink)
 # abline(a = 0, b =1 , col = "red")
 ```
+
+
+```{r}
+deltaAB <- 1
+
+E <- c(rep((-1 *deltaAB), 50), rep((1 *deltaAB), 50))
+g <- c(rbinom(50, 2, 0.2), rbinom(50, 2, 0.8))
+gs <- scale(g)
+pA <- mean(g[1:50])/2
+pB <- mean(g[51:100])/2
+p <- mean(g)/2
+
+cov(E, g)
+pB - pA 
+
+fB <- pB  / sd(g)
+fA <- pA  / sd(g)
+
+cov(E, gs)
+fB - fA
+
+(pA - pB) / var(g)
+
+
+```
+
+
+```{r}
+p1 <- 0.5
+p2 <- 0.5
+pbar <- mean(c(p1, p2))
+
+Fst1 <- ((pbar * (1-pbar)) - (0.5 * p1 * (1-p1)) - (0.5 * p2 * (1 -p2))) / (pbar * (1-pbar))
+Fst1
+
+Fst <- (0.5 * (p1 + p2)^2) / (pbar * (1 - pbar))
+Fst
+```
+
+
+
+
+
+

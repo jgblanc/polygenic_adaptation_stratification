@@ -24,12 +24,7 @@ vecs <- apply(vecs, 2, as.numeric)
 
 # Load test vector
 std.tvec <- fread(tvec_file)
-colnames(std.tvec) <- "Tvec"
-std.tvec <- std.tvec$Tvec
-
-n1 <- table(std.tvec)[1]
-n2 <- table(std.tvec)[2]
-Tvec <- c(rep(1,n1)/(n1), rep(-1,n2)/(n2)) * (1/2)
+Tvec <- std.tvec$Tvec
 
 # Load Eigenvalues
 vals <- fread(vals_file)

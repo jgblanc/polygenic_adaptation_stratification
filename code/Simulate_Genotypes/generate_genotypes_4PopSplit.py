@@ -115,4 +115,4 @@ popdf=pd.DataFrame({"FID":fid,
                   "IID":iid,
                   "POP":deme_id})
 
-popdf.to_csv(args.outpre+".pop",sep="\t",header=False,index=False)
+popdf.to_csv(args.outpre+".pop",sep="\t",header=True,index=False)

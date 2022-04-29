@@ -17,16 +17,15 @@ fam_file = args[3]
 output_file = args[4]
 
 # Read in files
-pops <- fread(pop_file, header = F)
+pops <- fread(pop_file, header = T)
 fam <- fread(fam_file)
 
 # Read in Tm
 Tm <- fread(Tm_file)
-#Tm <- Tm$V1
 
 # Format datafile
-tmp <- dplyr::inner_join(pops, fam, by = c("V1"= "IID")) %>% select("V2", "V3")
-df <- as.data.frame(cbind(tmp$V2, tmp$V2, Tm, tmp$V3))
+tmp <- dplyr::inner_join(pops, fam, by = c("IID"= "IID")) %>% select("IID", "POP")
+df <- as.data.frame(cbind(tmp$IID, tmp$IID, Tm, tmp$POP))
 colnames(df) <- c("FID","IID", "Tm", "PopID")
 pops <- unique(df$PopID)
 df <- df %>% mutate(PopID = case_when((PopID == pops[1]) ~ 1, (PopID == pops[2]) ~ 0))

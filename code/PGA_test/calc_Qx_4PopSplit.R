@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)!=18){stop("Rscript calc_TGWAS.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
+if(length(args)!=17){stop("Rscript calc_TGWAS.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
                          <true.sscore> <Tvec.txt> <outfile name> <file with number of snps>")}
 
 suppressWarnings(suppressMessages({
@@ -23,13 +23,12 @@ cp_ID_file = args[8] # causal p-value betas
 nc_ID_file = args[9] # clumped betas
 geno_prefix = args[10] # Prefix to pilnk files
 lambdaT_file = args[11]
-true_file = args[12] # true PGS
-tvec_file = args[13] # test vect
-pops_file = args[14]
-num = as.numeric(args[15]) # number of times to resapme
-out_pre = args[16] # output prefix
-out_pgs = args[17]
-es_file = args[18]
+tvec_file = args[12] # test vect
+pops_file = args[13]
+num = as.numeric(args[14]) # number of times to resapme
+out_pre = args[15] # output prefix
+out_pgs = args[16]
+es_file = args[17]
 
 # Function to read in genotype matrix for a set of variants
 read_genos <- function(geno_prefix, betas) {
@@ -74,29 +73,11 @@ pgs <- function(X, betas) {
   return(out)
 }
 
-# Function to clean PGS
-stand_PGS <- function(prs, gv_file) {
-
-  # Load True GV
-  gvalue <- fread(gv_file)
-  colnames(gvalue) <- c("#IID", "NAMED_ALLELE_DOSAGE_SUM", "GV")
-
-  # Join dataframes by IID
-  df <- as.data.frame(cbind(prs, gvalue$GV))
-  colnames(df) <- c("STRAT", "GV")
-
-  mprs.adj = df%>%
-    mutate(strat.adjusted = STRAT) %>%
-    ungroup() %>% select("strat.adjusted")
-
-  return(mprs.adj)
-}
-
 # Function to calculate Qx
-calc_Qx <- function(mprs, tvec, Va, lambda_T) {
+calc_Qx <- function(sscore, tvec, Va, lambda_T) {
 
   # Compute Qx Strat
-  Ztest <- t(tvec) %*% mprs$strat.adjusted
+  Ztest <- t(tvec) %*% sscore
   Qx_strat <- (t(Ztest) %*% Ztest) / (Va*lambda_T)
 
   return(Qx_strat)
@@ -109,7 +90,7 @@ flip <- function(betas) {
 }
 
 # Function to flip effect sizes and recompute Qx
-en <- function(betas, tvec, Va, X, true_file, lambda_T) {
+en <- function(betas, tvec, Va, X, lambda_T) {
 
   # Flip effect sizes
   betas$BETA_Strat <- flip(betas$BETA_Strat)
@@ -118,7 +99,7 @@ en <- function(betas, tvec, Va, X, true_file, lambda_T) {
   prs <- pgs(X, betas)
 
   # Calculate Qx
-  Qx <- t(calc_Qx(stand_PGS(prs, true_file), tvec, Va, lambda_T))
+  Qx <- t(calc_Qx(prs, tvec, Va, lambda_T))
 
   return(Qx)
 }
@@ -129,12 +110,7 @@ lambda_T <- as.numeric(as.character(lambda_T[1,1]))
 
 # Load Test vector
 std.tvec <- fread(tvec_file)
-colnames(std.tvec) <- "Tvec"
-std.tvec <- std.tvec$Tvec
-n1 <- table(std.tvec)[1]
-n2 <- table(std.tvec)[2]
-tvec <- c(rep(1,(n1))/(n1), rep(-1,(n2))/(n2)) * (1/2)
-
+tvec <- std.tvec$Tvec
 
 
 # Wrapper function to calculate Qx and empirical p values
@@ -152,15 +128,14 @@ main <- function(beta_file) {
 
   # Calc PGS
   sscore <- pgs(X, betas)
-  pgs_stan <- stand_PGS(sscore, true_file)
 
   ## Calc Qx - Test
-  qx <- t(calc_Qx(pgs_stan, tvec, Va, lambda_T))
+  qx <- t(calc_Qx(sscore, tvec, Va, lambda_T))
 
   # Generate Empirical null
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(betas, tvec, Va, X, true_file, lambda_T)
+    redraws[i,] <- en(betas, tvec, Va, X, lambda_T)
   }
 
   # Calculate empirical p-values
@@ -169,8 +144,6 @@ main <- function(beta_file) {
 
   # Calculate p-value from chi-square
   p_strat <- pchisq(qx[1,1], df=1, lower.tail=FALSE)
-
-
 
   # Concatenate output (Qx, p_strat)
   out <- c(qx, p_strat , p_strat_en)
@@ -195,6 +168,7 @@ print(out)
 # Save output
 colnames(out) <- c("Qx", "P.Chi", "P.EN")
 rownames(out) <- c("c", "cp", "nc", "c-TGWAS", "cp-TGWAS", "nc-TGWAS", "c-ID", "cp-ID", "nc-ID", "True")
+print(out)
 fwrite(out, out_pre,row.names=F,quote=F,sep="\t", col.names = T)
 
 # Function to just output PGS
@@ -210,10 +184,8 @@ main2 <- function(beta_file) {
   # Calc PGS
   sscore <- pgs(X, betas)
 
-  # Calc Qx
-  pgs_stan <- stand_PGS(sscore, true_file)
 
-  return(pgs_stan$strat.adjusted)
+  return(sscore)
 }
 
 
