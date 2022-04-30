@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_C_h20
-#SBATCH --output=logs/4PopSplit_C_h20.out
-#SBATCH --error=logs/4PopSplit_C_h20.err
-#SBATCH --time=08:00:00
+#SBATCH --job-name=4PopSplit_A_genos
+#SBATCH --output=logs/4PopSplit_A_genos.out
+#SBATCH --error=logs/4PopSplit_A_genos.err
+#SBATCH --time=04:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=14
@@ -16,5 +16,4 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake --cores all --rerun-incomplete
-#sh copy_dir.sh
+snakemake --cores all --rerun-incomplete 
