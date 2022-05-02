@@ -23,7 +23,7 @@ This pipline is written in snakemake. To run the entire simulation pipeline you 
 * `code/Snakefiles/4PopSplit/snakefile` is the correct file to run the 4 population toy model from Figure 1.  
 * `code/Snakefiles/SimpleGrid/snakefile` runs the stepping stone grid simulations and has options to simulate the confounders and do the polygenic adaptation tests from Figure 2.    
 
-The detailed methods and results for each simulation can be found [here](Simulations_methods.html).  
+The detailed methods and results for each simulation can be found [here](Simulation_Methods_Reproducible.html).  
 
 The pages below explain the 5 major steps of the pipeline:  
 
