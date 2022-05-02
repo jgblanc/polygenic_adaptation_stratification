@@ -19,16 +19,61 @@ Here I will reccord the details for the simulations presented in the main text a
 
 ## 4PopSplit 
 
+### Msprime simulation 
+
 Generate diplois individuals according to the demographic model below 
 
-* T2 = 1100  
-* T1 (deeper split) = 22000 
+* T2 = 2200  
+* T1 (deeper split) = 4400 
 * Ne (ancestral = A = B = C = D)  = 10000
 * sample size = 10000 diploids per population  
 * chromosome length = 100000    
 * 200 chromosomes  
 * $\mu$ = 1e-08  
 * $\rho$ = 1e-08  
+
+### Create genotypes panels and filter SNPs  
+
+1. Split individuals into 2 configurations  
+  a. C1: GWAS Panel = A and C, Test Panel = B and D (overlapping structure)  
+  b. C2: GWAS Panel = A and B, Test Panel = C and D (no overlapping structure)  
+2. Randomly downsample 1,000 individuals from each test panel population. Finale sample sizes: GWAS panel n=20,000 and Test panel n=2,000.  
+3. Restrict snps to sites segregating at greater than 5% frequency within each panel.   
+
+See [link](Simulate_Genotypes.html) for more simluations details.  
+
+### Draw phenotypes 
+
+We simulated both heritable $h^2 = 0.3$ and non-heritable $h^2=0$ phenotypes with a ranger of environmental confounders $\Delta_{AB}$. Additionally, for the heritable simulations, we also conducted simulations where there was a true signal of polygenic selection by flipping the signs of causal effect sizes depending on allele frequency difference in the test panel.  
+
+See [link](Simulate_Phenotypes.html) for more simluations details.  
+
+### Project Test Vector  
+
+1. Set test vector as a mean centered $n \times 1$ vector with each entry as an indicator of the test panel individual's popultion ID.  
+2. Project test vector in GWAS panel, resulting in an $m \times 1$ (see [link](Calculate_TGWAS.html) for more detail)
+
+### Run GWASs  
+
+1. Use plink to run GWAS with and without including projected test vector (see [link](Run_GWAS.html) for more detail)
+
+### Calculate PGS and Qx 
+
+**Ascertained Sites**
+
+1. Pick the SNP with lowest p-value per chromosome to include in PGS (200 SNPs total)  
+2. Compute PGS in test panel individuals 
+3. Calculate $V_a$ 
+4. Calculate the amount of variance explained by the test vector ($\lambda_T$)  
+5. Calculate chi-squared p-vale
+5. Calculate empirical null p-value by permuting the signs of the SNP effect sizes 1,000 times and computing the proportion of permutations greater than the true $Q_x$ value.  
+
+**Causal sites** 
+
+For heritable traits we can also repeat the above steps with the acual causal sites as opposed to choosing the site with the lowest p-value. 
+
+See [link](Polygenic_Selection_Test.html) for more detail.  
+
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE}
 plot_data <- function(data, color_name) {
@@ -37,36 +82,147 @@ plot_data <- function(data, color_name) {
   
   return(pl)
 }
+
+#plot_data <- function(data, color_name) {
+#  
+#  pl <- ggplot(data = data, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+   xlab(TeX("$\\Delta_{AB}$")) + ylab("False Postive Rate") + theme_classic(base_size = 20) + scale_color_manual(values = c(color_name)) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 20),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.01)
+  
+#  return(pl)
+#}
 ```
 
+### Figures 
+
+#### Figure 1  
+
+* $h^2 = 0$  
+* Ascertained SNPs (minimum p-value per chromosome) 
+
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE}
-df <- fread("../code/Make_Plots/4PopSplit_h23_B.txt.gz")
+df <- fread("../code/Make_Plots/A_4PopSplit_h20.txt.gz")
 
 # C1 - no correction
 nc <- df %>% filter(type == "nc") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
 nc$diff <- as.numeric(nc$diff)
-pl1 <- plot_data(nc, "goldenrod2")
+pl1 <- plot_data(nc, "goldenrod2") + ggtitle("C1 - No correction") + theme(plot.title = element_text(hjust = 0.5,size = 12))
 
 # C1 - correction 
 nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl2 <- plot_data(nc, "navy")
+pl2 <- plot_data(nc, "navy") + ggtitle("C1 - TGWAS") + theme(plot.title = element_text(hjust = 0.5,size = 12))
 
 # C2 - No correction 
 nc <- df %>% filter(type == "nc") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl3 <- plot_data(nc, "goldenrod2")
+pl3 <- plot_data(nc, "goldenrod2") + ggtitle("C2 - No correction") + theme(plot.title = element_text(hjust = 0.5, size = 12))
 
 # C2 - correction 
 nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl4 <- plot_data(nc, "navy")
+pl4 <- plot_data(nc, "navy") + ggtitle("C2 - TGWAS") + theme(plot.title = element_text(hjust = 0.5, size = 12))
 
-p <- ggarrange(pl1, pl2, pl3, pl4)
+p <- ggarrange(pl1, pl3, pl2, pl4)
 p
 ```
 
+We can also compare the above results using $T^{GWAS}$ to a GWAS done using population ID as covariate.  
 
+```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=2.5, fig.width=7}
+# C1 - correction Pop ID 
+nc <- df %>% filter(type == "nc-ID") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl5 <- plot_data(nc, "darkgreen") + ggtitle("C1 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+# C2 - correction 
+nc <- df %>% filter(type == "nc-ID") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl6 <- plot_data(nc, "darkgreen") + ggtitle("C2 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+p2 <- ggarrange(pl5, pl6)
+p2
+```
+
+#### Heritable Simulations 
+
+* $h^2 = 0.3$ 
+* Asceratined SNPs  
+
+```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=7, fig.width=7}
+df <- fread("../code/Make_Plots/A_4PopSplit_h23.txt")
+
+# C1 - no correction
+nc <- df %>% filter(type == "nc") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
+nc$diff <- as.numeric(nc$diff)
+pl1 <- plot_data(nc, "goldenrod2") + ggtitle("C1 - No correction") + theme(plot.title = element_text(hjust = 0.5,size = 12))
+
+# C1 - correction 
+nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl2 <- plot_data(nc, "navy") + ggtitle("C1 - TGWAS") + theme(plot.title = element_text(hjust = 0.5,size = 12))
+
+# C2 - No correction 
+nc <- df %>% filter(type == "nc") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl3 <- plot_data(nc, "goldenrod2") + ggtitle("C2 - No correction") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+# C2 - correction 
+nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl4 <- plot_data(nc, "navy") + ggtitle("C2 - TGWAS") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+# C1 - correction Pop ID 
+nc <- df %>% filter(type == "nc-ID") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl5 <- plot_data(nc, "darkgreen") + ggtitle("C1 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+# C2 - correction 
+nc <- df %>% filter(type == "nc-ID") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl6 <- plot_data(nc, "darkgreen") + ggtitle("C2 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+p <- ggarrange(pl1, pl3, pl2, pl4, pl5, pl6, nrow = 3, ncol = 2)
+p
+```
+
+* $h^2 = 0.3$ 
+* Causal SNPs  
+
+```{r,eval = TRUE, echo=FALSE, warning=FALSE,fig.height=7, fig.width=7}
+df <- fread("../code/Make_Plots/A_4PopSplit_h23.txt")
+
+# C1 - no correction
+nc <- df %>% filter(type == "c") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
+nc$diff <- as.numeric(nc$diff)
+pl1 <- plot_data(nc, "goldenrod2")
+
+# C1 - correction 
+nc <- df %>% filter(type == "c-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl2 <- plot_data(nc, "navy")
+
+# C2 - No correction 
+nc <- df %>% filter(type == "c") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl3 <- plot_data(nc, "goldenrod2")
+
+# C2 - correction 
+nc <- df %>% filter(type == "c-Tm") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl4 <- plot_data(nc, "navy")
+
+# C1 - correction Pop ID 
+nc <- df %>% filter(type == "c-ID") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl5 <- plot_data(nc, "darkgreen") + ggtitle("C1 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+# C2 - correction 
+nc <- df %>% filter(type == "c-ID") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
+nc$diff <- as.numeric(nc$diff)
+pl6 <- plot_data(nc, "darkgreen") + ggtitle("C2 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+p <- ggarrange(pl1, pl3, pl2, pl4, pl5, pl6, nrow = 3, ncol = 2)
+p
+```
 
 
 
