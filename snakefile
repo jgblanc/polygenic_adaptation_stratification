@@ -1,14 +1,14 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1", "C2"]
+CONFIG=["C1"]
 REP = []
 for i in range(1,101):
   REP.append("A"+str(i))
 HERITABILITY = ["h2-0.3"]
 #ENV = ["env_0.0","env_0.01","env_0.02","env_0.03","env_0.04", "env_0.05","env_0.06","env_0.07","env_0.08","env_0.09", "env_0.1", "env_0.11","env_0.12", "env_0.13", "env_0.14", "env_0.15"]
-ENV = ["env_0.0", "env_1.0", "env_-1.0", "env_0.25", "env_0.5", "env_0.75",  "env_-0.25", "env_-0.5", "env_-0.75"]
-TS=["p-0.50"]
+ENV = ["env_0.0", "env_1.0", "env_-1.0"]
+TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -41,8 +41,9 @@ def get_seed(rep, config, h2, ts, env):
   ts_list = ts.split("-")[1].split(".")[1]
   ts_list = [int(i) for i in ts_list]
   ts = sum(ts_list)
-  out = int(env * float(rep + config + h2 + str(ts)))
+  out = float(env * float(rep + config + h2 + str(ts))) / 51278
   out = str(out)
+  print(out)
   return out
 
 rule all:
