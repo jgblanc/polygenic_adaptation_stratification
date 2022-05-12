@@ -11,6 +11,7 @@ library(data.table)
 library(tidyverse)
 library(latex2exp)
 library(ggpubr)
+library(dplyr)
 ```
 
 ## Introduction 
@@ -76,9 +77,9 @@ See [link](Polygenic_Selection_Test.html) for more detail.
 
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE}
-plot_data <- function(data, color_name) {
+plot_data <- function(data, color_name, eb_width = 0.005) {
   
-  pl <- ggplot(data = data, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =2.5)+   xlab(TeX("$\\Delta_{AB}$")) + ylab("False Postive Rate") + theme_classic(base_size = 12) + scale_color_manual(values = c(color_name)) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 12),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.005)
+  pl <- ggplot(data = data, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =2.5)+   xlab(TeX("$\\Delta_{AB}$")) + ylab("False Postive Rate") + theme_classic(base_size = 12) + scale_color_manual(values = c(color_name)) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 12),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = eb_width)
   
   return(pl)
 }
@@ -148,37 +149,43 @@ p2
 * Asceratined SNPs  
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=7, fig.width=7}
-df <- fread("../code/Make_Plots/A_4PopSplit_h23.txt")
+df <- fread("../code/Make_Plots/A_4PopSplit_h23.txt.gz")
+
+# Get true fp rates 
+df_true_C1 <- df %>% filter(type == "True" & case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_") 
+df_true_C1$diff <- as.numeric(df_true_C1$diff)
+df_true_C2 <- df %>% filter(type == "True" & case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
+df_true_C2$diff <- as.numeric(df_true_C2$diff)
 
 # C1 - no correction
 nc <- df %>% filter(type == "nc") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
 nc$diff <- as.numeric(nc$diff)
-pl1 <- plot_data(nc, "goldenrod2") + ggtitle("C1 - No correction") + theme(plot.title = element_text(hjust = 0.5,size = 12))
+pl1 <- plot_data(nc, "goldenrod2", eb_width = 0.1) + ggtitle("C1 - No correction") + theme(plot.title = element_text(hjust = 0.5,size = 12)) + geom_point(data = df_true_C1, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 # C1 - correction 
 nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl2 <- plot_data(nc, "navy") + ggtitle("C1 - TGWAS") + theme(plot.title = element_text(hjust = 0.5,size = 12))
+pl2 <- plot_data(nc, "navy", eb_width = 0.1) + ggtitle("C1 - TGWAS") + theme(plot.title = element_text(hjust = 0.5,size = 12)) + geom_point(data = df_true_C1, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 # C2 - No correction 
 nc <- df %>% filter(type == "nc") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl3 <- plot_data(nc, "goldenrod2") + ggtitle("C2 - No correction") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+pl3 <- plot_data(nc, "goldenrod2", eb_width = 0.1) + ggtitle("C2 - No correction") + theme(plot.title = element_text(hjust = 0.5, size = 12)) + geom_point(data = df_true_C2, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 # C2 - correction 
 nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl4 <- plot_data(nc, "navy") + ggtitle("C2 - TGWAS") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+pl4 <- plot_data(nc, "navy",eb_width = 0.1) + ggtitle("C2 - TGWAS") + theme(plot.title = element_text(hjust = 0.5, size = 12)) + geom_point(data = df_true_C2, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 # C1 - correction Pop ID 
 nc <- df %>% filter(type == "nc-ID") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl5 <- plot_data(nc, "darkgreen") + ggtitle("C1 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+pl5 <- plot_data(nc, "darkgreen",eb_width = 0.1) + ggtitle("C1 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12)) + geom_point(data = df_true_C1, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 # C2 - correction 
 nc <- df %>% filter(type == "nc-ID") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl6 <- plot_data(nc, "darkgreen") + ggtitle("C2 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+pl6 <- plot_data(nc, "darkgreen",eb_width = 0.1) + ggtitle("C2 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12)) + geom_point(data = df_true_C2, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 p <- ggarrange(pl1, pl3, pl2, pl4, pl5, pl6, nrow = 3, ncol = 2)
 p
@@ -188,44 +195,104 @@ p
 * Causal SNPs  
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE,fig.height=7, fig.width=7}
-df <- fread("../code/Make_Plots/A_4PopSplit_h23.txt")
-
 # C1 - no correction
 nc <- df %>% filter(type == "c") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
 nc$diff <- as.numeric(nc$diff)
-pl1 <- plot_data(nc, "goldenrod2")
+pl1 <- plot_data(nc, "goldenrod2",eb_width = 0.1)+ ggtitle("C1 - No correction") + theme(plot.title = element_text(hjust = 0.5,size = 12)) + geom_point(data = df_true_C1, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 # C1 - correction 
 nc <- df %>% filter(type == "c-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl2 <- plot_data(nc, "navy")
+pl2 <- plot_data(nc, "navy",eb_width = 0.1) + ggtitle("C1 - TGWAS") + theme(plot.title = element_text(hjust = 0.5,size = 12)) + geom_point(data = df_true_C1, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 # C2 - No correction 
 nc <- df %>% filter(type == "c") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl3 <- plot_data(nc, "goldenrod2")
+pl3 <- plot_data(nc, "goldenrod2",eb_width = 0.1)+ ggtitle("C2 - No correction") + theme(plot.title = element_text(hjust = 0.5, size = 12)) + geom_point(data = df_true_C2, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
+
 
 # C2 - correction 
 nc <- df %>% filter(type == "c-Tm") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl4 <- plot_data(nc, "navy")
+pl4 <- plot_data(nc, "navy",eb_width = 0.1) + ggtitle("C2 - TGWAS") + theme(plot.title = element_text(hjust = 0.5, size = 12)) + geom_point(data = df_true_C2, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 # C1 - correction Pop ID 
 nc <- df %>% filter(type == "c-ID") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl5 <- plot_data(nc, "darkgreen") + ggtitle("C1 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+pl5 <- plot_data(nc, "darkgreen") + ggtitle("C1 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))+ geom_point(data = df_true_C1, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 # C2 - correction 
 nc <- df %>% filter(type == "c-ID") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl6 <- plot_data(nc, "darkgreen") + ggtitle("C2 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+pl6 <- plot_data(nc, "darkgreen",eb_width = 0.1) + ggtitle("C2 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12)) + geom_point(data = df_true_C2, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 p <- ggarrange(pl1, pl3, pl2, pl4, pl5, pl6, nrow = 3, ncol = 2)
 p
 ```
 
+#### True Signal Simulations  
+
+For these simulations we simulate true signals of polygenic selection on the trait by drawing the sign of the effect sizes according to the allele frequency difference in the test panel. All examples are in the case of overlapping structure (C1).  
+
+##### Flip probabilities  
+
+The x-axis here is probability that the signs of the allele frequency contrasts in the test panel, $p_C - p_D$), and the GWAS panel, $p_A - p_B$, have the same sign. Each postive rate is calculated from 100 separate evolutionary replicates.   
 
 
+```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=3, fig.width=8}
+df <- fread("../code/Make_Plots/A_4PopSplit_h23_TS.txt.gz")
+ts <- fread("../code/Make_Plots/A_4PopSplit_h23_TS_magnitude.txt.gz")
+df <- full_join(ts, df)
+
+# Ascertained sites
+data_nc <- df %>% group_by(envs, ts, type) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()),avg_mag = mean(ts_magnitude)) %>% separate(ts, c("ts", "prob"), "-") %>% separate(envs, c("env", "diff"), "_") %>% filter(type %in% c("nc", "nc-Tm", "nc-ID", "True")) %>% mutate(prob = as.numeric(prob)) %>% mutate(direction = case_when(diff == "-1.0" ~ "Opposite Direction", diff == "0.0" ~ "No Environmental Stratification", diff == "1.0" ~ "Same Direction")) %>% mutate(PRS = case_when(type == "nc" ~ "Uncorrected", type == "nc-Tm" ~  "TGWAS", type == "nc-ID" ~ "Population ID", type == "True" ~ "True Effect Size"))
+d2_nc <- data_nc %>% filter(type %in% c("nc", "nc-Tm", "nc-ID"))
+
+labs <- c("Uncorrected","Population ID", expression(T^{GWAS}), "True Effect Size")
+#ggplot(data = data_nc, aes(x = prob, y = fp_strat, color = type, shape = type, size = type)) + geom_point() + facet_grid(~direction) + theme_classic(base_size = 12) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1)+scale_colour_manual(name = "",labels = labs,values = c("goldenrod2", "navy", "darkgreen", "red")) + scale_shape_manual(name = "",labels = labs,values = c(16, 16, 16, 8)) + scale_size_manual(name = "",labels = labs,values = c(2, 2, 2, 3)) + geom_errorbar(data = d2_nc, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5)  +  scale_y_continuous(name = "Positive Rate", breaks = seq(0, 1, 0.2)) + scale_x_continuous(name = "True Signal", breaks = seq(0.5, 0.62, 0.03))
+```
+
+
+```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=3, fig.width=8}
+# Causal sites
+data_c <- df %>% group_by(envs, ts, type) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()),avg_mag = mean(ts_magnitude)) %>% separate(ts, c("ts", "prob"), "-") %>% separate(envs, c("env", "diff"), "_") %>% filter(type %in% c("c", "c-Tm", "c-ID", "True")) %>% mutate(prob = as.numeric(prob)) %>% mutate(direction = case_when(diff == "-1.0" ~ "Opposite Direction", diff == "0.0" ~ "No Environmental Stratification", diff == "1.0" ~ "Same Direction")) %>% mutate(PRS = case_when(type == "c" ~ "Uncorrected", type == "c-Tm" ~  "TGWAS", type == "c-ID" ~ "Population ID", type == "True" ~ "True Effect Size"))
+d2_c <- data_c %>% filter(type %in% c("c", "c-Tm", "c-ID"))
+
+labs <- c("Uncorrected","Population ID", expression(T^{GWAS}), "True Effect Size")
+#ggplot(data = data_c, aes(x = prob, y = fp_strat, color = type, shape = type, size = type)) + geom_point() + facet_grid(~direction) + theme_classic(base_size = 12) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1) + scale_colour_manual(name = "",labels = labs,values = c("goldenrod2", "navy", "darkgreen", "red")) + scale_shape_manual(name = "",labels = labs,values = c(16, 16, 16, 8)) + scale_size_manual(name = "",labels = labs,values = c(2, 2, 2, 3)) + geom_errorbar(data = d2_c, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5)  +  scale_y_continuous(name = "Positive Rate", breaks = seq(0, 1, 0.2)) + scale_x_continuous(name = "True Signal", breaks = seq(0.5, 0.62, 0.03))
+```
+
+```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=5, fig.width=8}
+data_c$SNP <- "Causal"
+data_nc$SNP <- "Ascertained"
+
+data <- rbind(data_c, data_nc)
+data$PRS <- as.factor(data$PRS)
+data$PRS <- factor(data$PRS, levels = c("Uncorrected", "TGWAS", "Population ID" , "True Effect Size"))
+
+d2_c$SNP <- "Causal"
+d2_nc$SNP <- "Ascertained"
+d2 <- rbind(d2_c, d2_nc)
+
+
+ggplot(data = data, aes(x = prob, y = fp_strat, color = PRS, shape = PRS, size = PRS)) + geom_point() + facet_grid(SNP~direction) + theme_classic(base_size = 12) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1)+
+  scale_colour_manual(name = "",labels = labs, values = c("goldenrod2", "navy", "darkgreen", "red")) + 
+  scale_shape_manual(name = "",labels = labs, values = c(16, 16, 16, 8)) + 
+  scale_size_manual(name = "",labels = labs,values = c(2, 2, 2, 3)) + 
+  scale_y_continuous(name = "Positive Rate", breaks = seq(0, 1, 0.2)) + scale_x_continuous(name = "True Signal", breaks = seq(0.5, 0.62, 0.03)) + geom_errorbar(data = d2, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5) 
+```
+
+##### True signal magnitude 
+
+The x-axis here is the average true difference in genetic values between the test panel populations ($\Delta_{CD}$).The average is taken over the 100 evolutionary replicates. 
+
+```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=5, fig.width=8}
+ggplot(data = data, aes(x = avg_mag, y = fp_strat, color = PRS, shape = PRS, size = PRS)) + geom_point() + facet_grid(SNP~direction) + theme_classic(base_size = 12) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1)+
+  scale_colour_manual(name = "",labels = labs, values = c("goldenrod2", "navy", "darkgreen", "red")) + 
+  scale_shape_manual(name = "",labels = labs, values = c(16, 16, 16, 8)) + 
+  scale_size_manual(name = "",labels = labs,values = c(2, 2, 2, 3)) + 
+  scale_y_continuous(name = "Positive Rate", breaks = seq(0, 1, 0.2)) + scale_x_continuous(name = TeX("$\\bar{\\Delta}_{CD}$"), breaks = seq(0, 0.25, 0.05)) + geom_errorbar(data = d2, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5) 
+```
 
 ## Simple Grid 
 
@@ -420,6 +487,33 @@ pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
 
 ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
