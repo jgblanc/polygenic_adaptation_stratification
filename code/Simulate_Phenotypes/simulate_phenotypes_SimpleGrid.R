@@ -14,7 +14,7 @@ popfile = args[2] # pop file from msprime simulation
 output_file = args[3] #name of output file
 h2 = as.numeric(args[4]) # hertiability
 env_s=as.numeric(args[5]) # magnitude of environmental shift
-set.seed(as.numeric(args[6]) * 100) # random seed
+set.seed(as.numeric(args[6])) # random seed
 pheno_pattern = args[7]
 
 
@@ -26,7 +26,7 @@ colnames(prs)<-c("IID","dosage","prs")
 sample_size=nrow(prs)
 
 # Set larger GWAS sample size (we will match errors to this sample size)
-N_GWAS = 500000 #### Fix to be per pop
+N_GWAS = 500000
 
 # Load file containing the pop ID for each inidividual
 pop=fread(popfile,header=F)
@@ -35,21 +35,7 @@ colnames(pop)<-c("IID","FID","Pop", "Lat", "Long")
 # Add this info to genetic value file
 prs=merge(prs, pop, by="IID", sort=F)
 
-# Calculate average phenotype per pop
-prs$env = rnorm(sample_size,0, sqrt(1 - h2))
-Z <- prs %>% group_by(Pop) %>% summarise(avg = mean(env)) %>% pull(avg)
-
-# Rescale averages to larger GWAS size
-n_sim <- prs %>% group_by(Pop) %>% summarise(num = n()) %>% pull(num)
-Z_gwas <- sqrt(n_sim/ ((n_sim/sum(n_sim) * N_GWAS))) * Z
-
-# Rescale individual phenotypes
-delta <- Z - Z_gwas
-pops <- seq(0, length(delta)-1)
-for (i in 1:length(delta)) {
-  prs = prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == pops[i], env - delta[i], env))
-}
-
+# Draw environmental component of phenotype
 if (pheno_pattern == "LAT") {
 
   print(pheno_pattern)
@@ -63,9 +49,12 @@ if (pheno_pattern == "LAT") {
   }
 
   # Add stratification along Latitude
+  nlat <- prs %>% group_by(Lat) %>% summarise(num = n()) %>% pull(num)
+  prs$env <- rnorm(n = nrow(prs), mean = 0, sd = sqrt(1 - h2))
   for (i in 1:num_lat_demes) {
-    prs <- prs %>% group_by(Lat) %>% mutate(env = ifelse(Lat == (i-1), env + shifts[i], env))
+    prs <- prs %>% group_by(Lat) %>% mutate(env = case_when(Lat == (i-1) ~ rnorm(n = nlat[i], mean = shifts[i], sd = sqrt(1 - h2)),TRUE ~ env))
   }
+  prs$env <- scale(prs$env , scale = T) * sqrt(1 - h2)
 
 } else if (pheno_pattern == "DIAG") {
 
@@ -79,23 +68,44 @@ if (pheno_pattern == "LAT") {
     shifts <- seq(0, env_s, env_s / (num_diag_demes-1))
   }
 
-  # Add stratification along diagonal Latitude
+  # Draw phenotype with shift along the diagonal
   id_diag <- c(0,7,14, 21, 28, 35)
+  ndeme <- prs %>% group_by(Pop) %>% summarise(num = n()) %>% pull(num)
+  prs$env <- rnorm(n = nrow(prs), mean = 0, sd = sqrt(1 - h2))
   for (i in 1:length(id_diag)) {
-    prs <- prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == id_diag[i], env + shifts[i], env))
+    prs <- prs %>% group_by(Pop) %>% mutate(env = case_when(Pop == id_diag[i] ~ rnorm(n = ndeme[id_diag[i] + 1], mean = shifts[i], sd = sqrt(1 - h2)),TRUE ~ env))
   }
+  prs$env <- scale(prs$env , scale = T) * sqrt(1 - h2)
+
 } else if (pheno_pattern == "PS") {
 
   print(pheno_pattern)
 
   # Add stratification on deme 25
   id_diag <- c(25)
+  ndeme <- prs %>% group_by(Pop) %>% summarise(num = n()) %>% pull(num)
+  prs$env <- rnorm(n = nrow(prs), mean = 0, sd = sqrt(1 - h2))
   for (i in 1:length(id_diag)) {
-    prs <- prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == id_diag[i], env + env_s, env))
+    prs <- prs %>% group_by(Pop) %>% mutate(env = case_when(Pop == id_diag[i] ~ rnorm(n = ndeme[id_diag[i] + 1], mean = env_s, sd = sqrt(1 - h2)),TRUE ~ env))
   }
+  prs$env <- scale(prs$env , scale = T) * sqrt(1 - h2)
 
 } else {
   stop("Please enter acceptable phenotype pattern: LAT, DIAG, PS")
+}
+
+# Calculate average phenotype per pop
+Z <- prs %>% group_by(Pop) %>% summarise(avg = mean(env)) %>% pull(avg)
+
+# Rescale averages to larger GWAS size
+n_sim <- prs %>% group_by(Pop) %>% summarise(num = n()) %>% pull(num)
+Z_gwas <- sqrt(n_sim/ ((n_sim/sum(n_sim) * N_GWAS))) * Z
+
+# Rescale individual phenotypes
+delta <- Z - Z_gwas
+pops <- seq(0, length(delta)-1)
+for (i in 1:length(delta)) {
+  prs = prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == pops[i], env - delta[i], env))
 }
 
 # Add genetic value to each of the environmental effects

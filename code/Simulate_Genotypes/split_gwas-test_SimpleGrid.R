@@ -12,6 +12,9 @@ ss_test = as.numeric(args[1])
 input_file = args[2]
 gwas_file = args[3]
 test_file = args[4]
+seed = args[5]
+
+set.seed(seed)
 
 # Read in pop info
 pop <- fread(input_file, header = F)
