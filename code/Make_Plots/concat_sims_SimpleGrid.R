@@ -6,7 +6,7 @@ reps <- rep(NA, n)
 for (i in 1:n){reps[i] <- paste0("C", i)}
 print(reps)
 h2 <- "h2-0"
-envs <- c("env-0.0", "env-0.5", "env-1.0")
+envs <- c("env-0.0", "env-0.5", "env-1.0", "env-5.0")
 cases <- c("C1")
 test <- c("LAT", "PS")
 pheno <- c("LAT", "DIAG", "PS")
@@ -22,4 +22,4 @@ agg_all_data <- function(rep, dir_path, case, h2, pheno, envs, test) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_C.txt", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_fp_C.txt", row.names=F,quote=F,sep="\t", col.names = T)
