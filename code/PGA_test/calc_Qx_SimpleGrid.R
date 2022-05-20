@@ -128,7 +128,7 @@ lambda_T <- as.numeric(as.character(lambda_T[1,1]))
 
 # Load Test vector
 std.tvec <- fread(tvec_file)
-tvec <- std.tvec$V1
+tvec <- std.tvec$Tvec
 
 # Make longitude test vector
 pops <- fread(pops_file)

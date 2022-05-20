@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = ["B1"]
-#for i in range(1, 101):
-#  REP.append("A"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("C"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["LAT", "DIAG", "PS"]
@@ -36,7 +36,8 @@ def get_seed(rep, h2, pheno, env):
   pheno = sum(pheno_list)
   env_list = float(env.split("-")[1])
   env = env_list + 3.1415
-  out = rep + h2 + str(pheno) + str(env)
+  out = float(rep) + float(h2) + pheno + env
+  out = str(out / 1000)
   return out
 
 
@@ -47,7 +48,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
+        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
 
 # Simluate Genotypes
 

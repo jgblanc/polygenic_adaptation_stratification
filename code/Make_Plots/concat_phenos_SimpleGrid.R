@@ -3,7 +3,7 @@ library(data.table)
 
 n <- 100
 reps <- rep(NA, n)
-for (i in 1:n){reps[i] <- paste0("A", i)}
+for (i in 1:n){reps[i] <- paste0("C", i)}
 print(reps)
 h2 <- "h2-0"
 envs <- c("env-0.0", "env-0.5", "env-1.0")
@@ -24,4 +24,4 @@ agg_all_data <- function(rep, dir_path, case, h2, pheno, envs) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Simulate_Phenotypes/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_phenos_A.txt", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_phenos_C.txt", row.names=F,quote=F,sep="\t", col.names = T)

@@ -24,7 +24,7 @@ vecs <- apply(vecs, 2, as.numeric)
 
 # Load test vector
 std.tvec <- fread(tvec_file)
-Tvec <- std.tvec$V1
+Tvec <- std.tvec$Tvec
 
 # Load Eigenvalues
 vals <- fread(vals_file)

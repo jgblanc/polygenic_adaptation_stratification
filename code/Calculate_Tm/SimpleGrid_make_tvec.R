@@ -49,4 +49,6 @@ if (test_type == "LAT") {
 
 
 # Write to file
-write.table(Tvec, output_file,row.names=F,quote=F,sep="\t", col.names = F)
+Tvec <- as.data.frame(Tvec)
+colnames(Tvec) <- "Tvec"
+write.table(Tvec, output_file,row.names=F,quote=F,sep="\t", col.names = T)

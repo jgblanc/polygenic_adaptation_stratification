@@ -25,6 +25,7 @@ alpha = as.numeric(args[4])
 print(paste("Alpha is", alpha))
 
 #random seed
+print(args[5])
 set.seed(as.numeric(args[5]))
 print(paste("The seed is", as.numeric(args[5])))
 
