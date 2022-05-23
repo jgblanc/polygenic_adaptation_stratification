@@ -3,7 +3,7 @@ library(data.table)
 
 n <- 100
 reps <- rep(NA, n)
-for (i in 1:n){reps[i] <- paste0("A", i)}
+for (i in 1:n){reps[i] <- paste0("C", i)}
 print(reps)
 cases <- c("C1")
 test <- c("LAT", "PS")
@@ -20,4 +20,4 @@ agg_all_data <- function(rep, dir_path, case, test) {
 
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Calculate_Tm/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_gw_A.txt", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_gw_C.txt", row.names=F,quote=F,sep="\t", col.names = T)
