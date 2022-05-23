@@ -8,7 +8,7 @@ CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["LAT", "DIAG", "PS"]
 TEST = ["LAT", "PS"]
-ENV = ["env-5.0"]
+ENV = ["env-10.0"]
 SS_TEST = 20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
@@ -21,7 +21,7 @@ wildcard_constraints:
     config="C1",
     h2="h2-[0-1]",
     pheno="[A-Z]*",
-    env="env-[0-9].[0-9]*",
+    env="env-[0-9]*.[0-9]*",
     test="[A-Z]*"
 
 def get_params(x):
