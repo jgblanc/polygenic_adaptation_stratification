@@ -1,7 +1,7 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1"]
+CONFIG=["C1", "C2"]
 REP = []
 for i in range(1,101):
   REP.append("A"+str(i))
@@ -48,8 +48,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV, chr=CHR),
-	expand("=output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.fst.summary",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV, chr=CHR)
+        expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.fst.summary",rep=REP, config=CONFIG)
 
 # Simluate Genotypes
 
