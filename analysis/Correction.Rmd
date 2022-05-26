@@ -7,10 +7,13 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+rm(list =ls())
+library(pracma)
 ```
 
 ```{r}
 make_genotype_matrix <- function(p, n, L) {
+  
   G <- matrix(NA, nrow = n, ncol = L)
   for (i in 1:length(p)) {
     G[,i] <- rbinom(n,2,p[i])
@@ -19,14 +22,14 @@ make_genotype_matrix <- function(p, n, L) {
 }
 
 # 3 populations ((A,B),C)
-sim_evo <- function(m, L) {
+sim_evo <- function(m, n, L) {
   
   # Draw alleles from Beta
   p_start <- rbeta(L, 1,1)
 
   # Evolve alleles to first split via drift
-  p1 <- p_start + rnorm(L, 0, sqrt((p_start)*(1-p_start)* 0.05))
-  p2 <- p_start + rnorm(L, 0, sqrt((p_start)*(1-p_start)* 0.05))
+  p1 <- p_start + rnorm(L, 0, sqrt((p_start)*(1-p_start)* 0.1))
+  p2 <- p_start + rnorm(L, 0, sqrt((p_start)*(1-p_start)* 0.1))
   rm <- which(p1 < 0 | p1 > 1 | p2 < 0 | p2 > 1)
   if (length(rm) > 0) {
     p1 <- p1[-rm]
@@ -34,53 +37,92 @@ sim_evo <- function(m, L) {
   }
   L <- length(p1)
   
-  # Evolve alleles to second split via drift
+  # Evolve A,B alleles to second split via drift
   pA <- p1 + rnorm(L, 0, sqrt((p1)*(1-p1)* 0.05))
   pB <- p1 + rnorm(L, 0, sqrt((p1)*(1-p1)* 0.05))
-  pC <- p2 + rnorm(L, 0, sqrt((p2)*(1-p2)* 0.01))
-  rm <- which(pC < 0 | pC > 1 | pA < 0 | pA > 1 | pB < 0 | pB > 1)
+
+  # Evolve C, DE alleles  
+  pD <- p2 + rnorm(L, 0, sqrt((p2)*(1-p2)* 0.1))
+  pCE <- p2 + rnorm(L, 0, sqrt((p2)*(1-p2)* 0.05))
+  rm <- which(pCE < 0 | pCE > 1 )
+  if (length(rm) > 0) {
+    pCE <- pCE[-rm]
+    pA <- pA[-rm]
+    pB <- pB[-rm]
+    pD <- pD[-rm]
+  }
+  L <- length(pCE)  
+  pC <- pCE + rnorm(L, 0, sqrt((pCE)*(1-pCE)* 0.05))
+  pE <- pCE + rnorm(L, 0, sqrt((pCE)*(1-pCE)* 0.05))
+  
+  # Remove fixed/lost alleles 
+  rm <- which(pA < 0 | pA > 1 | pB < 0 | pB > 1 | pC < 0 | pC > 1 | pD < 0 | pD > 1 | pE < 0 | pE > 1)
   if (length(rm) > 0) {
     pA <- pA[-rm]
     pB <- pB[-rm]
     pC <- pC[-rm]
+    pD <- pD[-rm]
+    pE <- pE[-rm]
   }
-  
+
+    
   # Make genotype matrix by drawing from population 
   iA <- make_genotype_matrix(pA, m/3, length(pA))
   iB <- make_genotype_matrix(pB, m/3, length(pB))
   iC <- make_genotype_matrix(pC, m/3, length(pC))
+  iD <- make_genotype_matrix(pD, n/2, length(pD))
+  iE <- make_genotype_matrix(pE, n/2, length(pE))
   
   # GWAS Gentotype Matrix 
   G <- rbind(iA, iB, iC)
+  
+  # Test Genotype Matrix
+  X <- rbind(iD, iE)
 
   # Get rid of fixed sites 
   rmG <- which(colSums(G) == 0 | colSums(G) == 2*m)
+  rmX <- which(colSums(X) == 0 | colSums(X) == 2*n)
+  rm <- c(rmG, rmX)
   if (length(rmG) > 0) {
-    G <- G[,-rmG]
+    G <- G[,-rm]
+    X <- X[,-rm]
   }
-  return(G) 
+  
+  return(list(G,X)) 
 }
 ```
 
 
 ```{r}
 # Evolutionary simulation
-G <- sim_evo(m=300, L=1000)
+set.seed(12)
+out <- sim_evo(m=300, n=200, L=1000)
+G <- out[[1]]
+X <- out[[2]]
 L <- ncol(G)
 m <- nrow(G)
+n <- nrow(X)
 
 # Get resulting allele frequencies
+## GWAS
 pA <- colMeans(G[1:100,])/2
 pB <- colMeans(G[101:200,])/2
 pC <-  colMeans(G[201:300,])/2
 pAB <- colMeans(G[1:200,])/2
 p <- colMeans(G)/2
+## Test
+pD <- colMeans(X[1:100,])/2
+pE <- colMeans(X[101:200,])/2
+
 
 # Confounder ((1,0),-1)
 dA <- 1
 dB <- 0 
 dC <- -1
 E <- c(rep(dA,m/3), rep(dB,m/3), rep(dC,m/3))
+
+# Test Vector (0.5, -0.5)
+Tvec <- c(rep(1, n/2), rep(-1, n/2))
 ```
 
 ## Frequency contrasts
@@ -91,23 +133,35 @@ GWAS model:
 $$\vec{y} \sim \beta_{\ell}\vec{g}_{\ell}$$ 
 
 Effect size bias: 
-$$\frac{Cov(\vec{E}, \vec{g}_{\ell})}{Var(\vec{g}_{\ell})} = \frac{1}{N} \vec{E}^T\vec{g}_{\ell} = \frac{\frac{2}{3}(p_{AB} - p_{c})+ \frac{1}{3}(p_A -p_B)}{Var(\vec{g}_{\ell})}$$
+$$\frac{Cov(\vec{E}, \vec{g}_{\ell})}{Var(\vec{g}_{\ell})} = \frac{1}{N} \frac{\vec{E}^T\vec{g}_{\ell}}{Var(g_{\ell})} = \frac{\frac{2}{3}(p_{AB} - p_{c})+ \frac{1}{3}(p_A -p_B)}{Var(\vec{g}_{\ell})}$$
 
 Selection test bias:  
 $$\tilde{F}_4 = c E[(\frac{2}{3}(p_{AB} - p_{c})+ \frac{1}{3}(p_A -p_B))(p_D - p_E)] \neq 0$$
 
 ```{r}
-# Single site 
+# Single site effect size bias
 (1/(m)) *(t(E) %*% G[,1])
 ((2/3)*(pAB[1] - pC[1])) + ((1/3)*(pA[1] -pB[1]))
 ```
 
 ```{r}
-# Compare across sites 
+# Compare effect size bias across sites 
 covBias <- (1/(m)) *(t(E) %*% G)
-plot(covBias[1,],((2/3)*(pAB - pC)) + ((1/3)*(pA -pB)))
+plot(covBias[1,],((2/3)*(pAB - pC)) + ((1/3)*(pA -pB)), xlab = "Effect Size Bias")
 abline(0,1, col = "red")
 ```
+
+```{r}
+# Calculate Selection Test Bias at single site
+((1/(m)) *(t(E) %*% G[,1])) * ((1/n) * (Tvec %*% X[,1]))
+(((2/3)*(pAB[1] - pC[1])) + ((1/3)*(pA[1] -pB[1]))) * (pD[1] - pE[1])
+```
+
+```{r}
+# Selection test biast across sites (using correlation)
+cor((((2/3)*(pAB - pC)) + ((1/3)*(pA -pB))), (pD - pE))
+```
+
 
 ### Control for deep split 
 
@@ -119,7 +173,7 @@ $$\vec{v} = \frac{I(A \rightarrow 1, B \rightarrow 1, C \rightarrow -2)}{||\vec{
 $$P = I - \vec{v}\vec{v}^T$$
 
 Effect size bias: 
-$$\frac{Cov(\vec{PE}, \vec{Pg}_{\ell})}{Var(\vec{Pg}_{\ell})} = \frac{1}{N} (P\vec{E})^T(P\vec{g}_{\ell}) = \frac{\frac{1}{3}(p_A -p_B)}{Var(P\vec{g}_{\ell})}$$  
+$$\frac{Cov(\vec{PE}, \vec{Pg}_{\ell})}{Var(\vec{Pg}_{\ell})} = \frac{1}{N} \frac{(P\vec{E})^T(P\vec{g}_{\ell})}{Var(g_{\ell})} = \frac{\frac{1}{3}(p_A -p_B)}{Var(P\vec{g}_{\ell})}$$  
 
 Selection test bias:  
 $$\tilde{F}_4 = c E[(\frac{1}{3}(p_A -p_B)(p_D - p_E)] = 0$$  
@@ -143,10 +197,20 @@ P <- diag(rep(1, length(v))) - (v %*% t(v))
 ```{r}
 # Compare across sites 
 covBias <- (1/(m)) * ( t(P %*% E) %*%  (P %*% G))
-plot(covBias[1,],(1/3)*(pA -pB))
+plot(covBias[1,],(1/3)*(pA -pB), xlab = "Effect Size Bias")
 abline(0,1, col = "red")
 ```
 
+```{r}
+# Calculate Selection Test Bias at single site
+((1/(m)) * ( t(P %*% E) %*%  (P %*% G[,1]))) * ((1/n) * (Tvec %*% X[,1]))
+((1/3)*(pA[1] -pB[1])) * (pD[1] - pE[1])
+```
+
+```{r}
+# Selection test biast across sites 
+cor(((1/3)*(pA -pB)), (pD - pE))
+```
 
 ### Control for shallow split  
 
@@ -182,15 +246,26 @@ P <- diag(rep(1, length(v))) - (v %*% t(v))
 ```{r}
 # Compare across sites 
 covBias <- (1/(m)) * ( t(P %*% E) %*%  (P %*% G))
-plot(covBias[1,],(2/3)*(pAB -pC))
+plot(covBias[1,],(2/3)*(pAB -pC), xlab = "Effect size bias")
 abline(0,1, col = "red")
+```
+
+```{r}
+# Calculate Selection Test Bias at single site
+((1/(m)) * ( t(P %*% E) %*%  (P %*% G[,1]) )) * ((1/n) * (Tvec %*% X[,1]))
+((2/3)*(pAB[1] -pC[1])) * (pD[1] - pE[1])
+```
+
+```{r}
+# Selection test biast across sites 
+cor(((2/3)*(pAB -pC)), (pD - pE))
 ```
 
 ## Loadings 
 
 When using a mean-centered matrix I think (???), 
-$$V_{\ell,1} \stackrel{?}{=} \frac{p_{AB} - p_C}{2}\stackrel{?}{=} \frac{p_{AB} - p_C}{4}$$
-$$V_{\ell, 1} \stackrel{?}{=} \frac{p_A - p_B}{2} \stackrel{?}{=} \frac{p_{A} - p_B}{4}$$  
+$$V_{\ell,1} \stackrel{?}{=} \frac{(p_{AB} - p_C)}{c1}$$
+$$V_{\ell, 2} \stackrel{?}{=} \frac{p_A - p_B}{4}$$  
 
 ```{r}
 # Do SVD
@@ -202,14 +277,16 @@ S <- diag(mySVD$d)
 
 ```{r}
 # Compare loadings to frequency contrasts - PC 1
+mod <- lm((pAB - pC) ~ V[,1])
+c1 <- 1 / coef(mod)[2]
 
 # Single site
 V[1,1]
-0.5 * (pAB[1] - pC[1])
+c1 *(pAB[1] - pC[1])
 
 # Compate across sites 
-plot(V[,1],0.5 * (pAB - pC))
-abline(0,-2, col = "red") # Potentially off by a factor of 2? 
+plot(V[,1],c1 * (pAB - pC))
+abline(0,1, col = "red") 
 ```
 
 ```{r}
@@ -217,13 +294,36 @@ abline(0,-2, col = "red") # Potentially off by a factor of 2?
 
 # Single site
 V[1,2]
-0.5 * (pA[1] - pB[1])
+0.25 * (pA[1] - pB[1])
 
 # Compate across sites 
-plot(V[,2],0.5 * (pA - pB))
-abline(0,2, col = "red")  # Potentially off by a factor of 2? 
+plot(V[,2],0.25 * (pA - pB))
+abline(0,1, col = "red") 
 ```
 
+For the test panel: 
+$$V^X_{\ell,1} \stackrel{?}{=} \frac{(p_{D} - p_E)}{c2}$$
+```{r}
+# Do SVD
+mySVD_Test <- svd(scale(X,scale = F))
+Vx <- mySVD_Test$v
+Ux <- mySVD_Test$u
+Sx <- diag(mySVD_Test$d)
+```
+
+```{r}
+# Compare loadings to frequency contrasts - PC 1
+mod <- lm((pD - pE) ~ Vx[,1])
+c2 <- 1 / coef(mod)[2]
+
+# Single site
+Vx[1,1]
+c2 *(pD[1] - pE[1])
+
+# Compate across sites 
+plot(Vx[,1],c2 * (pD - pE))
+abline(0,1, col = "red") 
+```
 
 ### No correction
 
@@ -231,22 +331,193 @@ GWAS model:
 $$\vec{y} \sim \beta_{\ell}\vec{g}_{\ell}$$ 
 
 Effect size bias: 
-$$\frac{Cov(\vec{E}, \vec{g}_{\ell})}{Var(\vec{g}_{\ell})} = \frac{1}{N} \vec{E}^T\vec{g}_{\ell} = \frac{\frac{2}{3}(p_{AB} - p_{c})+ \frac{1}{3}(p_A -p_B)}{Var(\vec{g}_{\ell})} \stackrel{?}{=} \frac{\frac{1}{3}V_{\ell,1} - \frac{1}{6} V_{\ell,2} }{Var(g_{\ell})}$$
+$$\frac{Cov(\vec{E}, \vec{g}_{\ell})}{Var(\vec{g}_{\ell})} = \frac{1}{N} \vec{E}^T\vec{g}_{\ell} = \frac{\frac{2}{3}(p_{AB} - p_{c})+ \frac{1}{3}(p_A -p_B)}{Var(\vec{g}_{\ell})} \stackrel{?}{=} \frac{\frac{2c_1}{3}V_{\ell,1} + \frac{4}{3} V_{\ell,2} }{Var(g_{\ell})}$$
 
 Selection test bias:  
 $$\tilde{F}_4 = c E[(\frac{2}{3}(p_{AB} - p_{c})+ \frac{1}{3}(p_A -p_B))(p_D - p_E)] \neq 0$$  
+$$\tilde{F}_4 = c E[(\frac{2c_1}{3}V_{1,\ell}+ \frac{4}{3}V_{2,\ell)}(c_2V^X_{1,\ell})] \neq 0$$
 
 ```{r}
 # Single site 
 (1/(m)) *(t(E) %*% G[,1])
 ((2/3)*(pAB[1] - pC[1])) + ((1/3)*(pA[1] -pB[1]))
-((1/3)*V[1,1]) - (1/6)*(V[1,2]) # Signs messed up 
+((2/3)*V[1,1] / c1) + (4/3)*(V[1,2]) 
 ```
 
 ```{r}
 # Compare across sites 
 covBias <- (1/(m)) *(t(E) %*% G)
-plot(covBias[1,],((1/3)*V[,1]) - (1/6)*(V[,2]))
+plot(covBias[1,],((2/3)*V[,1] / c1) + (4/3)*(V[,2]), xlab = "Effect Size Bias")
 abline(0,1, col = "red")
 ```
+
+```{r}
+# Calculate Selection Test Bias at single site
+((1/(m)) *(t(E) %*% G[,1])) * ((1/n) * (Tvec %*% X[,1]))
+(((2/3)*V[1,1]/c1) + (4/3)*(V[1,2])) * (Vx[1,1] / c2)
+```
+
+```{r}
+# Selection test biast across sites 
+cor(((2/3)*V[,1]/c1) + ((4/3)*V[,2]), (Vx[,1] / c2))
+```
+
+### Include PC1 (Controlling for deep split) 
+
+GWAS model:  
+$$\vec{y} \sim \beta_{\ell}\vec{g}_{\ell} + \vec{U}_1$$  
+
+Annihilator: 
+$$P = I - \vec{U}_1\vec{U}_1^T$$
+
+Effect size bias: 
+$$\frac{Cov(\vec{PE}, \vec{Pg}_{\ell})}{Var(\vec{Pg}_{\ell})} = \frac{1}{N} (P\vec{E})^T(P\vec{g}_{\ell}) = \frac{\frac{1}{3}(p_A -p_B)}{Var(P\vec{g}_{\ell})} \stackrel{?}{=} \frac{\frac{-4}{3}V_{2,\ell}}{Var(P\vec{g}_{\ell})}$$  
+
+Selection test bias:  
+$$\tilde{F}_4 = c E[\frac{4c_2}{3}V_{2,\ell}V^X_{1,\ell}] = 0$$ 
+
+```{r}
+# Make covariate
+v <- U[,1]
+
+# Make annihilator
+P <- diag(rep(1, length(v))) - (v %*% t(v))
+
+# Single site
+(1/(m)) * ( t(P %*% E) %*%  (P %*% G[,1]))
+((1/3)*(pA[1] -pB[1]))
+(4/3)* V[1,2]
+```
+
+```{r}
+# Compare across sites - frequency contrast
+covBias <- (1/(m)) * ( t(P %*% E) %*%  (P %*% G))
+plot(covBias[1,],(1/3)*(pA -pB), xlab = "Effect Size Bias")
+abline(0,1, col = "red")
+
+# Compare across sites - PC loading
+covBias <- (1/(m)) * ( t(P %*% E) %*%  (P %*% G))
+plot(covBias[1,],(4/3)* V[,2], xlab = "Efect Size Bias")
+abline(0,1, col = "red")
+```
+
+```{r}
+# Calculate Selection Test Bias at single site
+((1/(m)) * (t(P %*% E) %*%  (P %*% G[,1]))) * ((1/n) * (Tvec %*% X[,1]))
+((4/3)*(V[1,2]) ) * (Vx[1,1] / c2)
+```
+
+```{r}
+# Selection test biast across sites 
+cor((4/3)*(V[,2]) , (Vx[,1] / c2))
+```
+
+### Include PC2 (Controlling for shallow split) 
+
+GWAS model:  
+$$\vec{y} \sim \beta_{\ell}\vec{g}_{\ell} + \vec{U}_1$$  
+
+Annihilator: 
+$$P = I - \vec{U}_2\vec{U}_2^T$$
+
+Effect size bias: 
+$$\frac{Cov(\vec{PE}, \vec{Pg}_{\ell})}{Var(\vec{Pg}_{\ell})} = \frac{1}{N} (P\vec{E})^T(P\vec{g}_{\ell}) = \frac{\frac{2}{3}(p_{AB} -p_C)}{Var(P\vec{g}_{\ell})} \stackrel{?}{=} \frac{\frac{2c_1}{3}V_{1,\ell}}{Var(P\vec{g}_{\ell})}$$  
+
+Selection test bias:  
+$$\tilde{F}_4 = c E[\frac{2c_1c_2}{3}V_{1,\ell}V^X_{1,\ell}] \neq 0$$ 
+
+```{r}
+# Make covariate
+v <- U[,2]
+
+# Make annihilator
+P <- diag(rep(1, length(v))) - (v %*% t(v))
+
+# Single site
+(1/(m)) * ( t(P %*% E) %*%  (P %*% G[,1]))
+((2/3)*(pAB[1] -pC[1]))
+(2/3)* V[1,1] * (1/c1)
+```
+
+```{r}
+# Compare across sites - frequency contrast
+covBias <- (1/(m)) * ( t(P %*% E) %*%  (P %*% G))
+plot(covBias[1,],(2/3)*(pAB -pC))
+abline(0,1, col = "red")
+
+# Compare across sites - PC loading
+covBias <- (1/(m)) * ( t(P %*% E) %*%  (P %*% G))
+plot(covBias[1,],(2/3)* V[,1] / c1)
+abline(0,1, col = "red")
+```
+
+```{r}
+# Calculate Selection Test Bias at single site
+((1/(m)) * ( t(P %*% E) %*%  (P %*% G[,1]))) * ((1/n) * (Tvec %*% X[,1]))
+((2/3)* V[1,1] / c1) * (Vx[1,1] / c2)
+```
+
+```{r}
+# Selection test biast across sites 
+cor((2/3)* V[,1] / c1, (Vx[,1]/c2))
+```
+
+### Include TGWAS (should be the same as controlling for deep split)
+
+GWAS model:  
+$$\vec{y} \sim \beta_{\ell}\vec{g}_{\ell} + \vec{T}^{GWAS}$$  
+
+Annihilator: 
+$$P = I - \vec{T}^{GWAS}\vec{T}^{GWAS'}$$
+
+Effect size bias: 
+$$\frac{Cov(\vec{PE}, \vec{Pg}_{\ell})}{Var(\vec{Pg}_{\ell})} \stackrel{?}{=} \frac{1}{N} (P\vec{E})^T(P\vec{g}_{\ell}) = \frac{\frac{1}{3}(p_A -p_B)}{Var(P\vec{g}_{\ell})} \stackrel{?}{=} \frac{\frac{4}{3}V_{2,\ell}}{Var(P\vec{g}_{\ell})}$$  
+
+Selection test bias:  
+$$\tilde{F}_4 = c E[\frac{4}{3}V_{2,\ell}V^X_{1,\ell}] = 0$$ 
+
+```{r}
+# Calculate TGWAS 
+Gs <- scale(G)
+Xs <- scale(X)
+TGWAS <-  Gs %*% t(Xs) %*% solve(Xs %*% t(Xs)) %*% Tvec
+
+# Make covariate
+v <- TGWAS / norm(TGWAS, "2")
+plot(v)
+
+# Make annihilator
+P <- diag(rep(1, length(v))) - (v %*% t(v))
+
+# Single site
+(1/(m)) * ( t(P %*% E) %*%  (P %*% G[,1]))
+((1/3)*(pA[1] -pB[1]))
+(4/3)* V[1,2]
+```
+
+```{r}
+# Compare across sites - frequency contrast
+covBias <- (1/(m)) * ( t(P %*% E) %*%  (P %*% G))
+plot(covBias[1,],(1/3)*(pA -pB), xlab = "Effect Size Bias")
+abline(0,1, col = "red")
+
+# Compare across sites - PC loading
+covBias <- (1/(m)) * ( t(P %*% E) %*%  (P %*% G))
+plot(covBias[1,],(4/3)* V[,2], xlab = "Efect Size Bias")
+abline(0,1, col = "red")
+```
+
+```{r}
+# Calculate Selection Test Bias at single site
+((1/(m)) * (t(P %*% E) %*%  (P %*% G[,1]))) * ((1/n) * (Tvec %*% X[,1]))
+((4/3)*(V[1,2]) ) * (Vx[1,1] / c2)
+```
+
+```{r}
+# Selection test biast across sites 
+cor((4/3)*(V[,2]) , (Vx[,1] / c2))
+```
+
+
+
 
