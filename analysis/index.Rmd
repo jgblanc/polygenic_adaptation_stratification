@@ -45,6 +45,7 @@ The pages below explain the 5 major steps of the pipeline:
 
   
 WIP links  
+Correction [link](Correction.html)
 Reproducible figures [link](Simulation_Methods_Reproducible.html)
 Theory [link](Theory.html)  
 4popslit [link](4Popsplit.html)  
