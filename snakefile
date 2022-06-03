@@ -2,9 +2,9 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
-REP = []
-for i in range(1,101):
-  REP.append("A"+str(i))
+REP = ["A1"]
+#for i in range(1,101):
+#  REP.append("A"+str(i))
 HERITABILITY = ["h2-0.3"]
 #ENV = ["env_0.0","env_0.01","env_0.02","env_0.03","env_0.04", "env_0.05","env_0.06","env_0.07","env_0.08","env_0.09", "env_0.1", "env_0.11","env_0.12", "env_0.13", "env_0.14", "env_0.15"]
 #ENV = ["env_0.0", "env_1.0", "env_-1.0"]
