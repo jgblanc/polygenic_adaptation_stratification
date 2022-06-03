@@ -499,6 +499,12 @@ ggsave("~/Desktop/DLAT.png", sv, height = 2.5, width = 11)
 ```
 
 
+```{r, echo=FALSE, eval=FALSE}
+C2GWAS <- fread("../code/Make_Plots/4PopSplit_Fst_C2GWAS.txt")
+mean(C2GWAS$V3)
+C2Test <- fread("../code/Make_Plots/4PopSplit_Fst_C2Test.txt")
+mean(C2Test$V3)
+```
 
 
 

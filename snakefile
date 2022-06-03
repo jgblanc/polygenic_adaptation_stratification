@@ -7,8 +7,10 @@ for i in range(1,101):
   REP.append("A"+str(i))
 HERITABILITY = ["h2-0.3"]
 #ENV = ["env_0.0","env_0.01","env_0.02","env_0.03","env_0.04", "env_0.05","env_0.06","env_0.07","env_0.08","env_0.09", "env_0.1", "env_0.11","env_0.12", "env_0.13", "env_0.14", "env_0.15"]
-ENV = ["env_0.0", "env_1.0", "env_-1.0"]
-TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
+#ENV = ["env_0.0", "env_1.0", "env_-1.0"]
+ENV = ["env_0.0"]
+#TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
+TS=["p-0.50"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -359,47 +361,60 @@ rule make_test_vector:
 
 rule proj_T:
     input:
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
-    params:
-        n_minus_1 = int(SIZE)-1,
-        col_start = 6,
-        col_end = int(SIZE) + 4
+        test="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
+        gwas="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
+        tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
     output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec.allele",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/projection.sscore"
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt"
     shell:
         """
-        plink2 \
-        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
-        --pca allele-wts {params.n_minus_1} \
-        --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca
-
-        plink2 \
-        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-        --score output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation variance-standardize \
-        --score-col-nums {params.col_start}-{params.col_end} \
-        --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/projection
+        code/Calculate_Tm/calc_GXT.R  output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {tvec} {output}
         """
 
-rule calc_Tm:
-    input:
-        vecs="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec",
-        vals="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval",
-        proj="output/Calculate_Tm/4PopSplit/{rep}/{config}/projection.sscore",
-        tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
-        allele="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec.allele"
-    output:
-        Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt",
-        weights="output/Calculate_Tm/4PopSplit/{rep}/{config}/Test_weights.txt"
-    shell:
-        """
-	      Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} {input.proj} {input.tvec} {output.Tm} {output.weights}
-	      rm {input.allele}
-	      """
+
+#rule proj_T:
+#    input:
+#        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
+#        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
+#        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
+#    params:
+#        n_minus_1 = int(SIZE)-1,
+#        col_start = 6,
+#        col_end = int(SIZE) + 4
+#    output:
+#        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec",
+#        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval",
+#        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec.allele",
+#        "output/Calculate_Tm/4PopSplit/{rep}/{config}/projection.sscore"
+#    shell:
+#        """
+#        plink2 \
+#        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
+#        --pca allele-wts {params.n_minus_1} \
+#        --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca
+#
+#        plink2 \
+#        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+#        --score output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca.eigenvec.allele 2 5 header-read no-mean-imputation #variance-standardize \
+#        --score-col-nums {params.col_start}-{params.col_end} \
+#        --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/projection
+#        """
+
+#rule calc_Tm:
+#    input:
+#        vecs="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec",
+#        vals="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval",
+#        proj="output/Calculate_Tm/4PopSplit/{rep}/{config}/projection.sscore",
+#        tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
+#        allele="output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec.allele"
+#    output:
+#        Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt",
+#        weights="output/Calculate_Tm/4PopSplit/{rep}/{config}/Test_weights.txt"
+#    shell:
+#        """
+#	      Rscript code/Calculate_Tm/calc_Tm.R {input.vecs} {input.vals} {input.proj} {input.tvec} {output.Tm} {output.weights}
+#	      rm {input.allele}
+#	      """
 
 # Run GWAS
 
