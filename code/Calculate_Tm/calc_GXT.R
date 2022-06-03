@@ -29,7 +29,7 @@ compute_b <- function(path_to_test, path_to_gwas, path_to_testvec, outpath) {
 
   # Compute t(X)T
   outfile_XT <- paste0(outpath, "xt_temp")
-  cmd_XT <- paste("sh code/Calculate_TGWAS/compute_XT.sh", path_to_test, path_to_testvec, outfile_XT, sep = " ")
+  cmd_XT <- paste("sh code/Calculate_Tm/compute_XT.sh", path_to_test, path_to_testvec, outfile_XT, sep = " ")
   system(cmd_XT)
 
   # Adjust Betas to account for variance in x
@@ -54,7 +54,7 @@ compute_b <- function(path_to_test, path_to_gwas, path_to_testvec, outpath) {
 
   # Compute b
   outfile_b <- paste0(outpath, "b")
-  cmd_b <- paste("sh code/Calculate_TGWAS/GWAS_score.sh", path_to_gwas, paste0(outpath, "xt_temp.Tvec.glm.linear"), outfile_b, sep = " ")
+  cmd_b <- paste("sh code/Calculate_Tm/GWAS_score.sh", path_to_gwas, paste0(outpath, "xt_temp.Tvec.glm.linear"), outfile_b, sep = " ")
   system(cmd_b)
 
   # Read in and return b
@@ -82,7 +82,7 @@ b = compute_b(path_to_test = test_prefix, path_to_gwas = gwas_prefix, path_to_te
 b = as.data.frame(scale(b))
 colnames(b) <- "Tm"
 
-fwrite(b, paste0(out_prefix, "Tm.txt"), row.names = T, col.names = F, quote = F, sep = "\t")
+fwrite(b, paste0(out_prefix, "Tm.txt"), row.names = F, col.names = T, quote = F, sep = "\t")
 
 
 
