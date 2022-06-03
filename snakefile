@@ -48,7 +48,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.fst.summary",rep=REP, config=CONFIG)
+        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt",rep=REP, config=CONFIG)
 
 # Simluate Genotypes
 
