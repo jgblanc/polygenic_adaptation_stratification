@@ -5,10 +5,9 @@ CONFIG=["C1", "C2"]
 REP = []
 for i in range(1,101):
   REP.append("A"+str(i))
-HERITABILITY = ["h2-0.3"]
-#ENV = ["env_0.0","env_0.01","env_0.02","env_0.03","env_0.04", "env_0.05","env_0.06","env_0.07","env_0.08","env_0.09", "env_0.1", "env_0.11","env_0.12", "env_0.13", "env_0.14", "env_0.15"]
+HERITABILITY = ["h2-0.0"]
+ENV = ["env_0.0","env_0.01","env_0.02","env_0.03","env_0.04", "env_0.05","env_0.06","env_0.07","env_0.08","env_0.09", "env_0.1", "env_0.11","env_0.12", "env_0.13", "env_0.14", "env_0.15"]
 #ENV = ["env_0.0", "env_1.0", "env_-1.0"]
-ENV = ["env_0.0"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.50"]
 SIZE=2000
@@ -50,7 +49,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt",rep=REP, config=CONFIG)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
 
 # Simluate Genotypes
 
@@ -368,7 +367,7 @@ rule proj_T:
         "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt"
     shell:
         """
-        code/Calculate_Tm/calc_GXT.R  output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {tvec} {output}
+        Rscript code/Calculate_Tm/calc_GXT.R  output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/
         """
 
 
