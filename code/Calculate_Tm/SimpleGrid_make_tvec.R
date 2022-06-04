@@ -51,6 +51,8 @@ if (test_type == "LAT") {
 # Write to file
 pops <- fread(pop_file, header = F)
 colnames(pops) <- c("IID", "FID", "Pop", "Lat", "Long")
-pop <- dplyr::inner_join(pops, fam, by = c("IID"= "IID"))
+pop <- dplyr::inner_join(pops, fam, by = c("IID"= "IID", "FID"= "FID"))
 pop$Tvec <- Tvec
-write.table(Tvec, output_file,row.names=F,quote=F,sep="\t", col.names = T)
+colnames(pop) <- c("IID", "#FID", "Pop", "Lat", "Long",	"SEX", "Tvec")
+pop <- pop[,c("#FID","IID","SEX", "Pop", "Lat", "Long", "Tvec")]
+write.table(pop, output_file,row.names=F,quote=F,sep="\t", col.names = T)

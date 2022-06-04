@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_A_New
-#SBATCH --output=logs/4PopSplit_A_New.out
-#SBATCH --error=logs/4PopSplit_A_New.err
-#SBATCH --time=03:00:00
+#SBATCH --job-name=SimpleGrid_C_New
+#SBATCH --output=logs/SimpleGrid_C_New.out
+#SBATCH --error=logs/SimpleGrid_C_New.err
+#SBATCH --time=04:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=14

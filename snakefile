@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = ["C1"]
-#for i in range(1, 101):
-#  REP.append("C"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("C"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["LAT", "DIAG", "PS"]
@@ -48,7 +48,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm-ID_covars.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
+        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
 
 # Simluate Genotypes
 
