@@ -48,7 +48,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
+        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm-ID_covars.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
 
 # Simluate Genotypes
 
@@ -375,14 +375,14 @@ rule make_test_vector:
 
 rule proj_T:
     input:
-        test="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
-        gwas="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
-        tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
+        test="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
+        gwas="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
+        tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt"
     output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt"
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt"
     shell:
         """
-        Rscript code/Calculate_Tm/calc_GXT.R  output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/
+        Rscript code/Calculate_Tm/calc_GXT.R  output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.test}/
         """
 
 # Format Covariate file
