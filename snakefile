@@ -48,7 +48,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
+        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
 
 # Simluate Genotypes
 
@@ -384,6 +384,18 @@ rule proj_T:
         """
         Rscript code/Calculate_Tm/calc_GXT.R  output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.test}/
         """
+
+rule GWAS_PCA_weights:
+    input:
+        vecs="output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec",
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt"
+    output:
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt"
+    shell:
+        """
+        Rscript code/Calculate_Tm/GWAS_PC_weights.R {input.vecs} {input.Tm} {output}
+        """
+
 
 # Format Covariate file
 

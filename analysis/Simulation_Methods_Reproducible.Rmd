@@ -475,7 +475,7 @@ pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-10.0", test_type
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-10.0")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
-#ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
+ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
 ```
 
@@ -495,7 +495,7 @@ pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
 ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
 sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
 sv
-ggsave("~/Desktop/DLAT.png", sv, height = 2.5, width = 11)
+#ggsave("~/Desktop/DLAT.png", sv, height = 2.5, width = 11)
 ```
 
 
