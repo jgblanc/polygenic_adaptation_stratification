@@ -100,7 +100,7 @@ plot_data <- function(data, color_name, eb_width = 0.005) {
 * Ascertained SNPs (minimum p-value per chromosome) 
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE}
-df <- fread("../code/Make_Plots/A_4PopSplit_h20.txt.gz")
+df <- fread("../code/Make_Plots/A_4PopSplit_h20_GXT.txt.gz")
 
 # C1 - no correction
 nc <- df %>% filter(type == "nc") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
@@ -149,7 +149,7 @@ p2
 * Asceratined SNPs  
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=7, fig.width=7}
-df <- fread("../code/Make_Plots/A_4PopSplit_h23.txt.gz")
+df <- fread("../code/Make_Plots/A_4PopSplit_h23_GXT.txt.gz")
 
 # Get true fp rates 
 df_true_C1 <- df %>% filter(type == "True" & case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_") 
@@ -219,7 +219,7 @@ pl4 <- plot_data(nc, "navy",eb_width = 0.1) + ggtitle("C2 - TGWAS") + theme(plot
 # C1 - correction Pop ID 
 nc <- df %>% filter(type == "c-ID") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl5 <- plot_data(nc, "darkgreen") + ggtitle("C1 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))+ geom_point(data = df_true_C1, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
+pl5 <- plot_data(nc, "darkgreen",eb_width = 0.1) + ggtitle("C1 - Pop ID") + theme(plot.title = element_text(hjust = 0.5, size = 12))+ geom_point(data = df_true_C1, aes(x = diff, y = fp_strat), col = "red", shape = 8, size = 2.5)
 
 # C2 - correction 
 nc <- df %>% filter(type == "c-ID") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
@@ -240,7 +240,7 @@ The x-axis here is probability that the signs of the allele frequency contrasts 
 
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=3, fig.width=8}
-df <- fread("../code/Make_Plots/A_4PopSplit_h23_TS.txt.gz")
+df <- fread("../code/Make_Plots/A_4PopSplit_h23_TS_GXT.txt.gz")
 ts <- fread("../code/Make_Plots/A_4PopSplit_h23_TS_magnitude.txt.gz")
 df <- full_join(ts, df)
 
