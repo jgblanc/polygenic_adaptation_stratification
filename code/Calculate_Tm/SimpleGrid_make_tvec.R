@@ -49,6 +49,8 @@ if (test_type == "LAT") {
 
 
 # Write to file
-Tvec <- as.data.frame(Tvec)
-colnames(Tvec) <- "Tvec"
+pops <- fread(pop_file, header = F)
+colnames(pops) <- c("IID", "FID", "Pop", "Lat", "Long")
+pop <- dplyr::inner_join(pops, fam, by = c("IID"= "IID"))
+pop$Tvec <- Tvec
 write.table(Tvec, output_file,row.names=F,quote=F,sep="\t", col.names = T)
