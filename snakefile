@@ -5,10 +5,10 @@ REP = []
 for i in range(1, 101):
   REP.append("C"+str(i))
 CONFIG = ["C1"]
-HERITABILITY = ["h2-0"]
+HERITABILITY = ["shift-0"]
 PHENO = ["LAT", "DIAG", "PS"]
 TEST = ["LAT", "PS"]
-ENV = ["env-10.0", "env-5.0", "env-1.0", "env-0.0"]
+ENV = ["env-1.0", "env-0.0"]
 SS_TEST = 20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
