@@ -2,7 +2,7 @@
 #SBATCH --job-name=SimpleGrid_C_Shift
 #SBATCH --output=logs/SimpleGrid_C_Shift.out
 #SBATCH --error=logs/SimpleGrid_C_Shift.err
-#SBATCH --time=02:00:00
+#SBATCH --time=03:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=14
