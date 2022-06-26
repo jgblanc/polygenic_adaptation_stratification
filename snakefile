@@ -19,7 +19,7 @@ NUM_RESAMPLE = 1000
 wildcard_constraints:
     rep="[A-Z]\d+",
     config="C1",
-    h2="h2-[0-1]",
+    h2="shift-[0-1]",
     pheno="[A-Z]*",
     env="env-[0-9]*.[0-9]*",
     test="[A-Z]*"
@@ -48,7 +48,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
+        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
 
 # Simluate Genotypes
 
