@@ -8,7 +8,7 @@ CONFIG = ["C1"]
 HERITABILITY = ["shift-0"]
 PHENO = ["LAT", "DIAG", "PS"]
 TEST = ["LAT", "PS"]
-ENV = ["env-1.0", "env-0.0", "env-0.5", "env-0.05"]
+ENV = ["env-0.0", "env-0.5", "env-0.1"]
 SS_TEST = 20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
@@ -29,15 +29,19 @@ def get_params(x):
   return out
 
 def get_seed(rep, h2, pheno, env):
-  rep = str(int(''.join(list(rep)[1::])) * 1000)
+  rep = str(int(''.join(list(rep)[1::])))
+  print(rep)
   h2 = h2.split("-")[1]
   pheno_list = list(pheno)
   pheno_list = [ord(i) for i in pheno_list]
   pheno = sum(pheno_list)
+  print(pheno)
   env_list = float(env.split("-")[1])
   env = env_list + 3.1415
+  print(env)
   out = float(rep) + float(h2) + pheno + env
-  out = str(out / 1000)
+  out = str(out * 1000)
+  print(out)
   return out
 
 
