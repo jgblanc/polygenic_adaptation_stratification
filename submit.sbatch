@@ -2,7 +2,7 @@
 #SBATCH --job-name=4PopSplit_A_Shift
 #SBATCH --output=logs/4PopSplit_A_Shift.out
 #SBATCH --error=logs/4PopSplit_A_Shift.err
-#SBATCH --time=02:00:00
+#SBATCH --time=01:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=14
