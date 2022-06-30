@@ -2,16 +2,16 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
-REP = ["A1"]
-#for i in range(1,101):
-#  REP.append("A"+str(i))
+REP = []
+for i in range(1,101):
+  REP.append("A"+str(i))
 HERITABILITY = ["shift-0.0"]
-ENV = ["env_0.0", "env_0.1]
+ENV = ["env_0.0", "env_0.1"]
 #ENV = ["env_0.0","env_0.01","env_0.02","env_0.03","env_0.04", "env_0.05","env_0.06","env_0.07","env_0.08","env_0.09", "env_0.1", "env_0.11","env_0.12", "env_0.13", "env_0.14", "env_0.15"]
 #ENV = ["env_0.0", "env_0.1",  "env_-0.25", "env_0.25" , "env_-0.5", "env_0.5", "env_-0.75", "env_0.75",  "env_-1.0",  "env_1.0"]
 #ENV = ["env_0.0", "env_1.0", "env_-1.0"]
-TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
-#TS=["p-0.50"]
+#TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
+TS=["p-0.50"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -37,14 +37,17 @@ def get_env(x):
   return out
 
 def get_seed(rep, config, h2, ts, env):
-  rep = str(int(''.join(list(rep)[1::])) * 1000)
+  rep = int(''.join(list(rep)[1::]))
+  print(rep)
   config = list(config)[1]
+  print(config)
   h2 = h2.split(".")[1]
-  env = float(env.split("_")[1]) + 3.141596
-  ts_list = ts.split("-")[1].split(".")[1]
-  ts_list = [int(i) for i in ts_list]
-  ts = sum(ts_list)
-  out = float(env * float(rep + config + h2 + str(ts))) / 51278
+  print(h2)
+  env = float(env.split("_")[1])
+  print(env)
+  ts = float(ts.split("-")[1].split(".")[1]) / 100
+  print(ts)
+  out = (rep + int(config) + float(h2) + env + ts) * 1000
   out = str(out)
   print(out)
   return out
