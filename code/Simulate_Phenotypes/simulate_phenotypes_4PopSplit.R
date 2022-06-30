@@ -39,20 +39,13 @@ prs=merge(prs, pop, by="IID", sort=F)
 
 # Draw random environment
 pops <- unique(prs$pop)
-#prs$env = rnorm(sample_size,0, sqrt(1 - h2))
-#prs$env = scale(prs$env, scale = TRUE) * (sqrt(1 - h2))
-
-# Add stratification effect to environment
-#if (env_s >= 0) {
-#  prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env + env_s, env ))
-#} else {
-#  prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[2], env + abs(env_s), env ))
-#}
+prs$env = rnorm(sample_size,0, sqrt(1 - h2))
+prs$env = scale(prs$env, scale = TRUE) * (sqrt(1 - h2))
 
 # Draw environmental component
-prs$env = sapply(prs$pop, function(x){ if(x == pops[1]){rnorm(n = 1, mean = env_s, sd = sqrt(1 - h2)) }
-  else{rnorm(n = 1, mean = 0, sd = sqrt(1 - h2))}})
-prs$env <- scale(prs$env , scale = T) * sqrt(1 - h2)
+#prs$env = sapply(prs$pop, function(x){ if(x == pops[1]){rnorm(n = 1, mean = env_s, sd = sqrt(1 - h2)) }
+#  else{rnorm(n = 1, mean = 0, sd = sqrt(1 - h2))}})
+#prs$env <- scale(prs$env , scale = T) * sqrt(1 - h2)
 
 # Calculate average environmental component
 Z1 = prs %>% group_by(pop) %>% summarise(avg = mean(env)) %>% filter(pop == pops[1]) %>% pull(avg)
@@ -68,6 +61,11 @@ Z2_gwas = sqrt(N2/N2_gwas) * Z2
 delta1 = Z1 - Z1_gwas
 delta2 = Z2 - Z2_gwas
 prs = prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env - delta1, env - delta2))
+
+# Add stratification effect to environment
+if (env_s >= 0) {
+  prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env + env_s, env ))
+}
 
 # Add environmental effect to
 prs = prs %>%

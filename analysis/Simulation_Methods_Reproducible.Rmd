@@ -369,7 +369,7 @@ make_fp_plot <- function(df, pheno_type, env_type, test_type, longitude=F) {
   }
   
   if (longitude == F) {
-    dat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc", "nc-Tm", "nc-ID")) %>% mutate(test = test_type) %>% mutate(type = factor(type, levels = c("nc", "nc-Tm", "nc-ID")))
+    dat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc", "nc-Tm", "nc-ID")) %>% mutate(test = test_name) %>% mutate(type = factor(type, levels = c("nc", "nc-Tm", "nc-ID")))
     
   pl <-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 8, color = "black",  angle = 35, hjust=1), legend.position = "none") + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "Including $T^{GWAS}", "Including confounder")))) + facet_wrap(~test)
   } else {
@@ -426,9 +426,9 @@ make_gwas_weights_plot <- function(df, test_type) {
 }
 
 
-fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_GXT.txt.gz")
-pgs <- fread("../code/Make_Plots/SimpleGrid_pgs_C_GXT.txt.gz")
-phenos <- fread("../code/Make_Plots/SimpleGrid_phenos_C.txt.gz")
+fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_GXT_shift.txt.gz")
+pgs <- fread("../code/Make_Plots/SimpleGrid_pgs_C_GXT_shift.txt.gz")
+phenos <- fread("../code/Make_Plots/SimpleGrid_phenos_C_shift.txt.gz")
 gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C_GXT.txt.gz")
 ```
 
@@ -438,9 +438,9 @@ gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C_GXT.txt.gz")
 * Test vector is latitude 
 
 ```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
-pl_fp <- make_fp_plot(fp, pheno_type = "LAT", env_type = "env-1.0", test_type = "LAT", longitude = F)
-pl_pgs <- make_pgs_plot(pgs, pheno_type = "LAT", env_type = "env-1.0", test_type = "LAT", -0.25, 0.25)
-pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "LAT", env_type = "env-1.0")
+pl_fp <- make_fp_plot(fp, pheno_type = "LAT", env_type = "env-0.07", test_type = "LAT", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "LAT", env_type = "env-0.07", test_type = "LAT", -0.25, 0.25)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "LAT", env_type = "env-0.07")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
 ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
@@ -455,9 +455,9 @@ ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2
 * For each simulation do 2 polygenic adaptation tests one with latitude as the test vector and one with longitude  
 
 ```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
-pl_fp <- make_fp_plot(fp, pheno_type = "DIAG", env_type = "env-5.0", test_type = "LAT", longitude = T)
-pl_pgs <- make_pgs_plot(pgs, pheno_type = "DIAG", env_type = "env-5.0", test_type = "LAT", -0.6, 0.6)
-pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "DIAG", env_type = "env-5.0")
+pl_fp <- make_fp_plot(fp, pheno_type = "DIAG", env_type = "env-0.5", test_type = "LAT", longitude = T)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "DIAG", env_type = "env-0.5", test_type = "LAT", -1, 1)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "DIAG", env_type = "env-0.5")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
 ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
@@ -473,9 +473,9 @@ ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2
 * For each simulation do 1 polygenic adaptation test with latitude as the test vector 
 
 ```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
-pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-10.0", test_type = "LAT", longitude = F)
-pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-10.0", test_type = "LAT", -0.5, 0.5)
-pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-10.0")
+pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-0.5", test_type = "LAT", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-0.5", test_type = "LAT", -0.4, 0.4)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-0.5")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
 ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
@@ -491,9 +491,9 @@ ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2
 * For each simulation do 1 polygenic adaptation test with single deme vs everybody as the test vector 
 
 ```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
-pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-10.0", test_type = "PS", longitude = F)
-pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-10.0", test_type = "PS", -0.5, 0.5)
-pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-10.0")
+pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-0.5", test_type = "PS", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-0.5", test_type = "PS", -0.5, 0.5)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-0.5")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
 
 ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
