@@ -100,7 +100,7 @@ plot_data <- function(data, color_name, eb_width = 0.005) {
 * Ascertained SNPs (minimum p-value per chromosome) 
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE}
-df <- fread("../code/Make_Plots/A_4PopSplit_h20_GXT.txt.gz")
+df <- fread("../code/Make_Plots/A_4PopSplit_shift_GXT.txt.gz")
 
 # C1 - no correction
 nc <- df %>% filter(type == "nc") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
@@ -151,7 +151,7 @@ p2
 * Asceratined SNPs  
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=7, fig.width=7}
-df <- fread("../code/Make_Plots/A_4PopSplit_h23_GXT.txt.gz")
+df <- fread("../code/Make_Plots/A_4PopSplit_shifth23_GXT.txt.gz")
 
 # Get true fp rates 
 df_true_C1 <- df %>% filter(type == "True" & case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_") 

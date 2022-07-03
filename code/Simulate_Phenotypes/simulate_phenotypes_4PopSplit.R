@@ -63,9 +63,8 @@ delta2 = Z2 - Z2_gwas
 prs = prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env - delta1, env - delta2))
 
 # Add stratification effect to environment
-if (env_s >= 0) {
-  prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env + env_s, env ))
-}
+prs <- prs %>% group_by(pop) %>% mutate(env = ifelse(pop == pops[1], env + env_s, env ))
+
 
 # Add environmental effect to
 prs = prs %>%
