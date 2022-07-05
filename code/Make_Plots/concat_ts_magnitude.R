@@ -5,8 +5,8 @@ n <- 100
 reps <- rep(NA, n)
 for (i in 1:n){reps[i] <- paste0("A", i)}
 print(reps)
-h2 <- "h2-0.3"
-envs <- c("env_0.0", "env_1.0", "env_-1.0")
+h2 <- "shift-0.3"
+envs <- c("env_0.0", "env_-0.1", "env_0.1")
 cases <- c("C1")
 ts <- c("p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62")
 dat <- expand.grid(reps, cases, h2, ts,  envs)
@@ -22,4 +22,4 @@ agg_all_data <- function(rep, dir_path, case, h2, ts, envs) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Simulate_Phenotypes/4PopSplit/' )
 
-fwrite(df, "A_4PopSplit_h23_TS_magnitude.txt", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "A_4PopSplit_shift23_TS_magnitude.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
