@@ -6,7 +6,7 @@ reps <- rep(NA, n)
 for (i in 1:n){reps[i] <- paste0("A", i)}
 print(reps)
 h2 <- "shift-0.0"
-envs <- c("env_0.0","env_0.0025","env_0.005", "env_0.00075","env_0.01","env_0.0125", "env_0.015","env_0.0175","env_0.02","env_0.0225", "env_0.025","env_0.0275","env_0.03", "env_0.0325", "env_0.035")
+envs <- c("env_0.0","env_0.0025","env_0.005", "env_0.0075","env_0.01","env_0.0125", "env_0.015","env_0.0175","env_0.02","env_0.0225", "env_0.025","env_0.0275","env_0.03", "env_0.0325", "env_0.035")
 #envs <- c("env_0.0","env_0.01","env_0.02","env_0.03","env_0.04", "env_0.05","env_0.06","env_0.07","env_0.08","env_0.09", "env_0.1", "env_0.11","env_0.12", "env_0.13", "env_0.14", "env_0.15")
 #envs <- c("env_0.0", "env_-0.1", "env_0.1")
 #envs <- c("env_0.0", "env_1.0", "env_-1.0")
