@@ -1,17 +1,17 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1"]
+CONFIG=["C1", "C2"]
 REP = []
 for i in range(1,101):
   REP.append("A"+str(i))
-HERITABILITY = ["shift-0.3"]
-#ENV = ["env_0.0","env_0.003","env_0.006", "env_0.01","env_0.013","env_0.016", "env_0.02","env_0.023","env_0.026", "env_0.03","env_0.033","env_0.036", "env_0.04"]
+HERITABILITY = ["shift-0.0"]
+ENV = ["env_0.0","env_0.0025","env_0.005", "env_0.00075","env_0.01","env_0.0125", "env_0.015","env_0.0175","env_0.02","env_0.0225", "env_0.025","env_0.0275","env_0.03", "env_0.0325", "env_0.035"]
 #ENV = ["env_0.0","env_0.01","env_0.02","env_0.03","env_0.04", "env_0.05","env_0.06","env_0.07","env_0.08","env_0.09", "env_0.1", "env_0.11","env_0.12", "env_0.13", "env_0.14", "env_0.15"]
 #ENV = ["env_0.0", "env_-0.1", "env_0.1",  "env_0.2", "env_-0.2"]
-ENV = ["env_0.0", "env_-0.1", "env_0.1"]
-TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
-#TS=["p-0.50"]
+#ENV = ["env_0.0", "env_-0.1", "env_0.1"]
+#TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
+TS=["p-0.50"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -54,8 +54,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV),
-	expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/ts_magnitude.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
 
 # Simluate Genotypes
 
