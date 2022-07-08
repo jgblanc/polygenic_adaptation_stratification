@@ -19,8 +19,9 @@ outfile = args[3] # Path to output directory
 # Read in Tm
 Tm <- fread(Tm_file)
 
-# Read in Tvec
+# Read in Tvec and downsample to same size as Tm
 Tvec <- fread(tvec_file)
+Tvec <- Tvec %>% group_by(Tvec) %>% sample_n(nrow(Tm)/2)
 
 # Compute correlation
 out <- cor(Tm$Tm, Tvec$Tvec)
