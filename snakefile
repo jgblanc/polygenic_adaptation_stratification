@@ -51,7 +51,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/Tm.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV, snp=SNP)
+        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/corr.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV, snp=SNP)
 
 # Simluate Genotypes
 
@@ -372,6 +372,17 @@ rule proj_T:
     shell:
         """
         Rscript code/Calculate_Tm/calc_GXT_downsample.R  output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.snp}/ {params.snp_num}
+        """
+
+rule compute_correlation:
+    input:
+        Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/Tm.txt",
+        tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
+    output:
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/corr.txt"
+    shell:
+        """
+        Rscript code/Calculate_Tm/calc_correlation.R {input.Tm} {input.tvec} {output}
         """
 
 
