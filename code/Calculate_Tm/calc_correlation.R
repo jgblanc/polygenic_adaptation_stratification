@@ -11,17 +11,15 @@ suppressWarnings(suppressMessages({
 
 Tm_file = args[1] # Path to Tm file
 #Tm_file = "output/Calculate_TGWAS/4PopSplit/S1/C1/Tm.txt"
-tvec_file = args[2] # Path to test vectors
-#tvec_file = "output/Calculate_TGWAS/4PopSplit/S1/C1/Tvec.txt"
-outfile = args[3] # Path to output directory
+outfile = args[2] # Path to output directory
 
 
 # Read in Tm
 Tm <- fread(Tm_file)
 
-# Read in Tvec and downsample to same size as Tm
-Tvec <- fread(tvec_file)
-Tvec <- Tvec %>% group_by(Tvec) %>% sample_n(nrow(Tm)/2)
+# Make fake test vector with block structure
+Tvec <- as.data.frame(c(rep(-0.5, nrow(Tm)/2), rep(0.5, nrow(Tm)/2)))
+colnames(Tvec) <- "Tvec"
 
 # Compute correlation
 out <- cor(Tm$Tm, Tvec$Tvec)

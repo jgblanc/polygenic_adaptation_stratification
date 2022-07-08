@@ -377,12 +377,11 @@ rule proj_T:
 rule compute_correlation:
     input:
         Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/Tm.txt",
-        tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
     output:
         "output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/corr.txt"
     shell:
         """
-        Rscript code/Calculate_Tm/calc_correlation.R {input.Tm} {input.tvec} {output}
+        Rscript code/Calculate_Tm/calc_correlation.R {input.Tm} {output}
         """
 
 
