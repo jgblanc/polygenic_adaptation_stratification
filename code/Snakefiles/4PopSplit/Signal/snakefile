@@ -1,14 +1,17 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1"]
-REP = ["A1"]
-#for i in range(1,101):
-#  REP.append("A"+str(i))
-HERITABILITY = ["snps-0.0"]
-ENV = ["env_0.03"]
+CONFIG=["C1", "C2"]
+REP = []
+for i in range(1,101):
+  REP.append("A"+str(i))
+HERITABILITY = ["shift-0.0"]
+ENV = ["env_0.0","env_0.0025","env_0.005", "env_0.0075","env_0.01","env_0.0125", "env_0.015","env_0.0175","env_0.02","env_0.0225", "env_0.025","env_0.0275","env_0.03", "env_0.0325", "env_0.035"]
+#ENV = ["env_0.0","env_0.01","env_0.02","env_0.03","env_0.04", "env_0.05","env_0.06","env_0.07","env_0.08","env_0.09", "env_0.1", "env_0.11","env_0.12", "env_0.13", "env_0.14", "env_0.15"]
+#ENV = ["env_0.0", "env_-0.1", "env_0.1",  "env_0.2", "env_-0.2"]
+#ENV = ["env_0.0", "env_-0.1", "env_0.1"]
+#TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.50"]
-SNP = ["snp-10000"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -51,7 +54,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/Tm.txt"",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
 
 # Simluate Genotypes
 
@@ -366,12 +369,10 @@ rule proj_T:
         gwas="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
         tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
     output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/Tm.txt"
-    params:
-        snp_num = lambda wildcards: get_params(wildcards.snp)
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt"
     shell:
         """
-        Rscript code/Calculate_Tm/calc_GXT.R  output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/ {params.snp_num}
+        Rscript code/Calculate_Tm/calc_GXT.R  output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/
         """
 
 
