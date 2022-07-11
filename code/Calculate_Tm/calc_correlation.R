@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<3){stop("Rscript calc_correlation.R <Tm> <Tvec> <outfile>")}
+if(length(args)<2){stop("Rscript calc_correlation.R <Tm> <outfile>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -18,7 +18,7 @@ outfile = args[2] # Path to output directory
 Tm <- fread(Tm_file)
 
 # Make fake test vector with block structure
-Tvec <- as.data.frame(c(rep(-0.5, nrow(Tm)/2), rep(0.5, nrow(Tm)/2)))
+Tvec <- as.data.frame(c(rep(0.5, nrow(Tm)/2), rep(-0.5, nrow(Tm)/2)))
 colnames(Tvec) <- "Tvec"
 
 # Compute correlation

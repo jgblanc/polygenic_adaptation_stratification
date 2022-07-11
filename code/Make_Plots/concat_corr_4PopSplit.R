@@ -1,0 +1,23 @@
+library(dplyr)
+library(data.table)
+
+n <- 100
+reps <- rep(NA, n)
+for (i in 1:n){reps[i] <- paste0("A", i)}
+print(reps)
+h2 <- "snps-0.0"
+cases <- c("C1")
+ts <- c("p-0.50")
+snps <- c("snp-10000","snp-20000", "snp-15000", "snp-5000","snp-1000","snp-500","snp-100", "snp-1")
+dat <- expand.grid(reps, cases, snps)
+colnames(dat) <- c("rep", "case", "snp")
+
+agg_all_data <- function(rep, dir_path, case,  snp) {
+  
+  c <- fread(paste0(dir_path, rep,"/", case, "/", snp, "/",  "corr.txt"))
+  
+  return(c)
+}
+df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Calculate_Tm/4PopSplit/' )
+
+fwrite(df, "A_4PopSplit_snps_cor.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
