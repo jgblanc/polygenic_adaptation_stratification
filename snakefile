@@ -2,13 +2,13 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = ["A1"]
+REP = []
 for i in range(1,101):
   REP.append("A"+str(i))
 HERITABILITY = ["snps-0.0"]
 ENV = ["env_0.03"]
 TS=["p-0.50"]
-SNP = ["snp-5000","snp-500"]
+SNP = ["snp-500"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -16,9 +16,10 @@ PVALUE_THRESHOLD=1
 wildcard_constraints:
     rep="[A-Z]\d+",
     config="C.",
-    h2="shift-[0-1].[0-9]",
+    h2="snps-[0-1].[0-9]",
     env="env_-?[0-9].[0-9]*",
     ts="p-[0-1].[0-9][0-9]",
+    snp="snp-[0-9]*",
     dir="[a-z]*"
 
 def get_seed_msprime(rep):
@@ -438,7 +439,7 @@ rule gwas_PopID:
       pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt",
       Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/Tm-ID_covars.txt"
     output:
-      "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear"
+      "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-ID.pheno_strat.glm.linear"
     shell:
       """
       plink2 \
@@ -448,7 +449,7 @@ rule gwas_PopID:
       --covar-col-nums 4 \
       --pheno {input.pheno} \
       --pheno-name pheno_strat \
-      --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-ID
+      --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/{wildcards.snp}/genos-gwas_common-ID
       """
 
 # Ascertain SNPs
@@ -486,16 +487,16 @@ rule pick_SNPS_Tm:
 rule pick_SNPS_ID:
     input:
       causal_effect="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
-      gwas_strat="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear"
+      gwas_strat="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-ID.pheno_strat.glm.linear"
     output:
-      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.c.betas",
-      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.c.p.betas",
-      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.nc.betas"
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-ID.c.betas",
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-ID.c.p.betas",
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-ID.nc.betas"
     params:
       pt = PVALUE_THRESHOLD
     shell:
       """
-      Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-ID {params.pt} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-ID
+      Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/{wildcards.snp}/genos-gwas_common-ID {params.pt} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/{wildcards.snp}/genos-gwas_common-ID
       """
 
 # Do PGA test
@@ -520,9 +521,9 @@ rule Calc_Qx:
     c_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-Tm.c.betas",
     cp_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-Tm.c.p.betas",
     nc_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-Tm.nc.betas",
-    c_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.c.betas",
-    cp_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.c.p.betas",
-    nc_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.nc.betas",
+    c_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-ID.c.betas",
+    cp_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-ID.c.p.betas",
+    nc_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-ID.nc.betas",
     genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
     lambda_T="output/PGA_test/4PopSplit/{rep}/{config}/Lambda_T.txt",
     Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
