@@ -9,7 +9,7 @@ h2 <- "snps-0.0"
 envs <- c("env_0.03")
 cases <- c("C1")
 ts <- c("p-0.50")
-snps <-c("snp-500")
+snps <-c("snp-500", "snp-5000", "snp-100", "snp-1000")
 dat <- expand.grid(reps, cases, h2, ts,  envs, snps)
 colnames(dat) <- c("rep", "case", "h2", "ts", "envs", "snps")
 
@@ -22,4 +22,4 @@ agg_all_data <- function(rep, dir_path, case, h2, ts, envs, snps) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/4PopSplit/' )
 
-fwrite(df, "A_4PopSplit_snps.txt", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "A_4PopSplit_snps.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
