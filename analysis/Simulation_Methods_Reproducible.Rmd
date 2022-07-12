@@ -512,6 +512,12 @@ mean(C2Test$V3)
 
 
 
+```{r}
+df <- fread("../code/Make_Plots/A_4PopSplit_snps_cor.txt.gz")
+df <- df %>% separate(snp,c("snp", "num_snps"), "-")
+df$num_snps <- as.numeric(df$num_snps)
+ggplot(data = df, aes(x= num_snps, y  = correlation)) + geom_point()
+```
 
 
 

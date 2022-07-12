@@ -8,7 +8,7 @@ for i in range(1,101):
 HERITABILITY = ["snps-0.0"]
 ENV = ["env_0.03"]
 TS=["p-0.50"]
-SNP = ["snp-10000","snp-20000", "snp-15000", "snp-5000","snp-1000","snp-500","snp-100", "snp-1"]
+SNP = ["snp-5000","snp-500"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -51,7 +51,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/corr.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV, snp=SNP)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/Qx.txt",rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV, snp=SNP)
 
 # Simluate Genotypes
 
@@ -391,9 +391,9 @@ rule format_covars:
     input:
       pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
       fam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
-      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt"
+      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/Tm.txt"
     output:
-      "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt",
+      "output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/Tm-ID_covars.txt",
     shell:
       "Rscript code/Calculate_Tm/format_ID_covars.R {input.pops} {input.Tm} {input.fam} {output}"
 
@@ -417,9 +417,9 @@ rule gwas_Tm:
     input:
       genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
       pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt",
-      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
+      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/Tm-ID_covars.txt"
     output:
-      "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
+      "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-Tm.pheno_strat.glm.linear"
     shell:
       """
       plink2 \
@@ -429,14 +429,14 @@ rule gwas_Tm:
       --covar-col-nums 3 \
       --pheno {input.pheno} \
       --pheno-name pheno_strat \
-      --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-Tm
+      --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/{wildcards.snp}/genos-gwas_common-Tm
       """
 
 rule gwas_PopID:
     input:
       genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
       pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.phenos.txt",
-      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
+      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/{snp}/Tm-ID_covars.txt"
     output:
       "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear"
     shell:
@@ -471,16 +471,16 @@ rule pick_SNPS:
 rule pick_SNPS_Tm:
     input:
       causal_effect="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
-      gwas_strat="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
+      gwas_strat="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-Tm.pheno_strat.glm.linear"
     output:
-      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.betas",
-      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.p.betas",
-      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.nc.betas"
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-Tm.c.betas",
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-Tm.c.p.betas",
+      "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-Tm.nc.betas"
     params:
       pt = PVALUE_THRESHOLD
     shell:
       """
-      Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-Tm {params.pt} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/genos-gwas_common-Tm
+      Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/{wildcards.snp}/genos-gwas_common-Tm {params.pt} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/{wildcards.snp}/genos-gwas_common-Tm
       """
 
 rule pick_SNPS_ID:
@@ -517,9 +517,9 @@ rule Calc_Qx:
     c="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.betas",
     cp="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.c.p.betas",
     nc="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.nc.betas",
-    c_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.betas",
-    cp_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.c.p.betas",
-    nc_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.nc.betas",
+    c_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-Tm.c.betas",
+    cp_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-Tm.c.p.betas",
+    nc_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/genos-gwas_common-Tm.nc.betas",
     c_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.c.betas",
     cp_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.c.p.betas",
     nc_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.nc.betas",
@@ -529,8 +529,8 @@ rule Calc_Qx:
     pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
     es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt"
   output:
-    qx="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt",
-    pgs="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/PGS.txt"
+    qx="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/Qx.txt",
+    pgs="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/{snp}/PGS.txt"
   params:
     num=NUM_RESAMPLE
   shell:
