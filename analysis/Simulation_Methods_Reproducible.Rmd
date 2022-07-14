@@ -513,10 +513,13 @@ mean(C2Test$V3)
 
 
 ```{r}
-df <- fread("../code/Make_Plots/A_4PopSplit_snps_cor.txt.gz")
-df <- df %>% separate(snp,c("snp", "num_snps"), "-")
-df$num_snps <- as.numeric(df$num_snps)
-ggplot(data = df, aes(x= num_snps, y  = correlation)) + geom_point()
+df <- fread("../code/Make_Plots/A_4PopSplit_snps.txt.gz")
+
+nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case, snps)%>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  %>% separate(snps, c("snp", "num_snps"), "-")  
+nc$diff <- as.numeric(nc$diff)
+nc$num_snps <- as.numeric(nc$num_snps)
+
+ggplot(data=nc, aes(x=num_snps, y=fp_strat)) + geom_point() + scale_x_log10()
 ```
 
 

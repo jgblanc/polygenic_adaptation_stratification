@@ -8,7 +8,7 @@ for i in range(1,101):
 HERITABILITY = ["snps-0.0"]
 ENV = ["env_0.03"]
 TS=["p-0.50"]
-SNP = ["snp-500", "snp-5000", "snp-100", "snp-1000"]
+SNP = ["snp-10", "snp-25", "snp-63", "snp-158", "snp-398", "snp-1000", "snp-2512", "snp-6310"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
