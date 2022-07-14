@@ -9,7 +9,7 @@ h2 <- "snps-0.0"
 envs <- c("env_0.03")
 cases <- c("C1")
 ts <- c("p-0.50")
-snps <-c("snp-500", "snp-5000", "snp-100", "snp-1000")
+snps <-c("snp-10", "snp-25", "snp-63", "snp-158", "snp-398", "snp-1000", "snp-2512", "snp-6310")
 dat <- expand.grid(reps, cases, h2, ts,  envs, snps)
 colnames(dat) <- c("rep", "case", "h2", "ts", "envs", "snps")
 
