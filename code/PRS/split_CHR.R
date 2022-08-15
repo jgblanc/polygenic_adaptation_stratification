@@ -1,11 +1,13 @@
 # Split by CHR
 # This script reads in the GWAS file and splits it into a separate file per chromosome so that the genotype matrix can be read into R
+args=commandArgs(TRUE)
+print(args)
 
-if(length(args)!=4){stop("Rscript split_CHR.R <uncorrected GWAS>  <Tm GWAS> <ID GWAS> <out prefic>")}
+if(length(args)!=4){stop("Rscript split_CHR.R <uncorrected GWAS>  <Tm GWAS> <ID GWAS> <out prefix>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
-  library(dplyr)
+  library(tidyverse)
 }))
 
 gwas_uncorrected = args[1]
@@ -27,24 +29,25 @@ gID_split <- gID %>% separate(ID, c("chr", "tmp1", "tmp2", "tmp3"), "_")
 
 # Uncorrected
 maxChr <- max(as.numeric(gU_split$chr))
-for (i in 1:maxChr) {
-  df <- gU_split %>% filter(chr == i) %>% select(-c("tmp1","tmp2","tmp3","chr"))
+print(maxChr)
+for (i in 0:(maxChr-1)) {
+  df <- gU_split %>% filter(chr == (i+1)) %>% select(-c("tmp1","tmp2","tmp3","chr"))
   outfile <- paste0(out_prefix, i, ".betas")
   fwrite(df, outfile,row.names=F,quote=F,sep="\t", col.names = T)
 }
 
 # Tm
 maxChr <- max(as.numeric(gTm_split$chr))
-for (i in 1:maxChr) {
-  df <- gTm_split %>% filter(chr == i) %>% select(-c("tmp1","tmp2","tmp3","chr"))
+for (i in 0:(maxChr-1)) {
+  df <- gTm_split %>% filter(chr == (i+1)) %>% select(-c("tmp1","tmp2","tmp3","chr"))
   outfile <- paste0(out_prefix, i, "-Tm.betas")
   fwrite(df, outfile,row.names=F,quote=F,sep="\t", col.names = T)
 }
 
 # ID
 maxChr <- max(as.numeric(gID_split$chr))
-for (i in 1:maxChr) {
-  df <- gID_split %>% filter(chr == i) %>% select(-c("tmp1","tmp2","tmp3","chr"))
+for (i in 0:(maxChr-1)) {
+  df <- gID_split %>% filter(chr == (i+1)) %>% select(-c("tmp1","tmp2","tmp3","chr"))
   outfile <- paste0(out_prefix, i, "-ID.betas")
   fwrite(df, outfile,row.names=F,quote=F,sep="\t", col.names = T)
 }

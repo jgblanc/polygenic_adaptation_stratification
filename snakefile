@@ -546,11 +546,11 @@ rule sep_Betas:
     input:
       gwas="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat.glm.linear",
       gwas_Tm="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear",
-      gwas_ID="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat-ID.glm.linear"
+      gwas_ID="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear"
     output:
-      expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/chr/genos-gwas_common_{chr}.betas", chr=CHR),
-      expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/chr/genos-gwas_common_{chr}-Tm.betas", chr=CHR),
-      expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/chr/genos-gwas_common_{chr}-ID.betas", chr=CHR)
+      expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}.betas", chr=CHR),
+      expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-Tm.betas", chr=CHR),
+      expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-ID.betas", chr=CHR)
     shell:
       """
       Rscript code/PRS/split_CHR.R {input.gwas} {input.gwas_Tm} {input.gwas_ID} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/chr/genos-gwas_common_
