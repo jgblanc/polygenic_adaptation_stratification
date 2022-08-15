@@ -519,7 +519,8 @@ nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs,
 nc$diff <- as.numeric(nc$diff)
 nc$num_snps <- as.numeric(nc$num_snps)
 
-ggplot(data=nc, aes(x=num_snps, y=fp_strat)) + geom_point() + scale_x_log10()
+pl <- ggplot(data=nc, aes(x=num_snps, y=fp_strat))  + scale_x_log10(breaks = c(10,30,100,300,1000, 3000)) + geom_point(size =3, color = "turquoise4")+ xlab("Number of SNPs") + ylab("False Postive Rate") + theme_classic(base_size = 20)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 20),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.1, color = "turquoise4") 
+ggsave("~/Desktop/SNPs.png", pl, width = 6, height = 4)
 ```
 
 
