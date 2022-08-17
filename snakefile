@@ -559,11 +559,11 @@ rule sep_Betas:
 
 # Comute Qx using all SNPs
 
-rule Calc_Qx:
+rule Calc_Qx_all:
   input:
     gwas=expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}.betas", chr=CHR),
     gwasTm=expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-Tm.betas", chr=CHR),
-    gwasID=expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-ID.betas", chr=CHR)
+    gwasID=expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-ID.betas", chr=CHR),
     genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
     lambda_T="output/PGA_test/4PopSplit/{rep}/{config}/Lambda_T.txt",
     Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
