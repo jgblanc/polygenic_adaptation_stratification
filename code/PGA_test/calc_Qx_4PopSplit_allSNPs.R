@@ -113,9 +113,7 @@ main <- function(type) {
 
     # Load effect sizes from CHR i-1
     beta_file <- paste0(gwas_prefix, "_", (i-1), type, ".betas")
-    print(beta_file)
     betas <- fread(beta_file)
-    head(betas)
     colnames(betas) <- c("ID", "A1", "BETA_Strat")
 
     # Load Genotypes
@@ -132,7 +130,7 @@ main <- function(type) {
   Va <- sum(Va)
   print(Va)
   sscore <- colSums(ssMat)
-  print(sscore)
+  print(head(sscore))
 
   ## Calc Qx - Test
   qx <- t(calc_Qx(sscore, tvec, Va, lambda_T))
@@ -157,7 +155,7 @@ main <- function(type) {
 }
 
 # Run all types of PGS
-out <- matrix(NA, nrow = 4, ncol =3)
+out <- matrix(NA, nrow = 3, ncol =3)
 out[1, ] <- main(type = "")
 out[2, ] <- main(type = "-Tm")
 out[3, ] <- main(type = "-ID")
