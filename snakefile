@@ -53,7 +53,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/chr/genos-gwas_common_{chr}.betas", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx_all.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
 
 # Simluate Genotypes
 
@@ -542,6 +542,7 @@ rule calc_ts_magnitude:
 
 
 # Separate betas into separate chrosomes
+
 rule sep_Betas:
     input:
       gwas="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat.glm.linear",
@@ -556,4 +557,24 @@ rule sep_Betas:
       Rscript code/PRS/split_CHR.R {input.gwas} {input.gwas_Tm} {input.gwas_ID} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/chr/genos-gwas_common_
       """
 
+# Comute Qx using all SNPs
+
+rule Calc_Qx:
+  input:
+    gwas=expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}.betas", chr=CHR),
+    gwasTm=expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-Tm.betas", chr=CHR),
+    gwasID=expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-ID.betas", chr=CHR)
+    genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
+    lambda_T="output/PGA_test/4PopSplit/{rep}/{config}/Lambda_T.txt",
+    Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
+    pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
+  output:
+    qx="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx_all.txt",
+  params:
+    num=NUM_RESAMPLE,
+    size = SIZE
+  shell:
+    """
+    Rscript code/PGA_test/calc_Qx_4PopSplit_allSNPs.R output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/chr/genos-gwas_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Tvec} {input.pops} {params.num} {params.size} {output.qx}
+	  """
 
