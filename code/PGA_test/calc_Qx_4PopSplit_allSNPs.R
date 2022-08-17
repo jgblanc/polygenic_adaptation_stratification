@@ -116,7 +116,6 @@ main <- function(type) {
     print(beta_file)
     betas <- fread(beta_file)
     head(betas)
-    betas <- betas %>% select("ID", "A1", "BETA")
     colnames(betas) <- c("ID", "A1", "BETA_Strat")
 
     # Load Genotypes
