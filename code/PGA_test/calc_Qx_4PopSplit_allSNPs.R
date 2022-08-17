@@ -81,13 +81,28 @@ flip <- function(betas) {
 }
 
 # Function to flip effect sizes and recompute Qx
-en <- function(betas, tvec, Va, X, lambda_T) {
+en <- function(type, tvec, Va, X, lambda_T) {
 
-  # Flip effect sizes
-  betas$BETA_Strat <- flip(betas$BETA_Strat)
+  ssMat <- matrix(NA, nrow = 200,ncol=size)
+  for (i in 1:200) {
 
-  # Calculate PGS
-  prs <- pgs(X, betas)
+    # Load effect sizes from CHR i-1
+    beta_file <- paste0(gwas_prefix, "_", (i-1), type, ".betas")
+    betas <- fread(beta_file)
+    colnames(betas) <- c("ID", "A1", "BETA_Strat")
+
+    # Flip effect sizes
+    betas$BETA_Strat <- flip(betas$BETA_Strat)
+
+    # Load Genotypes
+    X <- read_genos(geno_prefix, betas)
+
+    # Calc PGS
+    ssMat[i,] <- pgs(X, betas)
+
+  }
+
+  prs <- colSums(ssMat)
 
   # Calculate Qx
   Qx <- t(calc_Qx(prs, tvec, Va, lambda_T))
@@ -138,7 +153,7 @@ main <- function(type) {
   # Generate Empirical null
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(betas, tvec, Va, X, lambda_T)
+    redraws[i,] <- en(type, tvec, Va, X, lambda_T)
   }
 
   # Calculate empirical p-values
