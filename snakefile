@@ -2,15 +2,15 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = ["A1"]
-#for i in range(1,101):
-#  REP.append("A"+str(i))
+REP = []
+for i in range(1,101):
+  REP.append("A"+str(i))
 HERITABILITY = ["shift-0.3"]
 #ENV = ["env_0.0","env_0.0025","env_0.005", "env_0.0075","env_0.01","env_0.0125", "env_0.015","env_0.0175","env_0.02","env_0.0225", "env_0.025","env_0.0275","env_0.03", "env_0.0325", "env_0.035"]
 #ENV = ["env_0.0", "env_-0.1", "env_0.1",  "env_0.2", "env_-0.2"]
 ENV = ["env_0.0", "env_-0.1", "env_0.1"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
-TS=["p-0.50", "p-0.62"]
+TS=["p-0.62"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -549,21 +549,21 @@ rule sep_Betas:
       gwas_Tm="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear",
       gwas_ID="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear"
     output:
-      expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}.betas", chr=CHR),
-      expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-Tm.betas", chr=CHR),
-      expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-ID.betas", chr=CHR)
+      expand("/scratch/midway2/jgblanc/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}.betas", chr=CHR),
+      expand("/scratch/midway2/jgblanc/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-Tm.betas", chr=CHR),
+      expand("/scratch/midway2/jgblanc/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-ID.betas", chr=CHR)
     shell:
       """
-      Rscript code/PRS/split_CHR.R {input.gwas} {input.gwas_Tm} {input.gwas_ID} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/chr/genos-gwas_common_
+      Rscript code/PRS/split_CHR.R {input.gwas} {input.gwas_Tm} {input.gwas_ID} /scratch/midway2/jgblanc/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/chr/genos-gwas_common_
       """
 
 # Comute Qx using all SNPs
 
 rule Calc_Qx_all:
   input:
-    gwas=expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}.betas", chr=CHR),
-    gwasTm=expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-Tm.betas", chr=CHR),
-    gwasID=expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-ID.betas", chr=CHR),
+    gwas=expand("/scratch/midway2/jgblanc/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}.betas", chr=CHR),
+    gwasTm=expand("/scratch/midway2/jgblanc/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-Tm.betas", chr=CHR),
+    gwasID=expand("/scratch/midway2/jgblanc/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{env}}/chr/genos-gwas_common_{chr}-ID.betas", chr=CHR),
     genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
     lambda_T="output/PGA_test/4PopSplit/{rep}/{config}/Lambda_T.txt",
     Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
@@ -575,6 +575,9 @@ rule Calc_Qx_all:
     size = SIZE
   shell:
     """
-    Rscript code/PGA_test/calc_Qx_4PopSplit_allSNPs.R output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/chr/genos-gwas_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Tvec} {input.pops} {params.num} {params.size} {output.qx}
-	  """
+    Rscript code/PGA_test/calc_Qx_4PopSplit_allSNPs.R /scratch/midway2/jgblanc/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.env}/chr/genos-gwas_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Tvec} {input.pops} {params.num} {params.size} {output.qx}
+    rm {input.gwas}
+    rm {input.gwasTm}
+    rm {input.gwasID}
+    """
 

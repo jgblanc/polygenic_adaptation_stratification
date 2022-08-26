@@ -153,6 +153,7 @@ main <- function(type) {
   # Generate Empirical null
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
+    #print(paste0("Redraw: ", i))
     redraws[i,] <- en(type, tvec, Va, X, lambda_T)
   }
 
