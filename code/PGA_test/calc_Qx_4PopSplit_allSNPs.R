@@ -33,21 +33,17 @@ read_genos <- function(geno_prefix, betas) {
   }
   X <- ReadList(d1,var.indx, meanimpute=F)
   colnames(X) <- var.ids
+  X <- scale(X, scale = F)
 
   return(X)
 }
 
 # Function to calculate Va
-calc_Va <- function(geno_mat, es) {
-
-  # Get allele frequency in test panel
-  freq <- colMeans(geno_mat) /2
-
-  # Pull out effect sizes only
-  effect_size <- es$BETA
+calc_Va <- function(afreq, es) {
 
   # Compute Va
-  Va <- 2 * sum((effect_size)^2 * freq * (1 - freq))
+  Va <- 2 * sum((es)^2 * freq * (1 - freq))
+
   return(Va)
 }
 
@@ -81,28 +77,25 @@ flip <- function(betas) {
 }
 
 # Function to flip effect sizes and recompute Qx
-en <- function(type, tvec, Va, X, lambda_T) {
+en <- function(type, tvec, Va, lambda_T) {
 
-  ssMat <- matrix(NA, nrow = 200,ncol=size)
-  for (i in 1:200) {
+  # Load effect sizes
+  beta_file <- paste0(gwas_prefix, type, ".betas")
+  betas <- fread(beta_file)
+  colnames(betas) <- c("ID", "A1", "BETA_Strat")
 
-    # Load effect sizes from CHR i-1
-    beta_file <- paste0(gwas_prefix, "_", (i-1), type, ".betas")
-    betas <- fread(beta_file)
-    colnames(betas) <- c("ID", "A1", "BETA_Strat")
+  # Flip effect sizes
+  betas$BETA_Strat <- flip(betas$BETA_Strat)
 
-    # Flip effect sizes
-    betas$BETA_Strat <- flip(betas$BETA_Strat)
+  # Save fliped effect sizes in temp file
+  fwrite(betas, paste0(gwas_prefix,".tmp.betas"), row.names=F,quote=F,sep="\t", col.names = T)
 
-    # Load Genotypes
-    X <- read_genos(geno_prefix, betas)
-
-    # Calc PGS
-    ssMat[i,] <- pgs(X, betas)
-
-  }
-
-  prs <- colSums(ssMat)
+  # Compute PGS using Plink
+  prs_outfile <- paste0(gwas_prefix, ".tmp.prs")
+  plink2_cmd <- paste("sh code/PGA_test/Test_score.sh", geno_prefix, paste0(gwas_prefix,".tmp.betas"), prs_outfile, sep = " ")
+  system(plink2_cmd)
+  sscore <- fread(paste0(prs_outfile, ".sscore")) %>% select(BETA_Strat_SUM)
+  prs <- as.matrix(sscore)
 
   # Calculate Qx
   Qx <- t(calc_Qx(prs, tvec, Va, lambda_T))
@@ -122,30 +115,23 @@ tvec <- std.tvec$Tvec
 # Wrapper function to calculate Qx and empirical p values
 main <- function(type) {
 
-  Va <- rep(0,200)
-  ssMat <- matrix(NA, nrow = 200,ncol=size)
-  for (i in 1:200) {
 
-    # Load effect sizes from CHR i-1
-    beta_file <- paste0(gwas_prefix, "_", (i-1), type, ".betas")
-    betas <- fread(beta_file)
-    colnames(betas) <- c("ID", "A1", "BETA_Strat")
+  # Load effect sizes
+  beta_file <- paste0(gwas_prefix, type, ".betas")
+  betas <- fread(beta_file)
+  colnames(betas) <- c("ID", "A1", "BETA_Strat")
 
-    # Load Genotypes
-    X <- read_genos(geno_prefix, betas)
+  # Compute PGS using Plink
+  prs_outfile <- paste0(gwas_prefix, ".prs")
+  plink2_cmd <- paste("sh code/PGA_test/Test_score.sh", geno_prefix, beta_file, prs_outfile, sep = " ")
+  system(plink2_cmd)
+  sscore <- fread(paste0(prs_outfile, ".sscore")) %>% select(BETA_Strat_SUM)
+  sscore <- as.matrix(sscore)
 
-    # Calculate Va
-    Va[i] <- calc_Va(X, betas)
-
-    # Calc PGS
-    ssMat[i,] <- pgs(X, betas)
-
-  }
-
-  Va <- sum(Va)
-  print(Va)
-  sscore <- colSums(ssMat)
-  print(head(sscore))
+  # Compute Va
+  freq <- fread(paste0(geno_prefix, ".afreq"))
+  freq <- freq$ALT_FREQS
+  Va <- calc_Va(afreq = freq, es = betas$BETA_Strat)
 
   ## Calc Qx - Test
   qx <- t(calc_Qx(sscore, tvec, Va, lambda_T))
@@ -153,7 +139,6 @@ main <- function(type) {
   # Generate Empirical null
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    #print(paste0("Redraw: ", i))
     redraws[i,] <- en(type, tvec, Va, X, lambda_T)
   }
 
