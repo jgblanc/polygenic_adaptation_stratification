@@ -42,7 +42,7 @@ read_genos <- function(geno_prefix, betas) {
 calc_Va <- function(afreq, es) {
 
   # Compute Va
-  Va <- 2 * sum((es)^2 * freq * (1 - freq))
+  Va <- 2 * sum((es)^2 * afreq * (1 - afreq))
 
   return(Va)
 }
@@ -125,7 +125,7 @@ main <- function(type) {
   prs_outfile <- paste0(gwas_prefix, ".prs")
   plink2_cmd <- paste("sh code/PGA_test/Test_score.sh", geno_prefix, beta_file, prs_outfile, sep = " ")
   system(plink2_cmd)
-  sscore <- fread(paste0(prs_outfile, ".sscore")) %>% select(BETA_Strat_SUM)
+  sscore <- fread(paste0(prs_outfile, ".sscore")) %>% select(BETA_strat_SUM)
   sscore <- as.matrix(sscore)
 
   # Compute Va
@@ -139,7 +139,7 @@ main <- function(type) {
   # Generate Empirical null
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(type, tvec, Va, X, lambda_T)
+    redraws[i,] <- en(type, tvec, Va, lambda_T)
   }
 
   # Calculate empirical p-values
