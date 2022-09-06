@@ -1,16 +1,16 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1"]
+CONFIG=["C1", "C2"]
 REP = []
 for i in range(1,101):
   REP.append("A"+str(i))
-HERITABILITY = ["shift-0.3"]
-#ENV = ["env_0.0","env_0.0025","env_0.005", "env_0.0075","env_0.01","env_0.0125", "env_0.015","env_0.0175","env_0.02","env_0.0225", "env_0.025","env_0.0275","env_0.03", "env_0.0325", "env_0.035"]
+HERITABILITY = ["h2-0.0"]
+ENV = ["env_0.0","env_0.0025","env_0.005", "env_0.0075","env_0.01","env_0.0125", "env_0.015","env_0.0175","env_0.02","env_0.0225", "env_0.025","env_0.0275","env_0.03", "env_0.0325", "env_0.035"]
 #ENV = ["env_0.0", "env_-0.1", "env_0.1",  "env_0.2", "env_-0.2"]
-ENV = ["env_0.0", "env_-0.1", "env_0.1"]
+#ENV = ["env_0.0", "env_-0.1", "env_0.1"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
-TS=["p-0.50", "p-0.62"]
+TS=["p-0.50"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1

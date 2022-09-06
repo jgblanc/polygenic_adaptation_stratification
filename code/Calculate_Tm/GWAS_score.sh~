@@ -5,5 +5,5 @@ outfile=$3
 
 plink2 \
   --pfile $pfile_path \
-  --score $beta_path header-read variance-standardize cols=dosagesum,scoresums \
+  --score $beta_path header-read center cols=dosagesum,scoresums \
   --out $outfile

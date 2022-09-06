@@ -64,7 +64,7 @@ $$\vec{T}^{GWAS} = GX^T\vec{T}$$
 
 Here $G$ is the GWAS genotype matrix while $X$ is the test genotype matrix. Due to the size of the genotype matrices we cannot simply multiply the matrices in R. Instead we use plink2 to do the matrix multiplication. 
 
-Specfically, we can first use `--glm` to get the product of $X^{T}\vec{T}$. This amounts to running a general linear model, regressing the test vector onto test panel genotypes, to get the covariance between the test vector and each SNP divided by the variance of the genotype, $\frac{Cov(g_{\ell}, \vec{T})}{Var(g_{\ell})}$. Because we only want the covariance, we use `--geno-counts` to get the proportion of each genotype in the test panel. This allows us to compute the variance at each site and adjust the effect sizes estimated by plink2. We can then use `--score` and these adjusted effect sizes to compute $GX^{T}\vec{T}$. 
+Specfically, we can first use `--glm` to get the product of $X^{T}\vec{T}$. This amounts to running a general linear model, regressing the test vector onto test panel genotypes, to get the covariance between the test vector and each SNP divided by the variance of the genotype, $\frac{Cov(g_{\ell}, \vec{T})}{Var(g_{\ell})}$. Because we only want the covariance, we use `--geno-counts` to get the proportion of each genotype in the test panel. This allows us to compute the variance at each site and adjust the effect sizes estimated by plink2. We can then use `--score` and these adjusted effect sizes to compute $GX^{T}\vec{T}$. We use the `variance-standardize` option with `--score` to standarize 
 
 
 ```{python, eval = FALSE}
@@ -102,7 +102,7 @@ X <- ReadList(d1,seq(1, 10905), meanimpute=F)
 First, let's calculate $\vec{T}^{GWAS}$ just by doing matrix multiplication. 
 ```{r, cache=TRUE}
 Tvec <- pop$Tvec
-TGWAS_mat <-  G %*% t(X) %*% Tvec
+TGWAS_mat <-  scale(G) %*% t(scale(X, scale = F)) %*% Tvec
 TGWAS_mat <- scale(TGWAS_mat)
 plot(TGWAS_mat)
 ```
@@ -134,7 +134,7 @@ beta_reformat <- beta_plink %>% dplyr::select(ID, A1, BETA)
 fwrite(beta_reformat, paste0("../output/Calculate_Tm/4PopSplit/B1/C1/", "xt_temp.Tvec.glm.linear"), sep = "\t")
 
 # Compute Gt(X)T
-cmd_b <- paste("~/plink2 --pfile ../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-gwas_common --score ../output/Calculate_Tm/4PopSplit/B1/C1/xt_temp.Tvec.glm.linear header-read center cols=dosagesum,scoresums --out ../output/Calculate_Tm/4PopSplit/B1/C1/b")
+cmd_b <- paste("~/plink2 --pfile ../output/Simulate_Genotypes/4PopSplit/B1/C1/genos-gwas_common --score ../output/Calculate_Tm/4PopSplit/B1/C1/xt_temp.Tvec.glm.linear header-read variance-standardize cols=dosagesum,scoresums --out ../output/Calculate_Tm/4PopSplit/B1/C1/b")
 system(cmd_b)
 
 # Read in and return TGWAS

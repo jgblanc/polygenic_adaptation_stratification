@@ -300,6 +300,26 @@ pl
 #ggsave("~/Desktop/TS.png", pl,width = 10, height = 6)
 ```
 
+## All SNPs
+
+```{r}
+df <- fread("../code/Make_Plots/A_4PopSplit_shift_GXT_allSNPs.txt.gz")
+df_True <- fread("../code/Make_Plots/A_4PopSplit_shift23_TS_GXT.txt.gz")
+df_True <- df_True %>% filter(type == "True", ts %in% c("p-0.50", "p-0.62"))
+df <- rbind(df, df_True)
+
+data_nc <- df %>% group_by(envs, ts, type) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(ts, c("ts", "prob"), "-") %>% separate(envs, c("env", "diff"), "_") + scale_colour_manual(name = "", values = c("darkgreen", "navy", "darkgreen", "red"))
+
+
+labs <- c("Uncorrected","Population ID", expression(T^{GWAS}), "True Effect Size")
+ggplot(data = data_nc, aes(x = prob, y = fp_strat, color = type)) + geom_point() + facet_grid(~diff) + theme_classic(base_size = 12)+ theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1) + scale_colour_manual(name = "", values = c("darkgreen", "navy", "red", "goldenrod2")) + geom_errorbar(data = data_nc, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5) 
+
+
+```
+
+
+
+
 ## Simple Grid 
 
 ### Msprime simulation 
