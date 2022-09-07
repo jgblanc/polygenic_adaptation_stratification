@@ -18,7 +18,7 @@ PVALUE_THRESHOLD=1
 wildcard_constraints:
     rep="[A-Z]\d+",
     config="C.",
-    h2="shift-[0-1].[0-9]",
+    h2="h2-[0-1].[0-9]",
     env="env_-?[0-9].[0-9]*",
     ts="p-[0-1].[0-9][0-9]",
     dir="[a-z]*"
@@ -53,7 +53,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx_all.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
 
 # Simluate Genotypes
 
