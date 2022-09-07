@@ -84,12 +84,12 @@ plot_data <- function(data, color_name, eb_width = 0.005) {
   return(pl)
 }
 
-plot_data <- function(data, color_name) {
+#plot_data <- function(data, color_name) {
   
-  pl <- ggplot(data = data, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+   xlab(TeX("$\\Delta_{AB}$")) + ylab("False Postive Rate") + theme_classic(base_size = 20) + scale_color_manual(values = c(color_name)) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 20),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.0025)
+#  pl <- ggplot(data = data, aes(x = diff, y = fp_strat, color = type)) + geom_point(size =3)+   xlab(TeX("$\\Delta_{AB}$")) + ylab("False Postive Rate") + theme_classic(base_size = 20) + scale_color_manual(values = c(color_name)) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 20),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.0025)
   
-  return(pl)
-}
+#  return(pl)
+#}
 ```
 
 ### Figures 
@@ -100,7 +100,7 @@ plot_data <- function(data, color_name) {
 * Ascertained SNPs (minimum p-value per chromosome) 
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE}
-df <- fread("../code/Make_Plots/A_4PopSplit_shift_GXT.txt.gz")
+df <- fread("../code/Make_Plots/A_4PopSplit_h20.txt.gz")
 
 # C1 - no correction
 nc <- df %>% filter(type == "nc") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
@@ -120,13 +120,13 @@ pl3 <- plot_data(nc, "goldenrod2")+ ggtitle("C2 - No correction") + theme(plot.t
 # C2 - correction 
 nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
 nc$diff <- as.numeric(nc$diff)
-pl4 <- plot_data(nc, "navy") 
-+ ggtitle("C2 - TGWAS") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+pl4 <- plot_data(nc, "navy") + ggtitle("C2 - TGWAS") + theme(plot.title = element_text(hjust = 0.5, size = 12))
 
 p <- ggarrange(pl1, pl3, pl2, pl4)
 p
 
-ggsave("~/Desktop/C2-C.png",pl4, height = 5, width = 5.5)
+
+#ggsave("~/Desktop/C2-C.png",pl4, height = 5, width = 5.5)
 ```
 
 We can also compare the above results using $T^{GWAS}$ to a GWAS done using population ID as covariate.  
@@ -152,7 +152,7 @@ p2
 * Asceratined SNPs  
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=7, fig.width=7}
-df <- fread("../code/Make_Plots/A_4PopSplit_shifth23_GXT.txt.gz")
+df <- fread("../code/Make_Plots/A_4PopSplit_h23.txt.gz")
 
 # Get true fp rates 
 df_true_C1 <- df %>% filter(type == "True" & case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_") 
