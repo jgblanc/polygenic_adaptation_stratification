@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplit_A_h23
-#SBATCH --output=logs/4PopSplit_A_h23.out
-#SBATCH --error=logs/4PopSplit_A_h23.err
+#SBATCH --job-name=4PopSplit_A_snps
+#SBATCH --output=logs/4PopSplit_A_snps.out
+#SBATCH --error=logs/4PopSplit_A_snps.err
 #SBATCH --time=02:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=4
