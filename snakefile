@@ -19,7 +19,7 @@ NUM_RESAMPLE = 1000
 wildcard_constraints:
     rep="[A-Z]\d+",
     config="C1",
-    h2="shift-[0-1]",
+    h2="h2-[0-1]",
     pheno="[A-Z]*",
     env="env-[0-9]*.[0-9]*",
     test="[A-Z]*"
