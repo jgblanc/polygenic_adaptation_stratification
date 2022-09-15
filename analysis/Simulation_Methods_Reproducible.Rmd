@@ -300,6 +300,25 @@ pl
 ggsave("~/Desktop/TS.png", pl,width = 10, height = 6)
 ```
 
+#### Varying the number of SNPs 
+
+To investigate the number of SNPs needed to accurately compute $\vec{T}^{GWAS}$, we re-ran the 4 population simulations in the overlapping structure configuration with environmental stratification equal to 0.03 while changing the number of SNPs used to compute $\vec{T}^{GWAS}$. While the exact number of total SNPs varied across simulations, there were ~22,300 total snps per simulation.        
+
+```{r}
+df <- fread("../code/Make_Plots/A_4PopSplit_snps.txt.gz")
+
+nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case, snps)%>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  %>% separate(snps, c("snp", "num_snps"), "-")  
+nc$diff <- as.numeric(nc$diff)
+nc$num_snps <- as.numeric(nc$num_snps)
+
+pl <- ggplot(data=nc, aes(x=num_snps, y=fp_strat))  + scale_x_log10(breaks = c(10,30,100,300,1000, 3000)) + geom_point(size =3, color = "turquoise4")+ xlab("Number of SNPs") + ylab("False Postive Rate") + theme_classic(base_size = 20)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 20),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.1, color = "turquoise4") 
+pl
+#ggsave("~/Desktop/SNPs.png", pl, width = 6, height = 4)
+```
+
+
+
+
 ## All SNPs
 
 ```{r}
@@ -540,7 +559,8 @@ nc$diff <- as.numeric(nc$diff)
 nc$num_snps <- as.numeric(nc$num_snps)
 
 pl <- ggplot(data=nc, aes(x=num_snps, y=fp_strat))  + scale_x_log10(breaks = c(10,30,100,300,1000, 3000)) + geom_point(size =3, color = "turquoise4")+ xlab("Number of SNPs") + ylab("False Postive Rate") + theme_classic(base_size = 20)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 20),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.1, color = "turquoise4") 
-ggsave("~/Desktop/SNPs.png", pl, width = 6, height = 4)
+pl
+#ggsave("~/Desktop/SNPs.png", pl, width = 6, height = 4)
 ```
 
 
