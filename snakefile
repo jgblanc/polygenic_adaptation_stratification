@@ -409,6 +409,24 @@ rule GWAS_PCA:
        --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/gwas_pca
         """
 
+rule Test_PCA:
+    input:
+        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.pgen",
+        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.pvar",
+        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam"
+    params:
+        n_minus_1 = int(SIZE)-1
+    output:
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec",
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval",
+    shell:
+        """
+        plink2 \
+        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
+       --pca {params.n_minus_1} \
+       --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca
+        """
+
 rule GWAS_PCA_weights:
     input:
         vecs="output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec",
@@ -512,7 +530,7 @@ rule calc_lambdaT:
         vals="output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenval",
         tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt",
     output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Lambda_T.txt"
+        "output/PGA_test/SimpleGrid/{rep}/{config}/{test}/Lambda_T.txt"
     shell:
         """
 	Rscript code/PGA_test/SimpleGrid_calc_lambdaT.R {input.vecs} {input.vals} {input.tvec} {output}
