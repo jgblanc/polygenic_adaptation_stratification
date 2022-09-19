@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = ["C1"]
-#for i in range(1, 101):
-#  REP.append("C"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("C"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["LAT", "DIAG", "PS"]
@@ -392,39 +392,38 @@ rule proj_T:
 
 rule GWAS_PCA:
     input:
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pgen",
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pvar",
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pgen",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pvar",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam"
     params:
         n_minus_1 = int(GWAS_SIZE)-1,
     output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/gwas_pca.eigenvec",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/gwas_pca.eigenval",
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec",
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenval",
     shell:
         """
         plink2 \
-        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+        --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
        --pca {params.n_minus_1} \
-       --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/gwas_pca
+       --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/gwas_pca
         """
 
 rule Test_PCA:
     input:
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.pgen",
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.pvar",
-        "output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam"
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.pgen",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.pvar",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam"
     params:
         n_minus_1 = int(SIZE)-1
     output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenvec",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/pca.eigenval",
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenvec",
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenval"
     shell:
         """
         plink2 \
-        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
+        --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common \
        --pca {params.n_minus_1} \
-       --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/pca
+       --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/pca
         """
 
 rule GWAS_PCA_weights:
@@ -548,7 +547,7 @@ rule Calc_Qx:
         cp_ID="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.c.p.betas",
         nc_ID="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.nc.betas",
         genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
-        lambda_T="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Lambda_T.txt",
+        lambda_T="output/PGA_test/SimpleGrid/{rep}/{config}/{test}/Lambda_T.txt",
         true="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-test_common.true.sscore",
         Tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt",
         pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop"
