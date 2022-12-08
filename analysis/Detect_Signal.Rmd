@@ -1,0 +1,597 @@
+---
+title: "Detect_Signal"
+author: "Jennifer Blanc"
+date: "2022-11-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 2 population Simulation
+
+Simulate Genotypes
+```{r}
+make_genotype_matrix <- function(p, n, L) {
+  G <- matrix(NA, nrow = n, ncol = L)
+  for (i in 1:length(p)) {
+    G[,i] <- rbinom(n,2,p[i])
+  }
+  return(G)
+}
+
+sim_evo <- function(ms, m, n, L) {
+  
+  if (L < 10) {
+    k <- 10* L
+  } else {
+    k <- 2 * L
+  }
+  
+  # Draw alleles from Beta
+  p_start <- rbeta(k, 1,1)
+
+  # Evolve alleles to first split via drift
+  p1 <- p_start + rnorm(L, -ms, sqrt((p_start)*(1-p_start)* 0.01))
+  p2 <- p_start + rnorm(L, ms, sqrt((p_start)*(1-p_start)* 0.01))
+  rm <- which(p1 < 0 | p1 > 1 | p2 < 0 | p2 > 1)
+  if (length(rm) > 0) {
+    p1 <- p1[-rm]
+    p2 <- p2[-rm]
+  }
+  
+  # Make genotype matrix by drawing from population 
+  G1 <- make_genotype_matrix(p1, m/2, length(p1))
+  G2 <- make_genotype_matrix(p2, m/2, length(p2))
+  X1 <- make_genotype_matrix(p1, n/2, length(p1))
+  X2 <- make_genotype_matrix(p2, n/2, length(p2))  
+  
+  # GWAS Gentotype Matrix 
+  G <- rbind(G1, G2)
+
+  # GWAS Gentotype Matrix 
+  X <- rbind(X1, X2)
+
+  # Get rid of fixed sites 
+  rmG <- which(colSums(G) == 0 | colSums(G) == 2*m)
+  rmX <- which(colSums(X) == 0 | colSums(X) == 2*n)
+  rm <- c(rmG, rmX)
+  if (length(rm) > 0) {
+    G <- G[,-rm]
+    X <- X[,-rm]
+  }
+ 
+  X <- X[,1:L] 
+  G <- G[,1:L]
+  
+  return(list(G,X)) 
+}
+
+out <- sim_evo(ms = 0.001, L = 5000, m = 500, n = 100)
+G <- out[[1]]
+X <- out[[2]]
+
+G <- scale(G)
+X <- scale(X, scale = F)
+```
+
+```{r}
+reps <- 10
+
+nsnps <- 5000
+gwas.ninds <- 1000
+test.ninds <- 300
+mean.shift <- 0.001
+
+exact.zero <- list()
+real.stat <- list()
+true.signal <- list()
+n.causals <- c(1,5,10,100,250,1000,1500,2000,2500,3000,3500,4000,4500,4750,5000)
+
+for(j in seq_along(n.causals)){
+  
+  n.noncausal <- nsnps-n.causals[j]
+  exact.zero[[j]] <- numeric()
+  real.stat[[j]] <- numeric()
+  true.signal[[j]] <- numeric()
+  
+  for(i in 1:reps){
+    
+    # Simulate genotypes
+    out.causal <- sim_evo(ms = mean.shift, L = n.causals[j], m = gwas.ninds, n = test.ninds)
+    gwas.genos.causals <- as.matrix(out.causal[[1]])
+    test.genos.causals <- as.matrix(out.causal[[2]])
+    
+    out.noncausal <- sim_evo(ms = 0, L = n.noncausal, m = gwas.ninds, n = test.ninds)
+    gwas.genos.noncausals <- as.matrix(out.noncausal[[1]])
+    test.genos.noncausals <- as.matrix(out.noncausal[[2]])  
+    
+    gwas.genos.all <- scale(cbind(gwas.genos.causals, gwas.genos.noncausals))
+    test.genos.all <- cbind(test.genos.causals, test.genos.noncausals)
+    
+    gwas.genos.causals <- gwas.genos.all[,1:n.causals[j]]
+    gwas.genos.noncausals <- gwas.genos.all[,-c(1:n.causals[j])]
+    
+    
+    # Make Test vec
+    tvec <- scale(c(rep(0,test.ninds/2),rep(1,test.ninds/2)))
+    
+    # Draw betas
+    betas <- as.matrix(abs(rnorm(n.causals[j],0,nsnps/n.causals[j])),ncol=1)
+    
+    # Make GVs
+    gwas.gvs <- gwas.genos.causals%*%betas
+    phenos <- scale(gwas.gvs+rnorm(gwas.ninds))
+    test.gvs <- test.genos.causals%*%betas
+    
+    # Compute r
+    r.all <- t(test.genos.all)%*%tvec/(test.ninds-1)
+    
+    
+    tmp.proj.tvec <- gwas.genos.all%*%r.all
+    norm <- as.numeric(t(tmp.proj.tvec)%*%tmp.proj.tvec)
+    proj.tvec <- tmp.proj.tvec/sqrt(norm)
+    annihilator <- (diag(gwas.ninds) - proj.tvec%*%t(proj.tvec))
+    
+    
+    r.causals <- t(test.genos.causals)%*%tvec/(test.ninds-1)
+    
+    ## 
+    adj.gvars.causals <- diag(t(gwas.genos.causals)%*%annihilator%*%gwas.genos.causals)/(gwas.ninds-1)
+    adj.denom.causals <- diag(1/adj.gvars.causals,nrow=n.causals[j],ncol=n.causals[j])
+    
+    
+    t(r.causals)%*%t(gwas.genos.causals)%*%annihilator%*%phenos
+    ## guaranteed zero
+    exact.zero[[j]][i] <- t(r.causals)%*%t(gwas.genos.causals)%*%annihilator%*%phenos
+    
+    
+    ## not guaranteed zero
+    real.stat[[j]][i] <- t(r.causals)%*%adj.denom.causals%*%t(gwas.genos.causals)%*%annihilator%*%phenos
+    
+    ## signal
+    true.signal[[j]][i] <- t(test.gvs)%*%tvec
+    
+    
+    cat(j,':',i,'\n',sep='')
+  }
+}
+
+
+```
+
+
+```{r}
+mean.stat <- sapply(real.stat,mean)
+
+
+plot(
+  n.causals[1:12],
+  mean.stat,
+  pch=20
+)
+
+
+par(mfrow=c(1,3))
+hist(exact.zero[[1]])
+hist(real.stat)
+hist(true.signal)
+```
+
+
+
+
+
+
+
+
+```{r}
+# Make Tvec
+tvec <- scale(c(rep(0,nrow(X)/2),rep(1,nrow(X)/2)))
+
+# Make causal betas    
+betas <- as.matrix(abs(rnorm(ncol(G),0,ncol(G)/ncol(G))),ncol=1)
+
+# Calculate GVs and draw phenos    
+gwas.gvs <- G%*%betas
+phenos <- scale(gwas.gvs+rnorm(nrow(G)))
+test.gvs <- X%*%betas
+
+# Copmute r
+r <- t(X)%*%tvec/(nrow(X)-1)
+
+# Compute proj test vec 
+tmp.proj.tvec <- G%*%r
+norm <- as.numeric(t(tmp.proj.tvec)%*%tmp.proj.tvec)
+proj.tvec <- tmp.proj.tvec/sqrt(norm)
+annihilator <- (diag(nrow(G)) - proj.tvec%*%t(proj.tvec))
+
+# Compute effect sizes
+annihilator <- (diag(nrow(G)) - proj.tvec%*%t(proj.tvec))
+adj.gvars.causals <- diag(t(G)%*%annihilator%*%G)/(nrow(G)-1)
+adj.denom.causals <- diag(1/adj.gvars.causals)
+
+## guaranteed zero
+exact.zero <- t(r)%*%t(G)%*%annihilator%*%phenos
+    
+## not guaranteed zero
+real.stat <- t(r)%*%adj.denom.causals%*%t(G)%*%annihilator%*%phenos
+    
+## signal
+true.signal <- t(test.gvs)%*%tvec
+```
+
+
+```{r}
+# Make TV
+Tv <- c(rep(0,nrow(X)/2), rep(1, nrow(X)/2))
+Tv <- Tv - mean(Tv)
+
+# Compute r
+r <- (1/nrow(X)) * t(Tv) %*% X
+
+tmp.proj.tvec <- scale(G)%*%t(r)
+norm <- as.numeric(t(tmp.proj.tvec)%*%tmp.proj.tvec)
+w <- tmp.proj.tvec/sqrt(norm)
+
+# Compute w 
+w <- scale(G) %*% t(X) %*% Tv
+```
+Calculate Naive Betas
+```{r}
+naive.denom <- diag(1/diag(t(G)%*%G))
+naive.my.betas <- naive.denom%*%t(G)%*%y
+
+naive.lm.betas <- numeric()
+for(i in 1:ncol(G)){
+  naive.lm.betas[i] <- lm(y~G[,i])$coef[2]
+  print(i)
+}
+
+plot(naive.lm.betas, naive.my.betas)
+```
+Calculate Adjusted Betas
+```{r}
+norm <- as.numeric(t(w)%*%w)
+annihilator <- (diag(nrow(G)) - (1/norm)*w%*%t(w))
+adj.denom <- diag(1/diag(t(G)%*%annihilator%*%G))
+adj.my.betas <- adj.denom%*%t(G)%*%annihilator%*%y
+
+adj.lm.betas <- numeric()
+for(i in 1:ncol(G)){
+  adj.lm.betas[i] <- lm(y~G[,i] + w)$coef[2]
+  print(i)
+}
+
+plot(adj.lm.betas, adj.my.betas)
+```
+
+
+
+Compute PGS and test statistic with all SNPs 
+```{r}
+gvars.causals <- diag(t(G)%*%G)/(nrow(G)-1)
+denom.causals <- diag(1/gvars.causals)
+
+# Compute zero
+q <- r %*% denom.causals %*% t(G)%*%annihilator%*%y
+q
+
+# Compute exact zero 
+annihilator <- (diag(nrow(G)) - w%*%t(w))
+D <- diag(1/diag(t(G)%*%annihilator%*%G)) 
+num <- t(G)%*%annihilator%*%y
+
+# Compute signal
+true_signal <- t(Tv) %*% X %*% B
+true_signal
+```
+
+
+Function to repeat
+```{r}
+run_sim <- function(L, n, m, Tv) {
+  
+  # Genotype simulation
+  out <- sim_evo(L = 1000, m = 500, n = 100)
+  G <- out[[1]]
+  X <- out[[2]]
+
+  ## Add single "selected" site
+  G <- cbind(G, rep(0,nrow(G)))
+  G[1:(nrow(G)/2),ncol(G)] <- rbinom(nrow(G)/2, 2, 0.1)
+  G[((nrow(G)/2)+1):nrow(G),ncol(G)] <- rbinom(nrow(G)/2, 2, 0.9)
+
+  X <- cbind(X, rep(0,nrow(X)))
+  X[1:(nrow(X)/2),ncol(G)] <- rbinom(nrow(X)/2, 2, 0.1)
+  X[((nrow(X)/2)+1):nrow(X),ncol(G)] <- rbinom(nrow(X)/2, 2, 0.9)
+  
+  # Sim phenotype
+  B <- c(rep(0,ncol(G)-1), 0.1)
+  e <- rnorm(nrow(G), 0,0.1)
+  y <- G %*% B + e
+
+  # Compute w 
+  w <- scale(G) %*% t(scale(X, scale = F)) %*% Tv
+  w <- scale(w)
+  
+  # Do GWAS 
+  Bhat <- rep(NA, ncol(G))
+  for (i in 1:ncol(G)) {
+    mod <- lm(y ~ G[,i] + w)
+    Bhat[i] <- coef(mod)[2]
+  }
+  
+  # Compute PGS
+  PGS <- X %*% Bhat
+
+  # Compute q
+  q <- t(Tv) %*% PGS
+  
+  return(q)
+}
+
+# Make TV
+Tv <- c(rep(0,nrow(X)/2), rep(1, nrow(X)/2))
+Tv <- Tv - mean(Tv)
+
+q_vec <- rep(0, 100)
+for (i in 1:length(q_vec)) {
+  print(i)
+  q_vec[i] <- run_sim(L=1000, n=100, m=500, Tv=Tv)
+}
+
+mean(q_vec)
+hist(q_vec)
+```
+
+```{r}
+rm(list=ls())
+
+nsnps <- 5000
+gwas.ninds <- 1000
+test.ninds <- 300
+mean.shift <- 1
+
+reps <- 30
+
+real.stat <- list()
+real.stat.indep <- list()
+real.stat.pca <- list()
+true.signal <- list()
+q.ascertained <- list()
+n.causals <- c(1,5,10,100,250,1000,1500,2000,2500,3000,3500,4000,4500,4750,5000)
+n.indep <- 5000
+
+for(j in seq_along(n.causals)){
+  
+  n.noncausal <- nsnps-n.causals[j]
+  real.stat[[j]] <- numeric()
+  real.stat.indep[[j]] <- numeric()
+  real.stat.pca[[j]] <- numeric()
+  true.signal[[j]] <- numeric()
+  q.ascertained[[j]] <- numeric()
+
+  for(i in 1:reps){
+
+    # Simulate GWAS causal sites 
+    gwas.genos1.causals <- matrix(rnorm(n.causals[j]*gwas.ninds/2),nrow=gwas.ninds/2,ncol=n.causals[j])
+    gwas.genos2.causals <- matrix(rnorm(n.causals[j]*gwas.ninds/2,mean=mean.shift),nrow=gwas.ninds/2,ncol=n.causals[j])
+        
+    # Simulate GWAS non-causal sites 
+    gwas.genos1.noncausals <- matrix(rnorm(n.noncausal*gwas.ninds/2),nrow=gwas.ninds/2,ncol=n.noncausal)
+    gwas.genos2.noncausals <- matrix(rnorm(n.noncausal*gwas.ninds/2,mean=mean.shift),nrow=gwas.ninds/2,ncol=n.noncausal)
+    
+    # Simulate GWAS independent 
+    gwas.genos1.indep <- matrix(rnorm(n.indep*gwas.ninds/2),nrow=gwas.ninds/2,ncol=n.indep)
+    gwas.genos2.indep <- matrix(rnorm(n.indep*gwas.ninds/2,mean=mean.shift),nrow=gwas.ninds/2,ncol=n.indep)
+    
+
+    # Scale all genotypes together
+    gwas.genos.all <- scale(rbind(cbind(gwas.genos1.causals,gwas.genos1.noncausals, gwas.genos1.indep),cbind(gwas.genos2.causals,gwas.genos2.noncausals, gwas.genos2.indep)))
+
+    # Separate causal and non-causal 
+    gwas.genos.causals <- gwas.genos.all[,1:n.causals[j]]
+    gwas.genos.noncausals <- gwas.genos.all[,(n.causals[j] + 1):(n.causals[j] + n.noncausal)]
+    gwas.genos.indep <- gwas.genos.all[,(n.causals[j] + n.noncausal + 1):(n.indep + n.causals[j] + n.noncausal)]
+    gwas.genos.all <- gwas.genos.all[,1:(n.causals[j] + n.noncausal)]
+        
+    # Simulate test causal sites
+    test.genos1.causals <-
+          matrix(rnorm(n.causals[j]*test.ninds/2),nrow=test.ninds/2,ncol=n.causals[j])
+    test.genos2.causals <- matrix(rnorm(n.causals[j]*test.ninds/2,mean=mean.shift),nrow=test.ninds/2,ncol=n.causals[j])
+
+    # Simulate test non-causal sites
+    test.genos1.noncausals <- matrix(rnorm(n.noncausal*test.ninds/2),nrow=test.ninds/2,ncol=n.noncausal)
+    test.genos2.noncausals <- matrix(rnorm(n.noncausal*test.ninds/2,mean=mean.shift),nrow=test.ninds/2,ncol=n.noncausal)
+        
+    # Combine populations
+    tmp.test.genos.causals <- rbind(test.genos1.causals,test.genos2.causals)
+    tmp.test.genos.noncausals <- rbind(test.genos1.noncausals,test.genos2.noncausals)
+
+    # Scale all genotypes together
+    test.genos.all <- scale(rbind(cbind(test.genos1.causals,test.genos1.noncausals),cbind(test.genos2.causals,test.genos2.noncausals)))        
+
+    # Separate causal and non-causal sites
+    test.genos.causals <- test.genos.all[,1:n.causals[j]]
+    test.genos.noncausals <- test.genos.all[,-c(1:n.causals[j])]
+    
+    # Make 2 pop test vector
+    tvec <- scale(c(rep(0,test.ninds/2),rep(1,test.ninds/2)))
+
+    # Draw n.causal betas
+    betas <- as.matrix(abs(rnorm(n.causals[j],0,nsnps/n.causals[j])),ncol=1)
+
+    # Compute GVs and Phenos 
+    gwas.gvs <- gwas.genos.causals%*%betas
+    pheno.raw <- gwas.gvs+rnorm(gwas.ninds)
+    phenos <- scale(pheno.raw)
+
+    # Compute R 
+    r.all <- t(test.genos.all)%*%tvec/(test.ninds-1)
+    r.causals <- t(test.genos.causals)%*%tvec/(test.ninds-1)
+
+    # Project Tvec using all sites
+    tmp.proj.tvec <- gwas.genos.all%*%r.all
+    norm <- as.numeric(t(tmp.proj.tvec)%*%tmp.proj.tvec)
+    proj.tvec <- tmp.proj.tvec/sqrt(norm)
+    
+    # Project Tvec using independent sites 
+    tmp.proj.tvec <- gwas.genos.indep%*%r.all
+    norm <- as.numeric(t(tmp.proj.tvec)%*%tmp.proj.tvec)
+    proj.tvec.indep <- tmp.proj.tvec/sqrt(norm)
+    
+    # Compute PC1 
+    myE <- eigen(gwas.genos.all %*% t(gwas.genos.all))
+    u1 <- myE$vectors[,1]
+    
+
+    # Compute Bhat
+    adj.lm.betas <- numeric()
+    for(k in 1:nsnps){
+      adj.lm.betas[k] <- lm(phenos~gwas.genos.all[,k] + proj.tvec)$coef[2]
+    }
+    
+    # Compute Bhat indep
+    adj.lm.betas.indep <- numeric()
+    for(k in 1:nsnps){
+      adj.lm.betas.indep[k] <- lm(phenos~gwas.genos.all[,k] + proj.tvec.indep)$coef[2]
+    }
+    
+    # Compute Bhat PCA 
+    adj.lm.betas.pca <- numeric()
+    for(k in 1:nsnps){
+      adj.lm.betas.pca[k] <- lm(phenos~gwas.genos.all[,k] + u1)$coef[2]
+    }
+        
+    ## guaranteed zero
+    #exact.zero[[j]][i] <- t(r.all)%*%t(gwas.genos.all)%*%annihilator%*%phenos
+
+    ## not guaranteed zero
+    real.stat[[j]][i] <- t(r.all)%*%as.matrix(adj.lm.betas)
+
+    ## not guaranteed zero - indep (off by a factor of 2)
+    real.stat.indep[[j]][i] <- t(r.all)%*%as.matrix(adj.lm.betas.indep/ 2) 
+    
+    ## not guaranteed zero - indep 
+    real.stat.pca[[j]][i] <- t(r.all)%*%as.matrix(adj.lm.betas.pca)
+    
+    ## ascertained to causal sites
+    q.ascertained[[j]][i] <- t(r.causals) %*% as.matrix(adj.lm.betas[1:n.causals[j]])
+            
+    ## signal
+    true.signal[[j]][i] <- t(r.causals)%*%(betas / sd(pheno.raw))
+
+    cat(j,':',i,'\n',sep='')
+  }
+}
+```
+
+
+```{r}
+mean.true.signal <- sapply(true.signal,mean)
+sd.true.signal <- sapply(true.signal,sd)
+mean.q <- sapply(q.ascertained, mean)
+sd.q <- sapply(q.ascertained,sd)
+mean.zero <- sapply(real.stat, mean)
+sd.zero <- sapply(real.stat, sd)
+mean.zero.indep <- sapply(real.stat.indep, mean) 
+sd.zero.indep <- sapply(real.stat.indep, sd)
+mean.zero.pca <- sapply(real.stat.pca, mean)
+sd.zero.pca <- sapply(real.stat.pca, sd)
+
+df <- as.data.frame(cbind(mean.true.signal, mean.q, mean.zero, mean.zero.indep, mean.zero.pca))
+df$num.causal <- c(1,5,10,100,250,1000,1500,2000,2500,3000,3500,4000,4500,4750,5000)
+df$eq <- df$mean.true.signal * (1 - (df$num.causal/5000))
+df$uci.ts <- df$mean.true.signal + (1.96*sd.true.signal) 
+df$lci.ts <- df$mean.true.signal - (1.96*sd.true.signal) 
+df$uci.q <- df$mean.q + (1.96*sd.q) 
+df$lci.q <- df$mean.q - (1.96*sd.q) 
+df$uci.zero <- df$mean.zero + (1.96*sd.zero) 
+df$lci.zero <- df$mean.zero - (1.96*sd.zero) 
+df$uci.zero.indep <- df$mean.zero.indep + (1.96*sd.zero.indep)
+df$lci.zero.indep <- df$mean.zero.indep - (1.96*sd.zero.indep)
+df$uci.zero.pca <- df$mean.zero.pca + (1.96*sd.zero.pca)
+df$lci.zero.pca <- df$mean.zero.pca + (1.96*sd.zero.pca)
+
+
+df_plot <- melt(df[1:7], id.vars= c("num.causal"))
+df_plot$uci <- 0
+df_plot$lci <- 0
+df_plot[1:15, 4] <- df$uci.ts 
+df_plot[16:30, 4] <- df$uci.q
+df_plot[31:45, 4] <- df$uci.zero
+df_plot[46:60, 4] <- df$uci.zero.indep
+df_plot[61:75, 4] <- df$uci.zero.pca
+df_plot[76:90, 4] <- df$eq
+df_plot[1:15, 5] <- df$lci.ts 
+df_plot[16:30, 5] <- df$lci.q
+df_plot[31:45, 5] <- df$lci.zero
+df_plot[46:60, 5] <- df$lci.zero.indep
+df_plot[61:75, 5] <- df$lci.zero.pca
+df_plot[76:90, 5] <- df$eq
+
+
+
+cols <- c("darkorange2", "slateblue3", "lightseagreen","indianred4", "darkgreen", "red")
+labs <- c("True Signal","Ascertained Signal using S SNPs","Signal using L SNPs", "Signal using independent SNPs to compute w", "Signal using L SNPs to compute PC1 in GWAS panel", "")
+pl <- ggplot(data = df_plot, aes(x = num.causal, y=value, color = variable, shape = variable))+ geom_point(size = 3)  + theme_classic(base_size = 12) + scale_color_manual(name = "",labels = labs, values = cols)+ scale_shape_manual(name = "", labels = labs, values = c(16, 16, 16, 16, 16, 8)) + ylab("Test Statistic") + xlab("Number of Causal SNPs (S)") + theme(panel.grid.major = element_line(colour = "gray87")) + ylim(c(-0.1, 2.1))
+
+# + geom_errorbar(aes(ymin = lci, ymax = uci), width = 100, alpha= 0.5)
+ggsave("~/Desktop/qplot_offby2.png", pl, height = 5, width = 10)
+
+#+ geom_line(data = df2, aes(x = num.causal, y = eq))
+```
+
+
+
+
+
+
+
+
+
+```{r}
+mean.true.signal <- sapply(true.signal,mean)
+sd.true.signal <- sapply(true.signal,sd)
+mean.q <- sapply(q.ascertained, mean)
+sd.q <- sapply(q.ascertained,sd)
+mean.zero <- sapply(real.stat, mean)
+sd.zero <- sapply(real.stat, sd)
+
+df <- as.data.frame(cbind(mean.true.signal, mean.q, mean.zero))
+df$num.causal <- c(1,5,10,100,250,1000,1500,2000,2500,3000,3500,4000,4500,4750,5000)
+df$eq <- df$mean.true.signal * (1 - (df$num.causal/5000))
+df$uci.ts <- df$mean.true.signal + (1.96*sd.true.signal) 
+df$lci.ts <- df$mean.true.signal - (1.96*sd.true.signal) 
+df$uci.q <- df$mean.q + (1.96*sd.q) 
+df$lci.q <- df$mean.q - (1.96*sd.q) 
+df$uci.zero <- df$mean.zero + (1.96*sd.zero) 
+df$lci.zero <- df$mean.zero - (1.96*sd.zero) 
+df_plot <- melt(df[1:5], id.vars= c("num.causal"))
+df_plot$uci <- 0
+df_plot$lci <- 0
+df_plot[1:15, 4] <- df$uci.ts 
+df_plot[16:30, 4] <- df$uci.q
+df_plot[31:45, 4] <- df$uci.zero
+df_plot[46:60, 4] <- df$eq
+df_plot[1:15, 5] <- df$lci.ts 
+df_plot[16:30, 5] <- df$lci.q
+df_plot[31:45, 5] <- df$lci.zero
+df_plot[46:60, 5] <- df$eq
+
+df2 <- as.data.frame(cbind(df$num.causal, df$mean.true.signal))
+colnames(df2) <- c("num.causal", "ts")
+df2$eq <- df2$ts * (1 - (df2$num.causal/5000))
+
+cols <- c("darkorange2", "slateblue3", "lightseagreen", "red")
+labs <- c("True Signal","Ascertained Signal using S SNPs","Signal using L SNPs", "")
+pl <- ggplot(data = df_plot, aes(x = num.causal, y=value, color = variable, shape = variable))+ geom_point(size = 3) + geom_errorbar(aes(ymin = lci, ymax = uci), width = 100, alpha= 0.5) + theme_classic(base_size = 12) + scale_color_manual(name = "",labels = labs, values = cols)+ scale_shape_manual(name = "", labels = labs, values = c(16, 16, 16, 8)) + ylab("Test Statistic") + xlab("Number of Causal SNPs (S)") + theme(panel.grid.major = element_line(colour = "gray87"))
+
+ggsave("~/Desktop/qplot.png", pl, height = 5, width = 10)
+
+#+ geom_line(data = df2, aes(x = num.causal, y = eq))
+```
+
+
