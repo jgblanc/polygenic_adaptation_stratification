@@ -39,7 +39,7 @@ bin_Tm <- gwas_Tm %>% mutate(es_bin = ntile(BETA, n=10)) %>% group_by(es_bin) %>
 bin_ID <- gwas_ID %>% mutate(es_bin = ntile(BETA, n=10)) %>% group_by(es_bin) %>% summarise(avg = mean(BETA), SD = sd(BETA))
 
 # Save output
-fwrite(out_u, bin_u, col.names=T,row.names=F,quote=F,sep="\t")
-fwrite(out_Tm, bin_Tm, col.names=T,row.names=F,quote=F,sep="\t")
-fwrite(out_ID, bin_ID, col.names=T,row.names=F,quote=F,sep="\t")
+fwrite(bin_u, out_u, col.names=T,row.names=F,quote=F,sep="\t")
+fwrite(bin_Tm, out_Tm, col.names=T,row.names=F,quote=F,sep="\t")
+fwrite(bin_ID, out_ID, col.names=T,row.names=F,quote=F,sep="\t")
 

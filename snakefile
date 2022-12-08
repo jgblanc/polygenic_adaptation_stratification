@@ -591,10 +591,10 @@ rule bin_effect_size:
     output:
       es="output/PRS/Run_GWAS/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.mean",
       es_Tm="output/PRS/Run_GWAS/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.mean",
-      ed_ID="output/PRS/Run_GWAS/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.mean"
+      es_ID="output/PRS/Run_GWAS/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.mean"
     shell:
       """
-      Rscript code/Run_GWAS/bin_avg_effect_sizes.R {input.gwas} {input.gwas_Tm} {input.gwas_ID} {output.ed} {output.es_Tm} {output.es_ID}
+      Rscript code/Run_GWAS/bin_avg_effect_sizes.R {input.gwas} {input.gwas_Tm} {input.gwas_ID} {output.es} {output.es_Tm} {output.es_ID}
       """
 
 
