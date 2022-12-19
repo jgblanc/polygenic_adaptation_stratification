@@ -42,6 +42,7 @@ betas_plink_norm <- beta_plink$BETA * length_mc_genos
 beta_plink$BETA <- betas_plink_norm
 beta_reformat <- beta_plink %>% dplyr::select(ID, A1, BETA)
 beta_reformat$r <- beta_reformat$BETA / (n -1)
+beta_reformat <- beta_reformat %>% select(ID, r) %>% mutate(r_bin = ntile(r, n=10))
 
 # Save r
 fwrite(beta_reformat, paste0(outpath, "r.txt"),row.names=F,quote=F,sep="\t", col.names = T)
