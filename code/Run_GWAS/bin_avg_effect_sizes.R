@@ -18,7 +18,7 @@ out_Tm = args[6] # Outpath for Tm ss
 out_ID = args[7] # Outpath for ID ss
 
 # Read in r bins
-r_bins <- fread(r_file)
+r_bin <- fread(r_file)
 
 # Read in summary stats
 gwas_u <- fread(gwas_u)
