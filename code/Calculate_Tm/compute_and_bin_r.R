@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if( length(args) != 4){stop("Usage: <tvec> <prefix for test panel genotypes> <outpath>") }
+if( length(args) != 3){stop("Usage: <tvec> <prefix for test panel genotypes> <outpath>") }
 
 suppressWarnings(suppressMessages({
   library(data.table)

@@ -53,7 +53,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/r.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
+        expand("output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.mean", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
 
 # Simluate Genotypes
 
@@ -589,9 +589,9 @@ rule bin_effect_size:
       gwas_Tm="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear",
       gwas_ID="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear"
     output:
-      es="output/PRS/Run_GWAS/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.mean",
-      es_Tm="output/PRS/Run_GWAS/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.mean",
-      es_ID="output/PRS/Run_GWAS/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.mean"
+      es="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.mean",
+      es_Tm="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.mean",
+      es_ID="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.mean"
     shell:
       """
       Rscript code/Run_GWAS/bin_avg_effect_sizes.R {input.gwas} {input.gwas_Tm} {input.gwas_ID} {output.es} {output.es_Tm} {output.es_ID}
@@ -604,11 +604,11 @@ rule compute_r:
       Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
       tp="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam"
     output:
-      r="output/Calculate_Tm/4PopSplit/{rep}/{config}/r.txt"
+      r="output/Calculate_Tm/4PopSplit/{rep}/{config}/r.txt",
       r_bins="output/Calculate_Tm/4PopSplit/{rep}/{config}/r_bins.txt"
     shell:
       """
-      Rscript code/Calculate_Tm/compute_and_bin_r.R {input.Tvec} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {output.r} {output.r_bins}
+      Rscript code/Calculate_Tm/compute_and_bin_r.R {input.Tvec} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/
       """
 
 
