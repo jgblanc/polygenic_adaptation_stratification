@@ -1,15 +1,15 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1", "C2"]
-REP = []
-for i in range(1,101):
-  REP.append("A"+str(i))
-HERITABILITY = ["h2-0.0"]
-ENV = ["env_0.0","env_0.0025","env_0.005", "env_0.0075","env_0.01","env_0.0125", "env_0.015","env_0.0175","env_0.02","env_0.0225", "env_0.025","env_0.0275","env_0.03", "env_0.0325", "env_0.035"]
+CONFIG=["C1"]
+REP = ["A1"]
+#for i in range(1,101):
+#  REP.append("A"+str(i))
+HERITABILITY = ["h2-0.3"]
+#ENV = ["env_0.0","env_0.0025","env_0.005", "env_0.0075","env_0.01","env_0.0125", "env_0.015","env_0.0175","env_0.02","env_0.0225", "env_0.025","env_0.0275","env_0.03", "env_0.0325", "env_0.035"]
 #ENV = ["env_0.0", "env_-0.1", "env_0.1",  "env_0.2", "env_-0.2", "env_0.3", "env_-0.3"]
-#ENV = ["env_0.0", "env_-0.1", "env_0.1"]
-#TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
+ENV = ["env_0.0", "env_-0.1", "env_0.1"]
+TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.50"]
 SIZE=2000
 NUM_RESAMPLE=1000
@@ -53,7 +53,8 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.mean", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
+        expand("output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.mean", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV),
+        expand("output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/true_effects.causal_mean", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
 
 # Simluate Genotypes
 
@@ -612,5 +613,21 @@ rule compute_r:
       Rscript code/Calculate_Tm/compute_and_bin_r.R {input.Tvec} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/
       """
 
+rule bin_causal_effect_size:
+    input:
+      gwas="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat.glm.linear",
+      gwas_Tm="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear",
+      gwas_ID="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear",
+      causal_snps = "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
+      r="output/Calculate_Tm/4PopSplit/{rep}/{config}/r.txt"
+    output:
+      es="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.causal_mean",
+      es_Tm="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.causal_mean",
+      es_ID="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.causal_mean",
+      es_true="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/true_effects.causal_mean"
+    shell:
+      """
+      Rscript code/Run_GWAS/bin_avg_effect_sizes_causal.R {input.r} {input.gwas} {input.gwas_Tm} {input.gwas_ID} {input.te} {output.es} {output.es_Tm} {output.es_ID} {output.es_true}
+      """
 
 

@@ -582,6 +582,26 @@ ggsave("~/Desktop/SNPs.png", pl, width = 6, height = 4)
 ```
 
 
+```{r}
+r_bins <- fread("../code/Make_Plots/A_4PopSplit_rbins.txt.gz")
+colnames(r_bins)[4:5] <- c("r_mean", "r_sd")
+B_bins <- fread("../code/Make_Plots/A_4PopSplit_Bbins.txt.gz")
+
+df <- left_join(B_bins, r_bins)
+df <- df %>% filter(case == "C1", envs %in% c("env_0.0", "env_0.01", "env_0.02", "env_0.03")) 
+labs <- list("env_0.0" = TeX("$\\Delta_{AB}$ = 0"),
+          "env_0.01" = TeX("$\\Delta_{AB}$ = 0.01"),
+          "env_0.02" = TeX("$\\Delta_{AB}$ = 0.02"),
+          "env_0.03" = TeX("$\\Delta_{AB}$ = 0.03"))
+hospital_labeller <- function(variable,value){
+  return(labs[value])
+}
+
+las <- c("Population ID",expression(T^{GWAS}), "Uncorrected")
+pl <- ggplot(data = df, aes(x = r_mean, y = avg, color= type))+ geom_point() +geom_smooth(method = "lm", se = FALSE) + facet_wrap(~envs,labeller=hospital_labeller) + ylab("Mean estimated effect size") + xlab("Mean r per decile") + theme_classic(base_size = 10)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_colour_manual(name = "Correction Type",labels = las,values = c("darkgreen", "navy","goldenrod2"))
+
+ggsave("~/Desktop/r_plot.png", pl, width = 7, height = 5)
+```
 
 
 
