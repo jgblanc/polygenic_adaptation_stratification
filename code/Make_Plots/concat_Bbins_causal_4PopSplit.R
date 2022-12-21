@@ -17,16 +17,18 @@ colnames(dat) <- c("rep", "case", "h2", "ts", "envs")
 
 agg_all_data <- function(rep, dir_path, case, h2, ts, envs) {
   
-  Q1 <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/", envs, "/",  "genos-gwas_common.mean"))
+  Q1 <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/", envs, "/",  "genos-gwas_common.causal_mean"))
   Q1$type <- "uc"
-  Q2 <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/", envs, "/",  "genos-gwas_common-Tm.mean"))
+  Q2 <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/", envs, "/",  "genos-gwas_common-Tm.causal_mean"))
   Q2$type <- "Tm"
-  Q3 <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/", envs, "/",  "genos-gwas_common-ID.mean"))
+  Q3 <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/", envs, "/",  "genos-gwas_common-ID.causal_mean"))
   Q3$type <- "ID"  
+  Q4 <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/", envs, "/",  "true_effects.causal_mean"))
+  Q4$type <- "True"
 
-  Qx <- rbind(Q1, Q2, Q3)
+  Qx <- rbind(Q1, Q2, Q3, Q4)
   return(Qx)
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Run_GWAS/4PopSplit/' )
 
-fwrite(df, "A_4PopSplit_ts_Bbins.txt", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "A_4PopSplit_Bbins_causal.txt", row.names=F,quote=F,sep="\t", col.names = T)
