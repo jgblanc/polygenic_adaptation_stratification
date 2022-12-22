@@ -600,7 +600,51 @@ hospital_labeller <- function(variable,value){
 las <- c("Population ID",expression(T^{GWAS}), "Uncorrected")
 pl <- ggplot(data = df, aes(x = r_mean, y = avg, color= type))+ geom_point() +geom_smooth(method = "lm", se = FALSE) + facet_wrap(~envs,labeller=hospital_labeller) + ylab("Mean estimated effect size") + xlab("Mean r per decile") + theme_classic(base_size = 10)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_colour_manual(name = "Correction Type",labels = las,values = c("darkgreen", "navy","goldenrod2"))
 
-ggsave("~/Desktop/r_plot.png", pl, width = 7, height = 5)
+#ggsave("~/Desktop/r_plot.png", pl, width = 7, height = 5)
+```
+
+Ascertained causal sites 
+```{r}
+r_bins <- fread("../code/Make_Plots/A_4PopSplit_rbins.txt.gz")
+colnames(r_bins)[4:5] <- c("r_mean", "r_sd")
+B_bins <- fread("../code/Make_Plots/A_4PopSplit_Bbins_causal.txt.gz")
+
+df <- left_join(B_bins, r_bins)
+df <- df %>% filter(case == "C1", envs %in% c("env_0.0", "env_-0.1", "env_0.1")) %>% filter(ts == "p-0.62")
+labs <- list("env_0.0" = TeX("$\\Delta_{AB}$ = 0"),
+          "env_-0.1" = TeX("$\\Delta_{AB}$ = -0.1"),
+          "env_0.1" = TeX("$\\Delta_{AB}$ = 0.1"))
+hospital_labeller <- function(variable,value){
+  return(labs[value])
+}
+
+las <- c("Population ID",expression(T^{GWAS}),"True Effect Size", "Uncorrected")
+pl <- ggplot(data = df, aes(x = r_mean, y = avg, color= type))+ geom_point(alpha = 0.2, shape = 1) +geom_smooth(method = "lm", se = FALSE) + facet_wrap(~envs,labeller=hospital_labeller) + ylab("Mean estimated effect size") + xlab("Mean r per decile") + theme_classic(base_size = 10)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_colour_manual(name = "Correction Type",labels = las,values = c("darkgreen", "navy","red", "goldenrod2"))
+
+ggsave("~/Desktop/r_plot_causal.png", pl, width = 7, height = 5)
+```
+
+All sites 
+```{r}
+r_bins <- fread("../code/Make_Plots/A_4PopSplit_rbins.txt.gz")
+colnames(r_bins)[4:5] <- c("r_mean", "r_sd")
+B_bins <- fread("../code/Make_Plots/A_4PopSplit_ts_Bbins.txt.gz")
+tmp <- fread("../code/Make_Plots/A_4PopSplit_Bbins_causal.txt.gz")%>% filter(type == "True")
+B_bins <- rbind(B_bins, tmp) 
+
+df <- left_join(B_bins, r_bins)
+df <- df %>% filter(case == "C1", envs %in% c("env_0.0", "env_-0.1", "env_0.1")) %>% filter(ts == "p-0.62")
+labs <- list("env_0.0" = TeX("$\\Delta_{AB}$ = 0"),
+          "env_-0.1" = TeX("$\\Delta_{AB}$ = -0.1"),
+          "env_0.1" = TeX("$\\Delta_{AB}$ = 0.1"))
+hospital_labeller <- function(variable,value){
+  return(labs[value])
+}
+
+las <- c("Population ID",expression(T^{GWAS}),"True Effect Size", "Uncorrected")
+pl <- ggplot(data = df, aes(x = r_mean, y = avg, color= type))+ geom_point(alpha = 0.2, shape = 1) +geom_smooth(method = "lm", se = FALSE) + facet_wrap(~envs,labeller=hospital_labeller) + ylab("Mean estimated effect size") + xlab("Mean r per decile") + theme_classic(base_size = 10)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_colour_manual(name = "Correction Type",labels = las,values = c("darkgreen", "navy","red", "goldenrod2"))
+
+ggsave("~/Desktop/r_plot_all.png", pl, width = 7, height = 5)
 ```
 
 
@@ -611,10 +655,29 @@ ggsave("~/Desktop/r_plot.png", pl, width = 7, height = 5)
 
 
 
+```{r}
+Va <- 1
+compute_fpr <- function(N, Ft) {
+  
+  t1 <- qnorm(0.025, mean = 0, sd = sqrt(Va * (1/(N-1))))
+  t2 <- qnorm(0.975, mean = 0, sd = sqrt(Va * (1/(N-1))))
 
+  p1 <- pnorm(t1, mean = 0, sd=sqrt(Va * ((1/(N-1)) +  Ft)))
+  p2 <- 1 - pnorm(t2, mean = 0, sd=sqrt(Va * ((1/(N-1)) +  Ft)))
 
+  fpr <- p1 + p2
+  return(fpr)
+}
 
-
+Fts <- c(0.01, 0.001, 0.0001, 0)
+#col<-terrain.colors(length(Fts))
+col <- c("#00A600" ,"#E6E600","#EAB64E", "#EEB99F", "#F2F2F2")
+for (i in 1:length(Fts)) {
+  curve(compute_fpr(x, Ft = Fts[i]), from = 10, to = 500000,add=i!=1, col=col[i], log = "x", xlab = "Test panel sample size", ylab = "False positive rate", lwd=2)
+}
+abline(v = 300000, col="red", lwd=3, lty=2)
+legend("topleft", inset = 0.05,legend = Fts, col=col, lty=1, title=TeX("$f_{TX}$"))
+```
 
 
 

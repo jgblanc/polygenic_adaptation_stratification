@@ -2,15 +2,15 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = ["A1"]
-#for i in range(1,101):
-#  REP.append("A"+str(i))
+REP = []
+for i in range(1,101):
+  REP.append("A"+str(i))
 HERITABILITY = ["h2-0.3"]
-ENV = ["env_0.0"]
-#ENV = ["env_0.0", "env_-0.1", "env_0.1"]
-#TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
-TS=["p-0.50"]
-NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
+#ENV = ["env_0.0","env_0.0025","env_0.005", "env_0.0075","env_0.01","env_0.0125", "env_0.015","env_0.0175","env_0.02","env_0.0225", "env_0.025","env_0.0275","env_0.03", "env_0.0325", "env_0.035"]
+#ENV = ["env_0.0", "env_-0.1", "env_0.1",  "env_0.2", "env_-0.2", "env_0.3", "env_-0.3"]
+ENV = ["env_0.0", "env_-0.1", "env_0.1"]
+TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
+#TS=["p-0.50"]
 SIZE=2000
 NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
@@ -53,7 +53,8 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL)
+        expand("output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.mean", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV),
+        expand("output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/true_effects.causal_mean", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV)
 
 # Simluate Genotypes
 
@@ -312,14 +313,13 @@ rule draw_effect_sizes:
         freq="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq",
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     output:
-        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt"
+        "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
         seed = lambda wildcards: get_seed(wildcards.rep, wildcards.config, wildcards.h2, wildcards.ts, wildcards.env),
-        prob = lambda wildcards: get_params(wildcards.ts),
-        nc = lambda wildcards: get_params(wildcards.nc)
+        prob = lambda wildcards: get_params(wildcards.ts)
     shell:
-        "Rscript code/Simulate_Phenotypes/draw_effect_sizes_4PopSplit.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob} {params.nc}"
+        "Rscript code/Simulate_Phenotypes/draw_effect_sizes_4PopSplit.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob}"
 
 rule generate_genetic_values:
     input:
