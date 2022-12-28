@@ -14,7 +14,7 @@ popfile = args[2] # pop file from msprime simulation
 output_file = args[3] #name of output file
 h2 = as.numeric(args[4]) #target heritability
 env_s=as.numeric(args[5]) #total environmental shift
-set.seed(as.numeric(args[6]))
+#set.seed(as.numeric(args[6]))
 print(as.numeric(args[6]))
 
 print(paste0("The stratification shift is ",as.numeric(env_s)))
