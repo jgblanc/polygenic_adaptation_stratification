@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)!=8){stop("Rscript calc_TGWAS.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
+if(length(args)!=9){stop("Rscript calc_TGWAS.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
                          <true.sscore> <Tvec.txt> <outfile name> <file with number of snps>")}
 
 suppressWarnings(suppressMessages({
@@ -97,8 +97,9 @@ main <- function(type, snps) {
   if(type == "TRUE") {
     # Load effect sizes
     beta_file <- true_file
-    betas <- fread(beta_file)
+    betas <- fread(beta_file, header=FALSE)
     colnames(betas) <- c("ID", "A1", "BETA_Strat")
+    fwrite(betas, true_file,row.names=F,quote=F,sep="\t", col.names = T)
   } else {
     # Load effect sizes
     beta_file <- paste0(gwas_prefix, type,".", snps, ".betas")
@@ -110,7 +111,7 @@ main <- function(type, snps) {
   prs_outfile <- paste0(gwas_prefix, ".prs")
   plink2_cmd <- paste("sh code/PGA_test/Test_score.sh", geno_prefix, beta_file, prs_outfile, sep = " ")
   system(plink2_cmd)
-  sscore <- fread(paste0(prs_outfile, ".sscore")) %>% select(BETA_strat_SUM)
+  sscore <- fread(paste0(prs_outfile, ".sscore")) %>% select(BETA_Strat_SUM)
   sscore <- as.matrix(sscore)
 
   # Compute Va

@@ -12,7 +12,7 @@ TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 #TS=["p-0.50"]
 NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
 SIZE=2000
-NUM_RESAMPLE=1000
+NUM_RESAMPLE=10
 PVALUE_THRESHOLD=1
 
 wildcard_constraints:
@@ -546,10 +546,10 @@ rule calc_ts_magnitude:
 
 rule Calc_Qx_SNPs:
   input:
-    gwas="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.betas",
-    gwasTm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.betas",
-    gwasID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.betas",
-    genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/{nc}/genos-test_common.psam",
+    gwas="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.nc.betas",
+    gwasTm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.nc.betas",
+    gwasID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas",
+    genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
     lambda_T="output/PGA_test/4PopSplit/{rep}/{config}/Lambda_T.txt",
     Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
     pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
