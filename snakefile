@@ -3,8 +3,8 @@ for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
 REP = ["A1"]
-for i in range(1,101):
-  REP.append("A"+str(i))
+#for i in range(1,101):
+#  REP.append("A"+str(i))
 HERITABILITY = ["h2-0.3"]
 #ENV = ["env_0.0"]
 ENV = ["env_0.0", "env_-0.1", "env_0.1"]
@@ -441,7 +441,7 @@ rule gwas_PopID:
       --covar-col-nums 4 \
       --pheno {input.pheno} \
       --pheno-name pheno_strat \
-      --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards/nc}/{wildcards.env}/genos-gwas_common-ID
+      --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common-ID
       """
 
 # Ascertain SNPs
