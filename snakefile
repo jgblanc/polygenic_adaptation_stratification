@@ -3,13 +3,13 @@ for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
 REP = ["A1"]
-#for i in range(1,101):
-#  REP.append("A"+str(i))
+for i in range(1,101):
+  REP.append("A"+str(i))
 HERITABILITY = ["h2-0.3"]
-ENV = ["env_0.0"]
-#ENV = ["env_0.0", "env_-0.1", "env_0.1"]
-#TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
-TS=["p-0.50"]
+#ENV = ["env_0.0"]
+ENV = ["env_0.0", "env_-0.1", "env_0.1"]
+TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
+#TS=["p-0.50"]
 NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
 SIZE=2000
 NUM_RESAMPLE=1000
@@ -319,7 +319,7 @@ rule draw_effect_sizes:
         prob = lambda wildcards: get_params(wildcards.ts),
         nc = lambda wildcards: get_params(wildcards.nc)
     shell:
-        "Rscript code/Simulate_Phenotypes/draw_effect_sizes_4PopSplit.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob} {params.nc}"
+        "Rscript code/Simulate_Phenotypes/draw_effect_sizes_num_causal_4PopSplit.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob} {params.nc}"
 
 rule generate_genetic_values:
     input:

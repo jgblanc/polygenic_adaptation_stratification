@@ -51,7 +51,7 @@ p=p[,c("chr","ID","ALT_FREQS")]
 p[, c("CHROM", "position","ref","alt") := tstrsplit(ID, "_", fixed=TRUE)]
 p = p[,c("CHROM","ID","position","ALT_FREQS")]
 p$position = as.numeric(p$position)
-
+print(nrow(p))
 
 sample.variant <- function(df, k) {
   return(sample_n(df,k))
@@ -59,9 +59,16 @@ sample.variant <- function(df, k) {
 
 # Check if we want to include all chromosomes
 if (nc == "all") {
-  causal.variants <- p
-} else{
 
+  causal.variants <- p
+
+} else if (as.numeric(nc) > nrow(p)/2){
+  
+  causal.variants <- sample_n(p,as.numeric(nc))
+  print(nrow(causal.variants))
+
+} else {
+  
   nc <- as.numeric(nc)
   #carry this out grouped by chromosome
   df = p %>% filter(CHROM == 1)
@@ -72,9 +79,8 @@ if (nc == "all") {
     df = p %>% filter(CHROM == i)
     out <- sample.variant(as.data.table(df), k_pc)
     causal.variants <- rbind(causal.variants, out)
-  }
+ }
 }
-
 
 #Now generate the effect sizes from these variants
 #calculate the independent component of variance required
