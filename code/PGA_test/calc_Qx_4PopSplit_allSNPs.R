@@ -62,7 +62,7 @@ en <- function(type, snps, tvec, Va, lambda_T) {
 
   if(type == "TRUE") {
     # Load effect sizes
-    beta_file <- true_file
+    beta_file <- paste0(gwas_prefix, "true", ".betas")
     betas <- fread(beta_file)
     colnames(betas) <- c("ID", "A1", "BETA_Strat")
   } else {
@@ -108,7 +108,8 @@ main <- function(type, snps) {
     beta_file <- true_file
     betas <- fread(beta_file, header=FALSE)
     colnames(betas) <- c("ID", "A1", "BETA_Strat")
-    fwrite(betas, true_file,row.names=F,quote=F,sep="\t", col.names = T)
+    beta_file <- paste0(gwas_prefix, "true", ".betas")
+    fwrite(betas,beta_file,row.names=F,quote=F,sep="\t", col.names = T)
   } else {
     # Load effect sizes
     beta_file <- paste0(gwas_prefix, type,".", snps, ".betas")
