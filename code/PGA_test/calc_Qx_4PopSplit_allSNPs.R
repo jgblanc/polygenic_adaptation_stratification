@@ -42,6 +42,15 @@ calc_Qx <- function(sscore, tvec, Va, lambda_T) {
   return(Qx_strat)
 }
 
+# Function to calculate Q
+calc_q <- function(sscore, tvec) {
+
+  # Compute Qx Strat
+  Ztest <- t(tvec) %*% sscore
+
+  return(Ztest)
+}
+
 # Function to flip effect sizes
 flip <- function(betas) {
   new_betas <- sample(c(-1,1), length(betas),  replace = T) * betas
@@ -118,6 +127,9 @@ main <- function(type, snps) {
   freq <- fread(paste0(geno_prefix, ".afreq"))
   freq <- freq$ALT_FREQS
   Va <- calc_Va(afreq = freq, es = betas$BETA_Strat)
+
+  ## Calc Q
+  q <- t(calc_q(sscore, tvec))
 
   ## Calc Qx - Test
   qx <- t(calc_Qx(sscore, tvec, Va, lambda_T))
