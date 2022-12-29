@@ -149,14 +149,14 @@ main <- function(type, snps) {
   p_strat <- pchisq(qx[1,1], df=1, lower.tail=FALSE)
 
   # Concatenate output (Qx, p_strat)
-  out <- c(qx, p_strat , p_strat_en)
+  out <- c(q, qx, p_strat , p_strat_en)
 
   return(out)
 
 }
 
 # Run all types of PGS
-out <- matrix(NA, nrow = 7, ncol =3)
+out <- matrix(NA, nrow = 7, ncol =4)
 out[1, ] <- main(type = "", snps  = "nc")
 out[2, ] <- main(type = "-Tm", snps = "nc")
 out[3, ] <- main(type = "-ID", snps = "nc")
@@ -166,14 +166,14 @@ out[6, ] <- main(type = "-ID", snps = "c")
 out[7, ] <- main(type = "TRUE")
 out <- as.data.frame(out)
 out$Bias <- NA
-tqx <- out[7,1]
-out[1,4] <- out[1,1] - tqx
-out[2,4] <- out[2,1] - tqx
-out[3,4] <- out[3,1] - tqx
-out[4,4] <- out[4,1] - tqx
-out[5,4] <- out[5,1] - tqx
-out[6,4] <- out[6,1] - tqx
-out[7,4] <- out[7,1] - tqx
+tq <- out[7,1]
+out[1,5] <- out[1,1] - tq
+out[2,5] <- out[2,1] - tq
+out[3,5] <- out[3,1] - tq
+out[4,5] <- out[4,1] - tq
+out[5,5] <- out[5,1] - tq
+out[6,5] <- out[6,1] - tq
+out[7,5] <- out[7,1] - tq
 
 # Save output
 colnames(out) <- c("Qx", "P.Chi", "P.EN", "Bias")
