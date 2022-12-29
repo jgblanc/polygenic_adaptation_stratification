@@ -25,7 +25,7 @@ true_file = args[9]
 
 # Function to calculate Va
 calc_Va <- function(afreq, es) {
-
+  print(length(afreq))
   # Compute Va
   Va <- 2 * sum((es)^2 * afreq * (1 - afreq))
 
@@ -126,6 +126,7 @@ main <- function(type, snps) {
 
   # Compute Va
   freq <- fread(paste0(geno_prefix, ".afreq"))
+  freq <- freq %>% filter(ID %in% betas$ID)
   freq <- freq$ALT_FREQS
   Va <- calc_Va(afreq = freq, es = betas$BETA_Strat)
 
@@ -176,7 +177,7 @@ out[6,5] <- out[6,1] - tq
 out[7,5] <- out[7,1] - tq
 
 # Save output
-colnames(out) <- c("Qx", "P.Chi", "P.EN", "Bias")
+colnames(out) <- c("q","Qx", "P.Chi", "P.EN", "Bias")
 rownames(out) <- c("nc-uncorrected", "nc-Tm", "nc-ID", "c-uncorrected", "c-Tm", "c-ID", "true")
 print(out)
 fwrite(out, out_pre,row.names=T,quote=F,sep="\t", col.names = T)

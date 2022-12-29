@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrid_C
-#SBATCH --output=logs/SimpleGrid_C.out
-#SBATCH --error=logs/SimpleGrid_C.err
-#SBATCH --time=08:00:00
+#SBATCH --job-name=CalcQ
+#SBATCH --output=logs/CalcQ.out
+#SBATCH --error=logs/CalcQ.err
+#SBATCH --time=07:00:00
 #SBATCH --partition=broadwl
-#SBATCH --nodes=4
-#SBATCH --ntasks-per-node=14
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=30
 #SBATCH --mem-per-cpu=4000
 
 module load python/cpython-3.7.0
