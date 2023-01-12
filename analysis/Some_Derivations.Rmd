@@ -1,0 +1,208 @@
+---
+title: "Some_Derivations"
+author: "Jennifer Blanc"
+date: "2023-01-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(MASS)
+library(matrixNormal)
+library(pracma)
+```
+
+## Simulate Data Set Up
+
+### Construct F matrices
+
+```{r}
+# Set sample sizes and number of Loci
+m <- 300
+n <- 200
+L <- 100
+
+# Set covariance matrices
+## Test panel
+AA <- matrix(rep(0.5, (n^2 /4)), nrow = n/2, ncol = n/2)
+AB <- matrix(rep(0, (n^2 /4)), nrow = n/2, ncol = n/2)
+KXX <- rbind(cbind(AA,AB), cbind(AB,AA))
+diag(KXX) <- rep(1, n)
+
+## GWAS panel
+AA <- matrix(rep(0.5, (m^2 /4)), nrow = m/2, ncol = m/2)
+AB <- matrix(rep(0, (m^2 /4)), nrow = m/2, ncol = m/2)
+KGG <- rbind(cbind(AA,AB), cbind(AB,AA))
+diag(KGG) <- rep(1, m)
+
+## Cross panel 
+AA <- matrix(rep(0.5, (m * n /4)), nrow = m/2, ncol = n/2)
+AB <- matrix(rep(0, (m * n /4)), nrow = m/2, ncol = n/2)
+KGX <- rbind(cbind(AA,AB), cbind(AB,AA))
+KXG <-t(KGX)
+
+# Parameters for MVN 
+Sigma <- rbind(cbind(KGG, KGX), cbind(KXG, KXX))
+mu = rep(0, n + m)
+image(Sigma)
+```
+
+### Simulate Genotypes and Phenotypes
+
+```{r}
+# Simulate GX
+GX <- t(mvrnorm(n=L, mu = mu, Sigma = Sigma))
+G <- GX[1:m, ]
+X <- GX[(m+1):(m+n),]
+
+# Mean center genotypes
+G <- scale(G, scale = F)
+X <- scale(X, scale = F)
+
+# Standardize genotypes by GWAS variance
+varG <- apply(G, 2, var)
+Gs <- G %*% diag(1/sqrt(varG))
+
+# Simulate Phenotypes
+y <- rnorm(m)
+```
+
+### Do GWAS to get estimates Betas
+
+```{r}
+# Marginal betas
+betas_marginal <- rep(0, L)
+for (i in 1:L) {
+  betas_marginal[i] <- (1/(m-1))  *  t(Gs[,i]) %*% y
+}
+# Joint betas
+betas_joint <- solve(t(G) %*% G) %*% t(Gs) %*% y
+```
+
+### Compute different quantities
+
+```{r}
+# Make test vectors
+Tvec <- c(rep(-0.5, n/2), rep(0.5, n/2))
+
+# Compute q
+q_marginal <- (1/(n-1)) * (Tvec %*% X %*% betas_marginal)
+q_joint <- (1/(n-1)) * (Tvec %*% X %*% betas_joint)
+```
+
+## Simulation Function
+
+```{r}
+main <- function(L, n, m) {
+  
+  ## Test panel
+  AA <- matrix(rep(0.5, (n^2 /4)), nrow = n/2, ncol = n/2)
+  AB <- matrix(rep(0, (n^2 /4)), nrow = n/2, ncol = n/2)
+  KXX <- rbind(cbind(AA,AB), cbind(AB,AA))
+  diag(KXX) <- rep(1, n)
+  
+  ## GWAS panel
+  AA <- matrix(rep(0.5, (m^2 /4)), nrow = m/2, ncol = m/2)
+  AB <- matrix(rep(0, (m^2 /4)), nrow = m/2, ncol = m/2)
+  KGG <- rbind(cbind(AA,AB), cbind(AB,AA))
+  diag(KGG) <- rep(1, m)
+  
+  ## Cross panel 
+  AA <- matrix(rep(0.5, (m * n /4)), nrow = m/2, ncol = n/2)
+  AB <- matrix(rep(0, (m * n /4)), nrow = m/2, ncol = n/2)
+  KGX <- rbind(cbind(AA,AB), cbind(AB,AA))
+  KXG <-t(KGX)
+  
+  # Covariance matrix
+  Sigma <- rbind(cbind(KGG, KGX), cbind(KXG, KXX))
+  mu = rep(0, n + m)
+  
+  # Simulate GX
+  GX <- t(mvrnorm(n=L, mu = mu, Sigma = Sigma))
+  G <- GX[1:m, ]
+  X <- GX[(m+1):(m+n),]
+
+  # Mean center genotypes
+  G <- scale(G, scale = F)
+  X <- scale(X, scale = F)
+
+  # Standardize genotypes by GWAS variance
+  #varG <- apply(G, 2, var)
+  #Gs <- G %*% diag(1/sqrt(varG))
+
+  # Simulate Phenotypes
+  y <- rnorm(m)
+  
+  # Marginal betas
+  betas_marginal <- rep(0, L)
+  for (i in 1:L) {
+    #betas_marginal[i] <- (1/(m-1))  *  t(Gs[,i]) %*% y
+    betas_marginal[i] <- coef(lm(y ~ G[,i]))[2]
+  }
+  
+  # Joint betas
+  #betas_joint <- pinv(t(Gs) %*% Gs) %*% t(Gs) %*% y
+  mod <- lm(y ~ G)
+  betas_joint <- coef(mod)[-1]
+  
+  # Make test vectors
+  Tvec <- c(rep(-0.5, n/2), rep(0.5, n/2))
+
+  # Compute q
+  q_marginal <- (1/(n-1)) * (Tvec %*% X %*% betas_marginal)
+  q_joint <- (1/(n-1)) * (Tvec %*% X %*% betas_joint)
+  #q_marginal <- 1
+  
+  out <- c(q_marginal, q_joint)
+  return(out)
+}
+
+L2 <- c(1e1, 125000, 250000, 375000, 500000, 625000, 750000, 875000)
+#L2 <- c(10,30000, 60000, 90000)
+num_loci <- floor(sqrt(L2))
+reps <- 100
+test_sample_sizes <- c(200)
+
+data_list <- list()
+for(k in 1:length(test_sample_sizes)) {
+  print(paste0("The test sample size is ", test_sample_sizes[k]))
+  results <- matrix(NA, nrow = length(num_loci), ncol = 2)
+  for (j in 1:length(num_loci)) {
+    print(paste0("The number of loci is ", num_loci[j]))
+    out <- matrix(0, nrow=reps, ncol = 2)
+    for (i in 1:reps) {
+      out[i,] <- main(L=num_loci[j], n=test_sample_sizes[k], m = 1000)
+    }  
+    results[j,] <- apply(out, 2, var)
+  }
+  data_list[[k]] <- results
+}
+```
+
+
+```{r}
+df <- as.data.frame(results)
+colnames(df) <- c("marginal", "joint")
+df$num_loci <- num_loci 
+df$L2 <- num_loci^2
+ggplot(df, aes(x = L2, y = joint)) + geom_point() + geom_smooth(method = "lm") + ylab("Var(q)") + theme_bw()
+ggplot(df, aes(x = L2, y = marginal)) + geom_point() + geom_smooth(method = "lm") + ylab("Var(q)") + theme_bw()
+```
+
+
+```{r}
+extract_df <- function(index) {
+  df <- as.data.frame(data_list[[index]])
+  colnames(df) <- c("marginal", "joint")
+  df$num_loci <- num_loci 
+  df$L2 <- num_loci^2
+  return(df)
+}
+
+ggplot(extract_df(1), aes(x = L2, y = marginal)) + geom_point() + geom_smooth(method = "lm")+ geom_vline(xintercept = (test_sample_sizes[1] - 1)^2)
+ggplot(extract_df(2), aes(x = L2, y = marginal)) + geom_point() + geom_smooth(method = "lm") + geom_vline(xintercept = (test_sample_sizes[2] - 1)^2) 
+
+ggplot(extract_df(2), aes(x = L2, y = marginal)) + geom_point() + geom_smooth(method = "lm") + ylab("Var(q)") + theme_bw()
+```
+

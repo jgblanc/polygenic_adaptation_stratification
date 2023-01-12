@@ -682,6 +682,34 @@ legend("topleft", inset = 0.05,legend = Fts, col=col, lty=1, title=TeX("$f_{TX}$
 
 
 
+```{r}
+df <- fread("../code/Make_Plots/A_4PopSplit_nc_Bias.txt.gz")
+tmp <- df %>% filter(case == "C1", envs %in% c("env_0.1")) %>% filter(ts == "p-0.62", type ==  "c-uncorrected") 
+df_plot <- df %>% group_by(case, envs, nc, type, ts) %>% summarise(avg_bias = mean(Bias), avg_q = mean(q))
+df_plot <- df_plot %>% filter(envs == "env_0.0") %>% separate(ts, c("tmp", "ts"), "-") %>% filter(type %in% c("c-Tm", "true"))
+#%>% filter(type %in% c("c-uncorrected", "c-Tm", "c-ID", "true"))
+df_plot$ts <- as.numeric(df_plot$ts)
+
+las <- c(expression(T^{GWAS}),"True Effect Size") 
+pl1 <- ggplot(data = df_plot,  aes(x =  ts, y = avg_q, fill = type)) + geom_bar(stat='identity',position='dodge') + facet_grid(~nc) + ylab("Avg. q") + xlab(" ") + scale_fill_manual(values = c("navy", "red"), labels = las, name = "" ) + theme_classic(base_size = 10)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_blank())+ scale_x_continuous(breaks = c(0.5, 0.53, 0.56, 0.59, 0.62))
+pl2 <- ggplot(data = df_plot,  aes(x =  ts, y = avg_bias, fill = type)) + geom_bar(stat='identity',position='dodge') + facet_grid(~nc) + ylab("Avg. Bias") + xlab("Strength of Signal") + scale_fill_manual(values = c("navy", "red"), labels = las, name = "" ) + theme_classic(base_size = 10)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(angle = 45,  hjust = 1))+ scale_x_continuous(breaks = c(0.5, 0.53, 0.56, 0.59, 0.62))
+f <- ggarrange(pl1, pl2, nrow = 2, common.legend = TRUE, legend="bottom")
+ggsave("~/Desktop/pl1.png",f)
+
+df_plot <- df %>% group_by(case, envs, nc, type, ts) %>% summarise(avg_bias = mean(Bias), avg_q = mean(q))
+df_plot <- df_plot %>% filter(envs == "env_0.0") %>% separate(ts, c("tmp", "ts"), "-") %>% filter(type %in% c("c-uncorrected", "c-Tm", "c-ID", "true"))
+df_plot$ts <- as.numeric(df_plot$ts)
+
+las <- c("Population ID",expression(T^{GWAS}), "Uncorrected", "True Effect Size")
+pl1 <- ggplot(data = df_plot,  aes(x =  ts, y = avg_q, fill = type)) + geom_bar(stat='identity',position='dodge') + facet_wrap(~nc, scales = "free_y", ncol = 4) + ylab("Avg. q") + xlab(" ")  + theme_classic(base_size = 10)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_blank())+ scale_x_continuous(breaks = c(0.5, 0.53, 0.56, 0.59, 0.62)) +  scale_fill_manual(name = "Correction Type",labels = las,values = c("darkgreen", "navy", "goldenrod2", "red"))
+pl2 <- ggplot(data = df_plot,  aes(x =  ts, y = avg_bias, fill = type)) + geom_bar(stat='identity',position='dodge') + facet_wrap(~nc,scales = "free_y", ncol = 4) + ylab("Avg. Bias") + xlab("Strength of Signal") + theme_classic(base_size = 10)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(angle = 45,  hjust = 1))+ scale_x_continuous(breaks = c(0.5, 0.53, 0.56, 0.59, 0.62)) +  scale_fill_manual(name = "Correction Type",labels = las,values = c("darkgreen", "navy", "goldenrod2", "red"))
+f <- ggarrange(pl1, pl2, nrow = 2, common.legend = TRUE, legend="bottom")
+f
+ggsave("~/Desktop/pl2.png",f)
+#ggplot(data = df_plot,  aes(x =  ts, y = avg_bias, col = type)) + geom_point()
+```
+
+
 
 
 

@@ -5,12 +5,13 @@ CONFIG=["C1"]
 REP = []
 for i in range(1,101):
   REP.append("A"+str(i))
-HERITABILITY = ["h2-0.3"]
-#ENV = ["env_0.0"]
-ENV = ["env_0.0", "env_-0.1", "env_0.1"]
-TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
-#TS=["p-0.62"]
-NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
+HERITABILITY = ["h2-0.0"]
+ENV = ["env_0.0", "env_0.02"]
+#ENV = ["env_0.0", "env_-0.1", "env_0.1"]
+#TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
+TS=["p-0.50"]
+#NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
+NUM_CAUSAL = ["c-200"]
 SIZE=2000
 NUM_RESAMPLE=1
 PVALUE_THRESHOLD=1
@@ -53,7 +54,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/joint_effect_q.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL)
 
 # Simluate Genotypes
 
@@ -487,6 +488,23 @@ rule pick_SNPS_ID:
     shell:
       """
       Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common-ID {params.pt} output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common-ID
+      """
+
+# Compute joint effect sizes
+    input:
+      causal_u="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.c.betas",
+      ascertained_u="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.nc.betas",
+      causal_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.c.betas",
+      ascertained_Tm,="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.nc.betas",
+      causal_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.c.betas",
+      ascertained_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas",
+      pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.phenos.txt",
+      tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
+    output:
+      "output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/joint_effect_q.txt"
+    shell:
+      """
+      Rscript code/PRS/joint_effect_sizes.R {input.causal_u} {input.ascertained_u} {input.causal_Tm} {input.ascertained_Tm} {input.causal_ID} {input.ascertained_ID} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.pheno} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.tvec} {output}
       """
 
 # Do PGA test
