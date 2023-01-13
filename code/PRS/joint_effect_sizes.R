@@ -33,6 +33,8 @@ c_ID <- fread(a_ID)
 # Read in phenotypes
 phenos <- fread(path_to_phenotype)
 
+print("Loaded data")
+
 # Function to read in genotype matrix for a set of variants
 read_genos <- function(geno_prefix, betas) {
 
@@ -54,14 +56,14 @@ compute_joint <- function(geno_prefix, betas, phenos) {
 
   # Read in geotype matrix
   G <- read_genos(geno_prefix, betas)
-
+ 
   # Mean center genotype matrix
   G <- scale(G, scale = F)
 
   # Compute joint effect sizes
   mod <- lm(phenos$pheno_strat ~ G)
   betas_joint <- coef(mod)[-1]
-
+  print(betas_joint)
   # Return joint effect sizes in a new column
   betas$joint <- betas_joint
   return(betas)
@@ -74,6 +76,8 @@ df_cTm <- compute_joint(path_to_gwas, c_Tm, phenos)
 df_aTm <- compute_joint(path_to_gwas, a_Tm, phenos)
 df_cID <- compute_joint(path_to_gwas, c_ID, phenos)
 df_aID <- compute_joint(path_to_gwas, a_ID, phenos)
+
+print("Computed joint effects")
 
 # Load Test vector
 std.tvec <- fread(tvec_file)
