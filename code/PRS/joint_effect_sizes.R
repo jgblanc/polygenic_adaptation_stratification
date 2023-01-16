@@ -56,27 +56,27 @@ compute_joint <- function(geno_prefix, betas, phenos) {
 
   # Read in geotype matrix
   G <- read_genos(geno_prefix, betas)
- 
+
   # Mean center genotype matrix
   G <- scale(G, scale = F)
 
   # Compute joint effect sizes
   mod <- lm(phenos$pheno_strat ~ G)
   betas_joint <- coef(mod)[-1]
- 
+
   # Return joint effect sizes in a new column
   betas$joint <- betas_joint
   return(betas)
 }
 
 # Compute joint effect sizes
-df_cu <- compute_joint(path_to_gwas, c_u, phenos)
-df_au <- compute_joint(path_to_gwas, a_u, phenos)
-df_cTm <- compute_joint(path_to_gwas, c_Tm, phenos)
-df_aTm <- compute_joint(path_to_gwas, a_Tm, phenos)
-df_cID <- compute_joint(path_to_gwas, c_ID, phenos)
-df_aID <- compute_joint(path_to_gwas, a_ID, phenos)
-print("Computed joint effects")
+#df_cu <- compute_joint(path_to_gwas, c_u, phenos)
+#df_au <- compute_joint(path_to_gwas, a_u, phenos)
+#df_cTm <- compute_joint(path_to_gwas, c_Tm, phenos)
+#df_aTm <- compute_joint(path_to_gwas, a_Tm, phenos)
+#df_cID <- compute_joint(path_to_gwas, c_ID, phenos)
+#df_aID <- compute_joint(path_to_gwas, a_ID, phenos)
+#print("Computed joint effects")
 
 # Load Test vector
 std.tvec <- fread(tvec_file)
@@ -94,7 +94,7 @@ compute_q <- function(path_to_test, betas, tvec) {
   # Compute q
   n <- nrow(X)
   L <- ncol(X)
- 
+
   q_marginal <- (1/(n-1)) * (tvec %*% X %*% as.matrix(betas$BETA_Strat))
   q_joint <- (1/(n-1)) * (tvec %*% X %*% as.matrix(betas$joint))
 
@@ -110,8 +110,12 @@ main <- function(path_to_test, betas, tvec, type) {
   # Re-calculate q with different numbers of SNPs
   df <- as.data.frame(matrix(NA, ncol = 3, nrow = nrow(betas)))
   for (i in 1:nrow(betas)) {
-    
-    df[i, ] <- compute_q(path_to_test, betas[1:i, ], tvec)
+
+    # Compute joint effects
+    b <- compute_joint(path_to_gwas, betas[1:i, ], phenos)
+
+    # Compute q
+    df[i, ] <- compute_q(path_to_test, b, tvec)
   }
   df$type <- type
 
@@ -119,12 +123,12 @@ main <- function(path_to_test, betas, tvec, type) {
 }
 
 # Compute final output
-out <- main(path_to_test, df_cu, tvec, "uncorrected_causal")
-out <- rbind(out, main(path_to_test, df_au, tvec, "uncorrected_ascertained"))
-out <- rbind(out, main(path_to_test, df_cTm, tvec, "Tm_causal"))
-out <- rbind(out, main(path_to_test, df_aTm, tvec, "Tm_ascertained"))
-out <- rbind(out, main(path_to_test, df_cID, tvec, "ID_causal"))
-out <- rbind(out, main(path_to_test, df_aID, tvec, "ID_ascertained"))
+out <- main(path_to_test, a_u , tvec, "uncorrected_ascertained")
+#out <- rbind(out, main(path_to_test, c_u, tvec, "uncorrected_ascertained"))
+#out <- rbind(out, main(path_to_test, df_cTm, tvec, "Tm_causal"))
+#out <- rbind(out, main(path_to_test, df_aTm, tvec, "Tm_ascertained"))
+#out <- rbind(out, main(path_to_test, df_cID, tvec, "ID_causal"))
+#out <- rbind(out, main(path_to_test, df_aID, tvec, "ID_ascertained"))
 colnames(out) <- c("q_marginal", "q_joint", "L", "type")
 print(out)
 fwrite(out, outfile,row.names=F,quote=F,sep="\t", col.names = T)
