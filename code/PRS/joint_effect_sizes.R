@@ -100,8 +100,8 @@ compute_q <- function(path_to_test, betas, tvec) {
   q_joint <- (1/(n-1)) * (tvec %*% X %*% as.matrix(betas$joint))
 
   # Compute Va
-  Va_marginal <- 4 * sum(betas$BETA_Strat * freq  * (1 - freq))
-  Va_joint <- 4 * sum(betas$joint * freq  * (1 - freq))
+  Va_marginal <- 4 * sum(betas$BETA_Strat^2 * freq  * (1 - freq))
+  Va_joint <- 4 * sum(betas$joint^2 * freq  * (1 - freq))
 
   # Return
   out <- c(q_marginal, q_joint,  Va_marginal, Va_joint, L)
