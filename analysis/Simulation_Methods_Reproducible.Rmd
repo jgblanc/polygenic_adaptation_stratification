@@ -679,6 +679,20 @@ for (i in 1:length(Fts)) {
 abline(v = 300000, col="red", lwd=3, lty=2)
 legend("topleft", inset = 0.05,legend = Fts, col=col, lty=1, title=TeX("$f_{TX}$"))
 ```
+```{r}
+x <- c(10, 100, 1000, 10000, 100000, 1000000)
+png("~/Desktop/TestPanel_Structure.png", width = 6.5, height = 5, units = 'in', res = 300)
+for (i in 1:length(Fts)) {
+  options(scipen=999)
+  curve(compute_fpr(x, Ft = Fts[i]), from = 10, to = 1000000,add=i!=1, col=col[i], log = "x", xlab = "Test panel sample size", ylab = "False positive rate", lwd=2, xaxt='n')
+}
+abline(v = 300000, col="red", lwd=3, lty=2)
+axis(1, x, labels = prettyNum(x, big.mark = ","))
+#axis(side=1, x, labels=formatC(x,  big.mark=','))
+text(x=670000, y=0.1, labels="300,000", col = "red")
+legend("topleft", inset = 0.05,legend = Fts, col=col, lty=1, title=TeX("$f_{TX}$"),bg="light grey")
+dev.off()
+```
 
 
 
@@ -714,10 +728,14 @@ ggsave("~/Desktop/pl2.png",f)
 df <- fread("../code/Make_Plots/A_4PopSplit_joint_effects.txt.gz")
 df$L2 <- df$L^2
 
-df_plot <- df %>% filter(envs == "env_0.0", type %in% c("uncorrected_ascertained")) %>% group_by(L, L2, type) %>% summarise(var_marg = var(q_marginal), var_joint = var(q_joint))
-df_plot <- melt(df_plot, c("L", "L2", "type"))
+df_plot <- df %>% filter(envs == "env_0.0", type %in% c("uncorrected_ascertained")) %>% group_by(L, L2, type) %>% summarise(var_marg = var(q_marginal), var_joint = var(q_joint), var_Va_marg = var(Va_marginal), var_Va_joint = var(Va_joint))
+df_plot$V1_marg <- df_plot$var_marg - df_plot$var_Va_marg
+df_plot$V1_joint <- df_plot$var_joint - df_plot$var_Va_joint
 
-ggplot(data = df_plot, aes(x = L2, y = value, color = variable)) + geom_point() + geom_smooth(method = "lm") + ylab("Var(q)")
+df2 <- df_plot %>% select("L", "L2", "V1_marg", "V1_joint")
+df2 <- melt(df2, c("L", "L2"))
+
+ggplot(data = df2, aes(x = L, y = value, color = variable)) + geom_point() + geom_smooth(method = "lm") + ylab("Var(q)")
 ```
 
 

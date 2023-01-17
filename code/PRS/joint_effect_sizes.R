@@ -64,8 +64,15 @@ compute_joint <- function(geno_prefix, betas, phenos) {
   mod <- lm(phenos$pheno_strat ~ G)
   betas_joint <- coef(mod)[-1]
 
+  # Compute marginal
+  betas_marginal <- rep(0, nrow(betas))
+  for (i in 1:nrow(betas)){
+    betas_marginal[i] <- coef(lm(phenos$pheno_strat ~ G[,i]))[2]
+  }
+
   # Return joint effect sizes in a new column
   betas$joint <- betas_joint
+  betas$marginal <- betas_marginal
   return(betas)
 }
 
@@ -96,11 +103,11 @@ compute_q <- function(path_to_test, betas, tvec) {
   n <- nrow(X)
   L <- ncol(X)
 
-  q_marginal <- (1/(n-1)) * (tvec %*% X %*% as.matrix(betas$BETA_Strat))
+  q_marginal <- (1/(n-1)) * (tvec %*% X %*% as.matrix(betas$marginal))
   q_joint <- (1/(n-1)) * (tvec %*% X %*% as.matrix(betas$joint))
 
   # Compute Va
-  Va_marginal <- 4 * sum(betas$BETA_Strat^2 * freq  * (1 - freq))
+  Va_marginal <- 4 * sum(betas$marginal^2 * freq  * (1 - freq))
   Va_joint <- 4 * sum(betas$joint^2 * freq  * (1 - freq))
 
   # Return
