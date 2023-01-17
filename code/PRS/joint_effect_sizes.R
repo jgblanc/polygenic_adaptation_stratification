@@ -87,6 +87,7 @@ compute_q <- function(path_to_test, betas, tvec) {
 
   # Load Genotypes
   X <- read_genos(path_to_test, betas)
+  freq <- colMeans(X)/2
 
   # Mean center genotypes
   X <- scale(X, scale = F)
@@ -98,8 +99,12 @@ compute_q <- function(path_to_test, betas, tvec) {
   q_marginal <- (1/(n-1)) * (tvec %*% X %*% as.matrix(betas$BETA_Strat))
   q_joint <- (1/(n-1)) * (tvec %*% X %*% as.matrix(betas$joint))
 
+  # Compute Va
+  Va_marginal <- 4 * sum(betas$BETA_Strat * freq  * (1 - freq))
+  Va_joint <- 4 * sum(betas$joint * freq  * (1 - freq))
+
   # Return
-  out <- c(q_marginal, q_joint, L)
+  out <- c(q_marginal, q_joint,  Va_marginal, Va_joint, L)
   return(out)
 }
 
@@ -108,7 +113,7 @@ compute_q <- function(path_to_test, betas, tvec) {
 main <- function(path_to_test, betas, tvec, type) {
 
   # Re-calculate q with different numbers of SNPs
-  df <- as.data.frame(matrix(NA, ncol = 3, nrow = nrow(betas)))
+  df <- as.data.frame(matrix(NA, ncol = 5, nrow = nrow(betas)))
   for (i in 1:nrow(betas)) {
 
     # Compute joint effects
@@ -122,6 +127,8 @@ main <- function(path_to_test, betas, tvec, type) {
   return(df)
 }
 
+
+
 # Compute final output
 out <- main(path_to_test, a_u , tvec, "uncorrected_ascertained")
 #out <- rbind(out, main(path_to_test, c_u, tvec, "uncorrected_ascertained"))
@@ -129,7 +136,7 @@ out <- main(path_to_test, a_u , tvec, "uncorrected_ascertained")
 #out <- rbind(out, main(path_to_test, df_aTm, tvec, "Tm_ascertained"))
 #out <- rbind(out, main(path_to_test, df_cID, tvec, "ID_causal"))
 #out <- rbind(out, main(path_to_test, df_aID, tvec, "ID_ascertained"))
-colnames(out) <- c("q_marginal", "q_joint", "L", "type")
+colnames(out) <- c("q_marginal", "q_joint", "Va_marginal", "Va_joint", "L", "type")
 print(out)
 fwrite(out, outfile,row.names=F,quote=F,sep="\t", col.names = T)
 

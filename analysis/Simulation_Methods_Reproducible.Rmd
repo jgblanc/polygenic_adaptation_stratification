@@ -717,7 +717,7 @@ df$L2 <- df$L^2
 df_plot <- df %>% filter(envs == "env_0.0", type %in% c("uncorrected_ascertained")) %>% group_by(L, L2, type) %>% summarise(var_marg = var(q_marginal), var_joint = var(q_joint))
 df_plot <- melt(df_plot, c("L", "L2", "type"))
 
-ggplot(data = df_plot, aes(x = L2, y = value, color = variable)) + geom_point() + geom_smooth(method = "lm")
+ggplot(data = df_plot, aes(x = L2, y = value, color = variable)) + geom_point() + geom_smooth(method = "lm") + ylab("Var(q)")
 ```
 
 
