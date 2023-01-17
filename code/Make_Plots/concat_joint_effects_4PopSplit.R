@@ -22,4 +22,4 @@ agg_all_data <- function(rep, dir_path, case, h2, ts, envs, nc) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/4PopSplit/' )
 
-fwrite(df, "A_4PopSplit_joint_effects.txt", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "A_4PopSplit_joint_effects2.txt", row.names=F,quote=F,sep="\t", col.names = T)
