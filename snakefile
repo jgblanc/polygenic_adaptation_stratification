@@ -1,10 +1,10 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1"]
-REP = ["A1"]
-#for i in range(1,101):
-#  REP.append("A"+str(i))
+CONFIG=["C1", "C2"]
+REP = []
+for i in range(1,101):
+  REP.append("A"+str(i))
 HERITABILITY = ["joint-0.0"]
 ENV = ["env_0.0", "env_0.02"]
 #ENV = ["env_0.0", "env_-0.1", "env_0.1"]
@@ -19,7 +19,7 @@ PVALUE_THRESHOLD=1
 wildcard_constraints:
     rep="[A-Z]\d+",
     config="C.",
-    h2="h2-[0-1].[0-9]",
+    h2="joint-[0-1].[0-9]",
     env="env_-?[0-9].[0-9]*",
     ts="p-[0-1].[0-9][0-9]",
     dir="[a-z]*"

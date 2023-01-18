@@ -23,6 +23,7 @@ print(paste0("The heritability is " , as.numeric(h2)))
 # Load true genetic values
 prs=fread(gvalue_file)
 colnames(prs)<-c("IID","dosage","prs")
+sample_size=nrow(prs)
 
 #load file containing the pop ID for each inidividual
 pop=fread(popfile,header=F)
