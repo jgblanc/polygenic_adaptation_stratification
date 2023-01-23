@@ -13,7 +13,7 @@ TS=["p-0.50"]
 #NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
 NUM_CAUSAL = ["c-200"]
 SIZE=2000
-NUM_RESAMPLE=1
+NUM_RESAMPLE=1000
 PVALUE_THRESHOLD=1
 
 wildcard_constraints:
@@ -54,7 +54,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.c.betas.joint", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt"", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL)
 
 # Simluate Genotypes
 
@@ -570,9 +570,9 @@ rule calc_ts_magnitude:
 
 rule Calc_Qx_SNPs:
   input:
-    gwas="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.nc.betas",
-    gwasTm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.nc.betas",
-    gwasID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas",
+    gwas="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.nc.betas.joint",
+    gwasTm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.nc.betas.joint",
+    gwasID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas.joint",
     genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
     lambda_T="output/PGA_test/4PopSplit/{rep}/{config}/Lambda_T.txt",
     Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
@@ -585,7 +585,7 @@ rule Calc_Qx_SNPs:
     size = SIZE
   shell:
     """
-    Rscript code/PGA_test/calc_Qx_4PopSplit_allSNPs.R output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Tvec} {input.pops} {params.num} {params.size} {output.qx} {input.es}
+    Rscript code/PGA_test/calc_Qx_joint.R output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Tvec} {input.pops} {params.num} {params.size} {output.qx} {input.es}
     """
 
 # Bin and average effect size estimates
