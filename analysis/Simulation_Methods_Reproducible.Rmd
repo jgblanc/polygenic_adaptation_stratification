@@ -748,6 +748,20 @@ ggplot(data = df2, aes(x = L, y = value, color = variable)) + geom_point() + geo
 ```
 
 
+```{r}
+df <- fread("../code/Make_Plots/A_4PopSplit_joint_bias.txt.gz")
+
+df_marg <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_marginal` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
+df_joint <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
+df_marg$diff <- as.numeric(df_marg$diff)
+df_joint$diff <- as.numeric(df_joint$diff)
+dfC1_plot <- df_C1 %>% select(-c("env", "case")) %>% melt()
+
+
+ggplot(data = df_marg, aes(x = diff, y = fp, color = type)) + facet_wrap(~case) + geom_point() + geom_hline(yintercept = 0.05, color = "red") +theme_classic(base_size = 10) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5)
+
+ggplot(data = df_joint, aes(x = diff, y = fp, color = type)) + facet_wrap(~case) + geom_point() + geom_hline(yintercept = 0.05, color = "red") +theme_classic(base_size = 10) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5)
+```
 
 
 
