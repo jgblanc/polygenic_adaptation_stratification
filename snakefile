@@ -6,7 +6,7 @@ REP = []
 for i in range(1,101):
   REP.append("A"+str(i))
 HERITABILITY = ["joint-0.0"]
-ENV = ["env_0.0", "env_0.02"]
+ENV = ["env_0.0", "env_0.02", "env_0.1", "env_0.2"]
 #ENV = ["env_0.0", "env_-0.1", "env_0.1"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.50"]
