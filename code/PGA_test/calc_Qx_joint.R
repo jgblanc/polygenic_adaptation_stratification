@@ -91,7 +91,7 @@ flip <- function(betas) {
 }
 
 # Function to flip effect sizes and recompute Qx
-en <- function(betas, tvec, Va, lambda_T) {
+en <- function(X, betas, tvec, Va, lambda_T) {
 
   # Flip effect sizes
   betas <- flip(betas)
@@ -146,13 +146,13 @@ main <- function(type, snps) {
   q_joint <- t(calc_q(sscore_joint, tvec))
 
   ## Calc Qx - Test
-  qx_marginal <- t(calc_Qx(sscore_marginal, tvec, Va, lambda_T))
-  qx_joint <- t(calc_Qx(sscore_joint, tvec, Va, lambda_T))
+  qx_marginal <- t(calc_Qx(sscore_marginal, tvec, Va_marginal, lambda_T))
+  qx_joint <- t(calc_Qx(sscore_joint, tvec, Va_joint, lambda_T))
 
   # Generate Empirical null marginal
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(betas$marginal, tvec, Va_marginal, lambda_T)
+    redraws[i,] <- en(X,  betas$marginal, tvec, Va_marginal, lambda_T)
   }
 
   # Calculate empirical p-values
@@ -165,7 +165,7 @@ main <- function(type, snps) {
   # Generate Empirical null joint
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(betas$joint, tvec, Va_joint, lambda_T)
+    redraws[i,] <- en(X, betas$joint, tvec, Va_joint, lambda_T)
   }
 
   # Calculate empirical p-values
@@ -215,7 +215,7 @@ out[6,10] <- out[6,5] - tq
 out[7,10] <- out[7,5] - tq
 
 # Save output
-colnames(out) <- c("q_marginal","qx_marginal", "P.Chi_marginal", "P.EN_marginal", "q_joint", "qx_joint", "P.Chi_joint", "P.EN_joint", "Bias_margina", "Bias_joint")
+colnames(out) <- c("q_marginal","qx_marginal", "P.Chi_marginal", "P.EN_marginal", "q_joint", "qx_joint", "P.Chi_joint", "P.EN_joint", "Bias_marginal", "Bias_joint")
 rownames(out) <- c("nc-uncorrected", "nc-Tm", "nc-ID", "c-uncorrected", "c-Tm", "c-ID", "true")
 print(out)
 fwrite(out, out_pre,row.names=T,quote=F,sep="\t", col.names = T)
