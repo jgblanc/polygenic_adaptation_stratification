@@ -2,12 +2,12 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
-REP = []
-for i in range(1,101):
-  REP.append("A"+str(i))
+REP = ["B1"]
+#for i in range(1,101):
+#  REP.append("B"+str(i))
 HERITABILITY = ["joint-0.0"]
-ENV = ["env_0.0", "env_0.02","env_0.04", "env_0.06","env_0.08", "env_0.1"]
-#ENV = ["env_0.0", "env_-0.1", "env_0.1"]
+#ENV = ["env_0.0", "env_0.02","env_0.04", "env_0.06","env_0.08", "env_0.1"]
+ENV = ["env_0.0", "env_0.2"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.50"]
 #NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
@@ -54,7 +54,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL)
+        expand(""output/Simulate_Genotypes/4PopSplit/{rep}/ff.txt"", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL)
 
 # Simluate Genotypes
 
@@ -75,10 +75,10 @@ rule simulate_genotypes_4popsplit:
 	      --NB 10000 \
 	      --NC 10000 \
 	      --ND 10000 \
-  	    -a 20000 \
-	      -b 20000 \
-	      -c 20000 \
-	      -d 20000 \
+  	    -a 40000 \
+	      -b 40000 \
+	      -c 40000 \
+	      -d 40000 \
         -s1 4400 \
         -s2 2200 \
         -L 100000 \
@@ -265,46 +265,46 @@ rule calculate_fst:
 	      --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common
 		    """
 
-#rule aggregate_genotypes:
-#    input:
-#        frq_common_gwas=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq", rep=REP, config=CONFIG),
-#        frq_common_test=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.afreq", rep=REP, config=CONFIG),
-#        genos=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.vcf", chr=CHR, rep=REP, config=CONFIG),
-#        gz_chr=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.ids.vcf.gz", chr=CHR, rep=REP),
-#        frq_test=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.afreq", rep=REP, config=CONFIG),
-#        frq_gwas=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.afreq", rep=REP, config=CONFIG),
-#        gz=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.ids.vcf.gz", rep=REP),
-#        gwas_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pgen", rep=REP, config=CONFIG),
-#        gwas_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pvar", rep=REP, config=CONFIG),
-#        gwas_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.psam", rep=REP, config=CONFIG),
-#        test_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pgen", rep=REP, config=CONFIG),
-#        test_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pvar", rep=REP, config=CONFIG),
-#        test_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.psam", rep=REP, config=CONFIG),
-#        pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pgen", rep=REP, config=CONFIG),
-#        pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pvar", rep=REP, config=CONFIG),
-#        psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam", rep=REP, config=CONFIG)
-#    output:
-#        expand("output/Simulate_Genotypes/4PopSplit/{rep}/ff.txt", rep=REP)
-#    shell:
-#        """
-#	      touch {output}
-#	      echo {input.frq_common_gwas}
-#	      echo {input.frq_common_test}
-#	      rm {input.genos}
-#	      rm {input.frq_test}
-#	      rm {input.frq_gwas}
-#	      rm {input.gz}
-#	      rm {input.gz_chr}
-#	      rm {input.gwas_pgen}
-#	      rm {input.gwas_pvar}
-#	      rm {input.gwas_psam}
-#	      rm {input.test_pgen}
-#	      rm {input.test_pvar}
-#	      rm {input.test_psam}
-#	      rm {input.pgen}
-#	      rm {input.pvar}
-#	      rm {input.psam}
-#	      """
+rule aggregate_genotypes:
+    input:
+        frq_common_gwas=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq", rep=REP, config=CONFIG),
+        frq_common_test=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.afreq", rep=REP, config=CONFIG),
+        genos=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.vcf", chr=CHR, rep=REP, config=CONFIG),
+        gz_chr=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.ids.vcf.gz", chr=CHR, rep=REP),
+        frq_test=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.afreq", rep=REP, config=CONFIG),
+        frq_gwas=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.afreq", rep=REP, config=CONFIG),
+        gz=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.ids.vcf.gz", rep=REP),
+        gwas_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pgen", rep=REP, config=CONFIG),
+        gwas_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pvar", rep=REP, config=CONFIG),
+        gwas_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.psam", rep=REP, config=CONFIG),
+        test_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pgen", rep=REP, config=CONFIG),
+        test_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pvar", rep=REP, config=CONFIG),
+        test_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.psam", rep=REP, config=CONFIG),
+        pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pgen", rep=REP, config=CONFIG),
+        pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pvar", rep=REP, config=CONFIG),
+        psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam", rep=REP, config=CONFIG)
+    output:
+        expand("output/Simulate_Genotypes/4PopSplit/{rep}/ff.txt", rep=REP)
+    shell:
+        """
+	      touch {output}
+	      echo {input.frq_common_gwas}
+	      echo {input.frq_common_test}
+	      rm {input.genos}
+	      rm {input.frq_test}
+	      rm {input.frq_gwas}
+	      rm {input.gz}
+	      rm {input.gz_chr}
+	      rm {input.gwas_pgen}
+	      rm {input.gwas_pvar}
+	      rm {input.gwas_psam}
+	      rm {input.test_pgen}
+	      rm {input.test_pvar}
+	      rm {input.test_psam}
+	      rm {input.pgen}
+	      rm {input.pvar}
+	      rm {input.psam}
+	      """
 
 # Simluate Phenotypes
 
