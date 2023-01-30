@@ -83,7 +83,7 @@ for i in range(0,args.chrom_num):
     rand_seed = args.seed + i
     
     # Generate Tree Sequence 
-    #print("simulating genotypes under demographic model")
+    print("simulating genotypes under demographic model")
     ts = split(args.NA, args.NB, args.NC, args.ND, args.split_time1, args.split_time2, args.sample_A, args.sample_B, args.sample_C, args.sample_D, args.length, args.rho, args.mu, args.Nanc, rand_seed)
 
     # Save to VCF

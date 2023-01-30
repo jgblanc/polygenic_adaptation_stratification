@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=CalcQ
-#SBATCH --output=logs/CalcQ.out
-#SBATCH --error=logs/CalcQ.err
-#SBATCH --time=05:00:00
+#SBATCH --job-name=4PopSplitB
+#SBATCH --output=logs/4PopSplitB.out
+#SBATCH --error=logs/4PopSplitB.err
+#SBATCH --time=04:00:00
 #SBATCH --partition=broadwl
-#SBATCH --nodes=1
+#SBATCH --nodes=3
 #SBATCH --ntasks-per-node=20
 #SBATCH --mem-per-cpu=2000
 
@@ -16,4 +16,5 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake --cores all --rerun-incomplete  
+#snakemake --cores all --rerun-incomplete  
+snakemake -j6 --rerun-incomplete 
