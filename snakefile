@@ -2,9 +2,9 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
-REP = []
-for i in range(1,101):
-  REP.append("B"+str(i))
+REP = ["B1"]
+#for i in range(1,101):
+#  REP.append("B"+str(i))
 HERITABILITY = ["joint-0.0"]
 #ENV = ["env_0.0", "env_0.02","env_0.04", "env_0.06","env_0.08", "env_0.1"]
 ENV = ["env_0.0", "env_0.2"]
@@ -54,7 +54,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL)
+        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/inverse_Tvec.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL)
 
 # Simluate Genotypes
 
@@ -362,7 +362,34 @@ rule make_test_vector:
     shell:
         "Rscript code/Calculate_Tm/4PopSplit_make_tvec.R {input.pops} {input.fam} {output}"
 
-# Project T using Plink2
+rule test_panel_cov_matrix:
+    input:
+        psam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
+        pgen="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.pgen",
+        pvar="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.pvar"
+    output:
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel",
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel.id"
+    shell:
+        """
+        plink2 \
+	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
+	      --out output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test \
+		    --make-rel cov square
+		    """
+
+rule compute_inverse_T:
+    input:
+        cov="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel",
+        id="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel.id"
+        Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
+    output:
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/inverse_Tvec.txt"
+    shell:
+        """
+        Rscript code/compute_inverse_Tvec.R {input.cov} {input.id} {input.Tvec} {output}
+		    """
+
 
 rule proj_T:
     input:
