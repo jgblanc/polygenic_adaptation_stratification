@@ -18,15 +18,15 @@ $$T_m = G X^T (XX^T)^{-1}T$$
 
 ```{r}
 # Read GWAS Matrix 
-pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/A1/C1/genos-gwas_common.pvar")
-d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/A1/C1/genos-gwas_common.pgen")
-G <- ReadList(d1,seq(1,2055), meanimpute=F)
-G <- scale(G)
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/E2/C1/genos-gwas_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/E2/C1/genos-gwas_common.pgen")
+G <- ReadList(d1,seq(1,20848), meanimpute=F)
+#G <- scale(G)
 
 # Read in Test Matrix 
-pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/A1/C1/genos-test_common.pvar")
-d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/A1/C1/genos-test_common.pgen")
-X <- ReadList(d1,seq(1, 2055), meanimpute=F)
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/E2/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/E2/C1/genos-test_common.pgen")
+X <- ReadList(d1,seq(1, 20848), meanimpute=F)
 X <- scale(X)
 
 # Read in Test Vector 
@@ -474,7 +474,217 @@ Fst
 ```
 
 
+### Test projection
+
+```{r}
+# Read in GWAS matrix
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.pgen")
+G <- ReadList(d1,seq(1,932), meanimpute=F)
+G <- scale(G, scale = F)
+
+# Read in Test Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pgen")
+X <- ReadList(d1,seq(1, 932), meanimpute=F)
+X <- scale(X, scale = F)
+Xs <- scale(X)
+
+# Read in Test Vector 
+Tvec <- fread("../output/Calculate_Tm/4PopSplit/S1/C1/Tvec.txt")$Tvec
+L <- ncol(X)
+```
+
+Compute $(XX^\top)^{-1}T$ using solve
+```{r}
+## Unscaled 
+FXX <-(1 / (L)) * X %*% t(X)
+FXXinv <- solve(FXX)
+
+## Scaled
+FXXs <- (1 / (L)) * Xs %*% t(Xs)
+FXXinvs <- solve(FXXs)
+
+Ts <- FXXinv %*% Tvec
+Tss <- FXXinvs %*% Tvec
+
+plot(Ts, Tss, xlab="Raw",ylab= "Scaled" )
+abline(0,1, col = "red")
+```
+Compute $(XX^\top)^{-1}T$ using eigen
+```{r}
+myE <- eigen(FXX)
+myEs <- eigen(FXXs)
+n <- nrow(X)
+n1 <- n-1
+FXXinv_pca <- myE$vectors[,1:n1] %*% diag(1/myE$values[1:n1]) %*% t(myE$vectors[,1:n1] )
+FXXinv_pcas <- myEs$vectors[,1:n1] %*% diag(1/myEs$values[1:n1]) %*% t(myEs$vectors[,1:n1] )
+
+Ts_pca <- FXXinv_pca %*% Tvec
+Ts_pcas <- FXXinv_pcas %*% Tvec
+
+plot(Ts_pca, Ts_pcas, xlab="Raw",ylab= "Scaled" )
+abline(0,1, col = "red")
+```
+Compare eigen to solve 
+```{r}
+plot(Ts, Ts_pca, xlab="Solve",ylab= "PCA" , main = "Raw")
+abline(0,1, col = "red")
+plot(Tss, Ts_pcas, xlab="Solve",ylab= "PCA" , main = "Scaled")
+abline(0,1, col = "red")
+```
+Compare to plink PCA  
+```{bash}
+~/Desktop/plink2 --pfile ../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common \
+       --pca 199 \
+       --out ~/Desktop/test_pca
+```
+
+```{r}
+plink_vecs <- fread("~/Desktop/test_pca.eigenvec")
+plink_vecs <- apply(plink_vecs[,3:ncol(plink_vecs)], 2, as.numeric)
+plink_vals <- fread("~/Desktop/test_pca.eigenval")
+
+ts_plink <- plink_vecs %*% diag(1/plink_vals$V1) %*% t(plink_vecs) %*% Tvec
+
+plot(Ts_pca,ts_plink, main = "Raw",xlab = "Eigen", ylab= "Plink")
+abline(0,1, col = "red")
+plot(Ts_pcas,ts_plink, main = "Scaled", xlab = "Eigen",ylab = "Plink")
+abline(0,1, col = "red")
+```
+
+Compute $(XX^T)$ in plink 
+```{bash}
+~/Desktop/plink2 --pfile ../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common \
+       --make-rel cov square \
+       --out ~/Desktop/test_pca
+```
+
+```{r}
+cov_mat <- fread("~/Desktop/test_pca.rel")
+cov_mat <- apply(cov_mat, 2, as.numeric)
+myE_cov <-eigen(cov_mat)
 
 
+ts_cov_pca <- myE_cov$vectors[,1:n1] %*% diag(1/myE_cov$values[1:n1]) %*% t(myE_cov$vectors[,1:n1]) %*% Tvec
+#ts_cov_solve <- solve(cov_mat) %*% Tvec
+
+
+#plot(Ts, ts_cov_solve, xlab = "Solve R Cov", ylab = "Solve Plink Cov")
+#abline(0,1, col = "red")
+plot(Ts_pca,ts_cov_pca, xlab = "Eigen R Cov", ylab = "Eigen Plink Cov")
+abline(0,1, col = "red")
+```
+
+Compute $r = \tilde{X}^\top(XX^\top)^{-1}T$ using eigen
+```{r}
+r <- t(X) %*% ts_cov_pca
+```
+
+Compute r using plink 
+```{r}
+ids <- fread("~/Desktop/test_pca.rel.id")
+ids$Tvec <- Tvec
+ids$InTvec <- ts_cov_pca
+fwrite(ids, "~/Desktop/InvTvec.txt", quote = F, col.names = T, row.names = F, sep ="\t")
+
+outfile_XT <- paste0("~/Desktop/", "xt_temp")
+cmd_XT <- paste("sh ../code/Calculate_Tm/compute_XTinv.sh", "../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common", "~/Desktop/InvTvec.txt", outfile_XT, sep = " ")
+system(cmd_XT)
+```
+
+```{r}
+outpath <- "~/Desktop/"
+# Read in betas and genotype counts
+beta_plink <- fread(paste0(outpath, "xt_temp.InTvec.glm.linear"))
+count_plink <- fread(paste0(outpath, "xt_temp.gcount"))
+
+# Calculate length of mean centered genotypes from counts
+nOBS <- (count_plink$HOM_REF_CT + count_plink$HET_REF_ALT_CTS + count_plink$TWO_ALT_GENO_CTS)
+counts <- (count_plink$HOM_REF_CT * 0) + (count_plink$HET_REF_ALT_CTS * 1) + (count_plink$TWO_ALT_GENO_CTS * 2)
+mean_gc <- counts / nOBS
+length_mc_genos <- (count_plink$HOM_REF_CT * (-1 * mean_gc)^2) + (count_plink$HET_REF_ALT_CTS * (1 - mean_gc)^2) +  (count_plink$TWO_ALT_GENO_CTS * (2 - mean_gc)^2)
+
+# Fix betas
+betas_plink_norm <- beta_plink$BETA * length_mc_genos
+
+# Compute r using plink 
+r_plink <- betas_plink_norm
+
+plot(r,r_plink)
+abline(0,1, col ="red")
+```
+
+Compute $D^{-1}r$
+```{r}
+colVars <- apply(G, 2, var)
+D <- 1/sqrt(colVars)
+Dr <- D * r
+```
+
+Compute $D^{-1}r$ using plink
+```{r}
+outfile_count <- paste0("~/Desktop/", "G_count")
+cmd_count <- paste("sh ../code/Calculate_Tm/compute_GWAScount.sh", "../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common", outfile_count, sep = " ")
+system(cmd_count)
+
+count_plink <- fread(paste0(outpath, "G_count.gcount"))
+
+# Calculate length of mean centered genotypes from counts
+nOBS <- (count_plink$HOM_REF_CT + count_plink$HET_REF_ALT_CTS + count_plink$TWO_ALT_GENO_CTS)
+counts <- (count_plink$HOM_REF_CT * 0) + (count_plink$HET_REF_ALT_CTS * 1) + (count_plink$TWO_ALT_GENO_CTS * 2)
+mean_gc <- counts / nOBS
+length_mc_genos <- (count_plink$HOM_REF_CT * (-1 * mean_gc)^2) + (count_plink$HET_REF_ALT_CTS * (1 - mean_gc)^2) +  (count_plink$TWO_ALT_GENO_CTS * (2 - mean_gc)^2)
+length_mc_genos <- length_mc_genos * (1/(m-1))
+
+Dr_plink <- (1/sqrt(length_mc_genos)) * r_plink
+plot(Dr_plink, Dr)
+abline(0,1, col = "red")
+```
+Compute TGWAS $GD^{-1}r$
+```{r}
+TGWAS <- scale(G) %*% Dr
+```
+
+Compute TGWAS in plink 
+```{r}
+#  Re-write .linear file with correct betas
+beta_plink$BETA <- (1/sqrt(length_mc_genos)) * Dr_plink
+#beta_plink$BETA <- Dr_plink
+#beta_plink$BETA <- rep(1,nrow(beta_plink))
+beta_reformat <- beta_plink %>% dplyr::select(ID, A1, BETA)
+fwrite(beta_reformat, paste0(outpath, "xt_scaled.InTvec.glm.linear"), sep = "\t")
+
+# Compute b
+outfile_b <- paste0(outpath, "b")
+cmd_b <- paste("sh ../code/Calculate_Tm/GWAS_score.sh", "../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common", paste0(outpath, "xt_scaled.InTvec.glm.linear"), outfile_b, sep = " ")
+system(cmd_b)
+
+# Read in and return b
+b = fread(paste0(outpath, "b.sscore"))
+TGWAS_plink = as.matrix(b$BETA_SUM)
+
+
+plot(TGWAS,TGWAS_plink)
+abline(0,1, col="red")
+
+plot(scale(TGWAS),scale(TGWAS_plink))
+
+plot(b, TGWAS)
+abline(0,1, col="red")
+```
+
+
+```{r}
+colVars <- apply(G, 2, var)
+
+sqrt(colVars[1])
+
+var(G[,1]/sqrt(colVars[1]))
+
+t<- G[,1]/sqrt(colVars[1])
+t2 <- scale(G[,1])
+t3 <- G[,1]/sqrt(length_mc_genos[1]) 
+```
 
 

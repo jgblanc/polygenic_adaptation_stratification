@@ -206,3 +206,159 @@ ggplot(extract_df(2), aes(x = L2, y = marginal)) + geom_point() + geom_smooth(me
 ggplot(extract_df(2), aes(x = L2, y = marginal)) + geom_point() + geom_smooth(method = "lm") + ylab("Var(q)") + theme_bw()
 ```
 
+```{r}
+# Set sample sizes and number of Loci
+m <- 300
+n <- 200
+L <- 100
+
+# Set covariance matrices
+## Test panel
+AA <- matrix(rep(0.5, (n^2 /4)), nrow = n/2, ncol = n/2)
+AB <- matrix(rep(0, (n^2 /4)), nrow = n/2, ncol = n/2)
+KXX <- rbind(cbind(AA,AB), cbind(AB,AA))
+diag(KXX) <- rep(1, n)
+
+## GWAS panel
+AA <- matrix(rep(0.5, (m^2 /4)), nrow = m/2, ncol = m/2)
+AB <- matrix(rep(0, (m^2 /4)), nrow = m/2, ncol = m/2)
+KGG <- rbind(cbind(AA,AB), cbind(AB,AA))
+diag(KGG) <- rep(1, m)
+
+## Cross panel 
+AA <- matrix(rep(0.5, (m * n /4)), nrow = m/2, ncol = n/2)
+AB <- matrix(rep(0, (m * n /4)), nrow = m/2, ncol = n/2)
+KGX <- rbind(cbind(AA,AB), cbind(AB,AA))
+KXG <-t(KGX)
+
+# Parameters for MVN 
+Sigma <- rbind(cbind(KGG, KGX), cbind(KXG, KXX))
+mu = rep(0, n + m)
+image(Sigma)
+```
+
+
+
+```{r}
+# Simulate GX
+GX <- t(mvrnorm(n=L, mu = mu, Sigma = Sigma))
+G <- GX[1:m, ]
+X <- GX[(m+1):(m+n),]
+
+# Mean center genotypes
+G <- scale(G, scale = F)
+X <- scale(X, scale = F)
+
+# Standardize genotypes by GWAS variance
+#varG <- apply(G, 2, var)
+#Gs <- G %*% diag(1/sqrt(varG))
+
+# Simulate Phenotypes
+shift <- 1
+y <- rnorm(m)
+y <- y + c(rep(0, m/2), rep(shift,m/2))
+
+# Look at phenotype distribution
+df <- as.data.frame(cbind(c(rep("A", m/2), rep("B",m/2)), y))
+df$y <- as.numeric(df$y)
+mu_df<- df %>% group_by(V1) %>%  summarise(avg = mean(y))
+ggplot(data = df, aes(x = y, color = V1)) + geom_histogram(fill="white", alpha=0.5, position="identity") + geom_vline(data=mu_df, aes(xintercept=avg, color=V1),linetype="dashed")
+```
+
+```{r}
+ids <- c(rep(0, m/2), rep(1, m/2))
+# Marginal betas
+betas_marginal <- rep(0, L)
+for (i in 1:L) {
+  mod <- lm(y ~ G[,i]+ids)
+  betas_marginal[i] <- coef(mod)[2]
+}
+```
+
+
+```{r}
+# Make test vectors
+Tvec <- c(rep(-0.5, n/2), rep(0.5, n/2))
+
+# Compute q
+qx <- ((1/(n-1)) * (Tvec %*% X %*% betas_marginal))^2
+
+# Empirical null
+compute_qx <- function(betas) {
+  return(((1/(n-1)) * (Tvec %*% X %*% betas))^2)
+}
+en <- rep(0, 1000) 
+for (i in 1:1000) {
+  betas <- sample(c(1,-1),length(betas_marginal), replace = T) * betas_marginal
+  en[i] <- compute_qx(betas)
+}
+p <- length(en[en > qx[1,1]])/length(en)
+```
+
+```{r}
+main <- function(shift, ids) {
+  
+  # Simulate GX
+  GX <- t(mvrnorm(n=L, mu = mu, Sigma = Sigma))
+  G <- GX[1:m, ]
+  X <- GX[(m+1):(m+n),]
+
+  # Mean center genotypes
+  G <- scale(G, scale = F)
+  X <- scale(X, scale = F)
+
+  # Simulate Phenotypes
+  y <- rnorm(m)
+  y <- y + c(rep(0, m/2), rep(shift,m/2))
+
+  # Marginal betas
+  betas_marginal <- rep(0, L)
+  for (i in 1:L) {
+    mod <- lm(y ~ G[,i]+ids)
+    betas_marginal[i] <- coef(mod)[2]
+  }
+  
+  # Compute qx
+  qx <- ((1/(n-1)) * (Tvec %*% X %*% betas_marginal))^2
+  
+  # Compute empirical null p-value
+  en <- rep(0, 1000) 
+  for (i in 1:1000) {
+    betas <- sample(c(1,-1),length(betas_marginal), replace = T) * betas_marginal
+    en[i] <- compute_qx(betas)
+  }
+  p <- length(en[en > qx[1,1]])/length(en)
+  
+  return(p)
+}
+```
+
+```{r}
+#ids <- c(rep(0, m/2), rep(1, m/2))
+ids <- rep(0, m)
+shifts <- c(0, 0.1, 0.2, 0.3, 1)
+df <- matrix(NA, nrow = 100, ncol = length(shifts))
+for (i in 1:length(shifts)) {
+  df[,i] <- replicate(100, main(shifts[i], ids))
+}
+colnames(df) <- shifts
+df_plot <- melt(df)
+df_plot_uncorrected <- df_plot %>% group_by(Var2) %>% summarise(fp = sum(value < 0.05)/ n())
+df_plot_uncorrected$type <- "Uncorrected"
+```
+```{r}
+ids <- c(rep(0, m/2), rep(1, m/2))
+df <- matrix(NA, nrow = 100, ncol = length(shifts))
+for (i in 1:length(shifts)) {
+  df[,i] <- replicate(100, main(shifts[i], ids))
+}
+colnames(df) <- shifts
+df_plot <- melt(df)
+df_plot_ID <- df_plot %>% group_by(Var2) %>% summarise(fp = sum(value < 0.05)/ n())
+df_plot_ID$type <- "ID"
+```
+```{r}
+df_plot <- rbind(df_plot_uncorrected, df_plot_ID)
+ggplot(df_plot, aes(x = Var2, y = fp, color = type)) + geom_point(size =3) + theme_bw() + xlab("DeltaAB") + geom_hline(yintercept = 0.05, color = "red") + ylab("False Positive Rate")
+```
+
