@@ -24,7 +24,7 @@ myE <-eigen(cov_mat)
 
 ## Compute inverse covariance matrix
 n <- ncol(cov_mat) - 1
-FXXinv <- myE_cov$vectors[,1:n] %*% diag(1/myE_cov$values[1:n]) %*% t(myE_cov$vectors[,1:n])
+FXXinv <- myE$vectors[,1:n] %*% diag(1/myE$values[1:n]) %*% t(myE$vectors[,1:n])
 
 ## Load Test vector
 tvec <- fread(Tvec_file)
@@ -38,6 +38,8 @@ IDs <- fread(ID_file)
 out <- cbind(IDs, tvec, Tvec_inv)
 colnames(out) <- c("#FID", "IID", "Tvec", "InTvec")
 
+## Save output 
+fwrite(out, outfile,col.names=T,row.names=F,quote=F,sep="\t")
 
 
 

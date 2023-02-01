@@ -374,21 +374,21 @@ rule test_panel_cov_matrix:
         """
         plink2 \
 	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
-	      --out output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test \
+	      --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test \
 		    --make-rel cov square
 		    """
 
 rule compute_inverse_T:
     input:
         cov="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel",
-        id="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel.id"
+        id="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel.id",
         Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
     output:
         "output/Calculate_Tm/4PopSplit/{rep}/{config}/inverse_Tvec.txt"
     shell:
         """
-        Rscript code/compute_inverse_Tvec.R {input.cov} {input.id} {input.Tvec} {output}
-		    """
+        Rscript code/Calculate_Tm/compute_inverse_Tvec.R {input.cov} {input.id} {input.Tvec} {output}
+	"""
 
 
 rule proj_T:
