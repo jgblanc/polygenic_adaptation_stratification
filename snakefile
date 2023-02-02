@@ -3,8 +3,8 @@ for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
 REP = ["B1"]
-#for i in range(1,101):
-#  REP.append("B"+str(i))
+for i in range(1,101):
+  REP.append("B"+str(i))
 HERITABILITY = ["joint-0.0"]
 #ENV = ["env_0.0", "env_0.02","env_0.04", "env_0.06","env_0.08", "env_0.1"]
 ENV = ["env_0.0", "env_0.2"]
@@ -265,46 +265,46 @@ rule calculate_fst:
 	      --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common
 		    """
 
-rule aggregate_genotypes:
-    input:
-        frq_common_gwas=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq", rep=REP, config=CONFIG),
-        frq_common_test=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.afreq", rep=REP, config=CONFIG),
-        genos=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.vcf", chr=CHR, rep=REP, config=CONFIG),
-        gz_chr=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.ids.vcf.gz", chr=CHR, rep=REP),
-        frq_test=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.afreq", rep=REP, config=CONFIG),
-        frq_gwas=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.afreq", rep=REP, config=CONFIG),
-        gz=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.ids.vcf.gz", rep=REP),
-        gwas_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pgen", rep=REP, config=CONFIG),
-        gwas_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pvar", rep=REP, config=CONFIG),
-        gwas_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.psam", rep=REP, config=CONFIG),
-        test_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pgen", rep=REP, config=CONFIG),
-        test_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pvar", rep=REP, config=CONFIG),
-        test_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.psam", rep=REP, config=CONFIG),
-        pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pgen", rep=REP, config=CONFIG),
-        pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pvar", rep=REP, config=CONFIG),
-        psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam", rep=REP, config=CONFIG)
-    output:
-        expand("output/Simulate_Genotypes/4PopSplit/{rep}/ff.txt", rep=REP)
-    shell:
-        """
-	      touch {output}
-	      echo {input.frq_common_gwas}
-	      echo {input.frq_common_test}
-	      rm {input.genos}
-	      rm {input.frq_test}
-	      rm {input.frq_gwas}
-	      rm {input.gz}
-	      rm {input.gz_chr}
-	      rm {input.gwas_pgen}
-	      rm {input.gwas_pvar}
-	      rm {input.gwas_psam}
-	      rm {input.test_pgen}
-	      rm {input.test_pvar}
-	      rm {input.test_psam}
-	      rm {input.pgen}
-	      rm {input.pvar}
-	      rm {input.psam}
-	      """
+#rule aggregate_genotypes:
+#    input:
+#        frq_common_gwas=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.afreq", rep=REP, config=CONFIG),
+#        frq_common_test=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.afreq", rep=REP, config=CONFIG),
+#        genos=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.vcf", chr=CHR, rep=REP, config=CONFIG),
+#        gz_chr=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.ids.vcf.gz", chr=CHR, rep=REP),
+#        frq_test=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.afreq", rep=REP, config=CONFIG),
+#        frq_gwas=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.afreq", rep=REP, config=CONFIG),
+#        gz=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.ids.vcf.gz", rep=REP),
+#        gwas_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pgen", rep=REP, config=CONFIG),
+#        gwas_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.pvar", rep=REP, config=CONFIG),
+#        gwas_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas.psam", rep=REP, config=CONFIG),
+#        test_pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pgen", rep=REP, config=CONFIG),
+#        test_pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.pvar", rep=REP, config=CONFIG),
+#        test_psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test.psam", rep=REP, config=CONFIG),
+#        pgen=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pgen", rep=REP, config=CONFIG),
+#        pvar=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pvar", rep=REP, config=CONFIG),
+#        psam=expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam", rep=REP, config=CONFIG)
+#    output:
+#        expand("output/Simulate_Genotypes/4PopSplit/{rep}/ff.txt", rep=REP)
+#    shell:
+#        """
+#	      touch {output}
+#	      echo {input.frq_common_gwas}
+#	      echo {input.frq_common_test}
+#	      rm {input.genos}
+#	      rm {input.frq_test}
+#	      rm {input.frq_gwas}
+#	      rm {input.gz}
+#	      rm {input.gz_chr}
+#	      rm {input.gwas_pgen}
+#	      rm {input.gwas_pvar}
+#	      rm {input.gwas_psam}
+#	      rm {input.test_pgen}
+#	      rm {input.test_pvar}
+#	      rm {input.test_psam}
+#	      rm {input.pgen}
+#	      rm {input.pvar}
+#	      rm {input.psam}
+#	      """
 
 # Simluate Phenotypes
 
@@ -563,7 +563,7 @@ rule Calc_Qx_SNPs:
     gwasTm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.nc.betas.joint",
     gwasID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas.joint",
     genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
-    Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
+    Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/inverse_Tvec.txt",
     pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
     es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt"
   output:

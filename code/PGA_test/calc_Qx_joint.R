@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)!=9){stop("Rscript calc_TGWAS.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
+if(length(args)!=8){stop("Rscript calc_TGWAS.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
                          <true.sscore> <Tvec.txt> <outfile name> <file with number of snps>")}
 
 suppressWarnings(suppressMessages({
@@ -122,6 +122,7 @@ main <- function(type, snps) {
     betas <- fread(beta_file, header=FALSE)
     colnames(betas) <- c("ID", "A1", "joint")
     betas$marginal <- betas$joint
+    print(head(betas))
   } else {
     # Load effect sizes
     beta_file <- paste0(gwas_prefix, type,".", snps, ".betas.joint")
@@ -196,6 +197,10 @@ out <- as.data.frame(out)
 out$Bias_marginal <- NA
 out$Bias_joint <- NA
 tq <- out[7,1]
+if (is.na(NA)) {
+   tq <- 0
+}
+
 
 ## Marginal bias
 out[1,7] <- out[1,1] - tq
