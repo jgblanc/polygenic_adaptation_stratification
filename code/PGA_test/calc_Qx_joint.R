@@ -14,13 +14,12 @@ suppressWarnings(suppressMessages({
 
 gwas_prefix = args[1] # causal betas
 geno_prefix = args[2] # Prefix to pilnk files
-lambdaT_file = args[3]
-tvec_file = args[4] # test vect
-pops_file = args[5]
-num = as.numeric(args[6]) # number of times to resapme
-size = as.numeric(args[7]) # num individuals in the test panel
-out_pre = args[8] # output prefix
-true_file = args[9]
+tvec_file = args[3] # test vect
+pops_file = args[4]
+num = as.numeric(args[5]) # number of times to resapme
+size = as.numeric(args[6]) # num individuals in the test panel
+out_pre = args[7] # output prefix
+true_file = args[8]
 
 
 # Function to read in genotype matrix for a set of variants
@@ -49,7 +48,7 @@ calc_Va <- function(geno_mat, es) {
   effect_size <- es
 
   # Compute Va
-  Va <- 2 * sum((effect_size)^2 * freq * (1 - freq))
+  Va <- 4 * sum((effect_size)^2 * freq * (1 - freq))
   return(Va)
 }
 
@@ -66,22 +65,23 @@ pgs <- function(X, betas) {
 }
 
 # Function to calculate Qx
-calc_Qx <- function(sscore, tvec, Va, lambda_T) {
+#calc_Qx <- function(sscore, tvec, Va, lambda_T) {
 
   # Compute Qx Strat
-  Ztest <- t(tvec) %*% sscore
-  Qx_strat <- (t(Ztest) %*% Ztest) / (Va*lambda_T)
+#  Ztest <- t(tvec) %*% sscore
+#  Qx_strat <- (t(Ztest) %*% Ztest) / (Va*lambda_T)
 
-  return(Qx_strat)
-}
+#  return(Qx_strat)
+#}
 
 # Function to calculate Q
-calc_q <- function(sscore, tvec) {
+calc_q <- function(sscore, Va) {
 
-  # Compute Qx Strat
-  Ztest <- t(tvec) %*% sscore
+  numerator <- dfTvec$InTvec %*% sscore
+  lambdaT <- t(dfTvec$InTvec) %*% dfTvec$Tvec * (1/(nrow(dfTvec) - 1))
+  qhat <- (1/Va) * (numerator/lambdaT)
 
-  return(Ztest)
+  return(qhat)
 }
 
 # Function to flip effect sizes
@@ -91,7 +91,7 @@ flip <- function(betas) {
 }
 
 # Function to flip effect sizes and recompute Qx
-en <- function(X, betas, tvec, Va, lambda_T) {
+en <- function(X, betas, Va) {
 
   # Flip effect sizes
   betas <- flip(betas)
@@ -99,20 +99,18 @@ en <- function(X, betas, tvec, Va, lambda_T) {
   # Compute PGS
   prs <- pgs(X, betas)
 
-
   ## Calc Qx - Test
-  qx <- t(calc_Qx(prs, tvec, Va, lambda_T))
+  q <- t(calc_q(prs, Va))
 
-  return(qx)
+  return(q)
 }
 
-# Load Lambda_T
-lambda_T <- fread(lambdaT_file)
-lambda_T <- as.numeric(as.character(lambda_T[1,1]))
 
 # Load Test vector
-std.tvec <- fread(tvec_file)
-tvec <- std.tvec$Tvec / (nrow(std.tvec) - 1 )
+dfTvec <- fread(tvec_file)
+# Mean center inverse Tvec
+dfTvec$InTvec <- scale(dfTvec$InTvec, scale = F)
+#/ (nrow(std.tvec) - 1 )
 
 
 # Wrapper function to calculate Qx and empirical p values
@@ -137,53 +135,56 @@ main <- function(type, snps) {
   Va_marginal <- calc_Va(X, betas$marginal)
   Va_joint <- calc_Va(X, betas$joint)
 
+  # Mean center genotypes
+  X <- scale(X, scale = FALSE)
+
   # Calc PGS
   sscore_marginal <- pgs(X, betas$marginal)
   sscore_joint <- pgs(X, betas$joint)
 
-  ## Calc Q
-  q_marginal <- t(calc_q(sscore_marginal, tvec))
-  q_joint <- t(calc_q(sscore_joint, tvec))
+  # Calc Q
+  q_marginal <- t(calc_q(sscore_marginal, Va_marginal))
+  q_joint <- t(calc_q(sscore_joint, Va_joint))
 
   ## Calc Qx - Test
-  qx_marginal <- t(calc_Qx(sscore_marginal, tvec, Va_marginal, lambda_T))
-  qx_joint <- t(calc_Qx(sscore_joint, tvec, Va_joint, lambda_T))
+  #qx_marginal <- t(calc_Qx(sscore_marginal, tvec, Va_marginal, lambda_T))
+  #qx_joint <- t(calc_Qx(sscore_joint, tvec, Va_joint, lambda_T))
 
   # Generate Empirical null marginal
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(X,  betas$marginal, tvec, Va_marginal, lambda_T)
+    redraws[i,] <- en(X,  betas$marginal, Va_marginal)
   }
 
   # Calculate empirical p-values
   all_strat <- redraws[,1]
-  p_strat_en_marginal <- length(all_strat[all_strat > qx_marginal[1,1]])/length(all_strat)
+  p_strat_en_marginal <- length(all_strat[abs(all_strat) > abs(q_marginal[1,1])]) /length(all_strat)
 
   # Calculate p-value from chi-square marginal
-  p_strat_marginal <- pchisq(qx_marginal[1,1], df=1, lower.tail=FALSE)
+  p_strat_marginal <- 2 * pnorm(abs(q_marginal[1,1]), lower.tail=FALSE)
 
   # Generate Empirical null joint
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(X, betas$joint, tvec, Va_joint, lambda_T)
+    redraws[i,] <- en(X, betas$joint, Va_joint)
   }
 
   # Calculate empirical p-values
   all_strat <- redraws[,1]
-  p_strat_en_joint <- length(all_strat[all_strat > qx_joint[1,1]])/length(all_strat)
+  p_strat_en_joint <- length(all_strat[abs(all_strat) > abs(q_joint[1,1])])/length(all_strat)
 
   # Calculate p-value from chi-square
-  p_strat_joint <- pchisq(qx_joint[1,1], df=1, lower.tail=FALSE)
+  p_strat_joint <- 2 * pnorm(abs(q_joint[1,1]), lower.tail=FALSE)
 
   # Concatenate output (Qx, p_strat)
-  out <- c(q_marginal, qx_marginal, p_strat_marginal , p_strat_en_marginal, q_joint, qx_joint, p_strat_joint, p_strat_en_joint)
+  out <- c(q_marginal, p_strat_marginal , p_strat_en_marginal, q_joint, p_strat_joint, p_strat_en_joint)
 
   return(out)
 
 }
 
 # Run all types of PGS
-out <- matrix(NA, nrow = 7, ncol =8)
+out <- matrix(NA, nrow = 7, ncol =6)
 out[1, ] <- main(type = "", snps  = "nc")
 out[2, ] <- main(type = "-Tm", snps = "nc")
 out[3, ] <- main(type = "-ID", snps = "nc")
@@ -197,25 +198,25 @@ out$Bias_joint <- NA
 tq <- out[7,1]
 
 ## Marginal bias
-out[1,9] <- out[1,1] - tq
-out[2,9] <- out[2,1] - tq
-out[3,9] <- out[3,1] - tq
-out[4,9] <- out[4,1] - tq
-out[5,9] <- out[5,1] - tq
-out[6,9] <- out[6,1] - tq
-out[7,9] <- out[7,1] - tq
+out[1,7] <- out[1,1] - tq
+out[2,7] <- out[2,1] - tq
+out[3,7] <- out[3,1] - tq
+out[4,7] <- out[4,1] - tq
+out[5,7] <- out[5,1] - tq
+out[6,7] <- out[6,1] - tq
+out[7,7] <- out[7,1] - tq
 
 ## Joint bias
-out[1,10] <- out[1,5] - tq
-out[2,10] <- out[2,5] - tq
-out[3,10] <- out[3,5] - tq
-out[4,10] <- out[4,5] - tq
-out[5,10] <- out[5,5] - tq
-out[6,10] <- out[6,5] - tq
-out[7,10] <- out[7,5] - tq
+out[1,8] <- out[1,4] - tq
+out[2,8] <- out[2,4] - tq
+out[3,8] <- out[3,4] - tq
+out[4,8] <- out[4,4] - tq
+out[5,8] <- out[5,4] - tq
+out[6,8] <- out[6,4] - tq
+out[7,8] <- out[7,4] - tq
 
 # Save output
-colnames(out) <- c("q_marginal","qx_marginal", "P.Chi_marginal", "P.EN_marginal", "q_joint", "qx_joint", "P.Chi_joint", "P.EN_joint", "Bias_marginal", "Bias_joint")
+colnames(out) <- c("q_marginal", "P.Chi_marginal", "P.EN_marginal", "q_joint", "P.Chi_joint", "P.EN_joint", "Bias_marginal", "Bias_joint")
 rownames(out) <- c("nc-uncorrected", "nc-Tm", "nc-ID", "c-uncorrected", "c-Tm", "c-ID", "true")
 print(out)
 fwrite(out, out_pre,row.names=T,quote=F,sep="\t", col.names = T)
