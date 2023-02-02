@@ -749,7 +749,7 @@ ggplot(data = df2, aes(x = L, y = value, color = variable)) + geom_point() + geo
 
 
 ```{r}
-df <- fread("../code/Make_Plots/A_4PopSplit_joint_bias.txt.gz")
+df <- fread("../code/Make_Plots/B_4PopSplit_joint_bias.txt.gz")
 
 df_marg <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_marginal` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
 df_joint <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
@@ -780,5 +780,40 @@ ggplot(data = df_joint, aes(x = diff, y = q, fill = type)) + facet_wrap(~case) +
 #+ geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5)
 ```
 
+```{r}
+betas <- fread("~/Desktop/genos-gwas_common-Tm.nc.betas")
+X <- matrix(rbinom(200*200, 2, 0.5), nrow = 200, ncol= 200)
+freq <- colMeans(X)/2
+X <- scale(X, scale = F)
+Va <- 4 * sum(betas$BETA_Strat^2 * freq * (1 - freq))
+Tvec <- c(rep(-0.5, 100), rep(0.5,100))
+FXX <- (1/200) * (X %*% t(X))
+myE <- eigen(FXX)
+
+n1 <- 199
+InvTvec <-  (myE$vectors[,1:n1] %*% diag(1/myE$values[1:n1]) %*% t(myE$vectors[,1:n1] )) %*% Tvec
+
+
+sscore <- X %*% betas$BETA_Strat
+numerator <- t(InvTvec) %*% sscore
+lambdaT <- t(InvTvec) %*% Tvec 
+qhat <- (1/Va) * (numerator/lambdaT)
+
+calc_q <- function(sscore, Va) {
+
+  numerator <- t(InvTvec) %*% sscore
+  lambdaT <- t(InvTvec) %*% Tvec 
+  qhat <- (1/Va) * (numerator/lambdaT)
+
+  return(qhat)
+}
+
+redraw <- rep(0, 1000)
+for (i in 1:1000) {
+  redraw[i] <- en(scale(X, scale = F), betas$BETA_Strat, Va)
+}
+hist(redraw)
+var(redraw)
+```
 
 

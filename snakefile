@@ -527,7 +527,8 @@ rule joint_effects:
       ascertained_Tm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.nc.betas",
       causal_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.c.betas",
       ascertained_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas",
-      pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.phenos.txt"
+      pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.phenos.txt",
+      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
     output:
       causal_u="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.c.betas.joint",
       ascertained_u="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.nc.betas.joint",
@@ -537,7 +538,7 @@ rule joint_effects:
       ascertained_ID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas.joint"
     shell:
       """
-      Rscript code/PRS/compute_joint_effect_sizes.R {input.causal_u} {input.ascertained_u} {input.causal_Tm} {input.ascertained_Tm} {input.causal_ID} {input.ascertained_ID} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.pheno} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common
+      Rscript code/PRS/compute_joint_effect_sizes.R {input.causal_u} {input.ascertained_u} {input.causal_Tm} {input.ascertained_Tm} {input.causal_ID} {input.ascertained_ID} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.pheno} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tm}
       """
 
 # Do PGA test

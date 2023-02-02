@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<9){stop("Rscript joint_effect_sizes.R <asecertained snps> <causal snps> <path to gwas> <path to phenotype> <path to test> <test vec> <outfile>")}
+if(length(args)<10){stop("Rscript joint_effect_sizes.R <asecertained snps> <causal snps> <path to gwas> <path to phenotype> <path to test> <test vec> <outfile>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -19,6 +19,7 @@ a_ID_file = args[6] # ascertained ID snps
 path_to_gwas = args[7] # path to GWAS genotypes
 path_to_phenotype = args[8]
 path_to_test = args[9]
+covar_file = args[10]
 
 
 # Read in SNPs
@@ -51,7 +52,7 @@ read_genos <- function(geno_prefix, betas) {
 }
 
 # Function to comput joint effect sizes
-compute_joint <- function(geno_prefix, betas, phenos) {
+compute_joint <- function(geno_prefix, betas, phenos, covar) {
 
   # Read in geotype matrix
   G <- read_genos(geno_prefix, betas)
@@ -60,13 +61,13 @@ compute_joint <- function(geno_prefix, betas, phenos) {
   G <- scale(G, scale = F)
 
   # Compute joint effect sizes
-  mod <- lm(phenos$pheno_strat ~ G)
-  betas_joint <- coef(mod)[-1]
+  mod <- lm(phenos$pheno_strat ~ G + covar)
+  betas_joint <- coef(mod)[2:(ncol(G)+1)]
 
   # Compute marginal
   betas_marginal <- rep(0, nrow(betas))
   for (i in 1:nrow(betas)){
-    betas_marginal[i] <- coef(lm(phenos$pheno_strat ~ G[,i]))[2]
+    betas_marginal[i] <- coef(lm(phenos$pheno_strat ~ G[,i] + covar))[2]
   }
 
   # Return joint effect sizes in a new column
@@ -76,12 +77,13 @@ compute_joint <- function(geno_prefix, betas, phenos) {
 }
 
 # Compute joint effect sizes
-df_cu <- compute_joint(path_to_gwas, c_u, phenos)
-df_au <- compute_joint(path_to_gwas, a_u, phenos)
-df_cTm <- compute_joint(path_to_gwas, c_Tm, phenos)
-df_aTm <- compute_joint(path_to_gwas, a_Tm, phenos)
-df_cID <- compute_joint(path_to_gwas, c_ID, phenos)
-df_aID <- compute_joint(path_to_gwas, a_ID, phenos)
+df_covar <- fread(covar_file)
+df_cu <- compute_joint(path_to_gwas, c_u, phenos, rep(0, nrow(phenos)))
+df_au <- compute_joint(path_to_gwas, a_u, phenos, rep(0, nrow(phenos)))
+df_cTm <- compute_joint(path_to_gwas, c_Tm, phenos, df_covar$Tm)
+df_aTm <- compute_joint(path_to_gwas, a_Tm, phenos, df_covar$Tm)
+df_cID <- compute_joint(path_to_gwas, c_ID, phenos, df_covar$PopID)
+df_aID <- compute_joint(path_to_gwas, a_ID, phenos, df_covar$PopID)
 print("Computed joint effects")
 
 # Save output
