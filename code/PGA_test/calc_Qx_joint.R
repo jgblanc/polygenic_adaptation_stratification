@@ -78,7 +78,7 @@ pgs <- function(X, betas) {
 calc_q <- function(sscore, Va) {
 
   numerator <- dfTvec$InTvec %*% sscore
-  lambdaT <- t(dfTvec$InTvec) %*% dfTvec$Tvec * (1/(nrow(dfTvec) - 1))
+  lambdaT <- t(dfTvec$InTvec) %*% dfTvec$Tvec 
   qhat <- (1/Va) * (numerator/lambdaT)
 
   return(qhat)
