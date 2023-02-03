@@ -1,7 +1,7 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1", "C2"]
+CONFIG=["C1"]
 REP = ["B1"]
 #for i in range(1,101):
 #  REP.append("B"+str(i))
