@@ -3,8 +3,8 @@ for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
 REP = ["B1"]
-for i in range(1,101):
-  REP.append("B"+str(i))
+#for i in range(1,101):
+#  REP.append("B"+str(i))
 HERITABILITY = ["joint-0.0"]
 #ENV = ["env_0.0", "env_0.02","env_0.04", "env_0.06","env_0.08", "env_0.1"]
 ENV = ["env_0.0","env_0.1", "env_0.2", "env_0.3", "env_0.5", "env_1.0"]
@@ -54,7 +54,7 @@ def get_seed(rep, config, h2, ts, env):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL)
+        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL)
 
 # Simluate Genotypes
 
@@ -403,6 +403,23 @@ rule proj_T:
         Rscript code/Calculate_Tm/project_T.R  output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/
         """
 
+# GWAS PCA
+
+rule GWAS_PCA:
+    input:
+        psam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
+        pgen="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pgen",
+        pvar="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pvar"
+    output:
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-gwas.eigenvec",
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-gwas.eigenval"
+    shell:
+        """
+        plink2 \
+	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+	      --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas \
+		    --pca 10
+		    """
 
 # Run GWAS
 
@@ -410,11 +427,12 @@ rule format_covars:
     input:
       pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
       fam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
-      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt"
+      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt",
+      PC="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-gwas.eigenvec"
     output:
       "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt",
     shell:
-      "Rscript code/Calculate_Tm/format_ID_covars.R {input.pops} {input.Tm} {input.fam} {output}"
+      "Rscript code/Calculate_Tm/format_ID_covars.R {input.pops} {input.Tm} {input.fam} {output} {input.PC}"
 
 rule gwas_no_correction:
   input:

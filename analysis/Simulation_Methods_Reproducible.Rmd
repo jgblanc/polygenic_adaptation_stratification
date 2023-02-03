@@ -758,7 +758,7 @@ df_joint$estimation_type <- "joint"
 df_plot <- rbind(df_marg, df_joint)
 df_plot$diff <- as.numeric(df_plot$diff)
 
-ggplot(data = df_plot, aes(x = diff, y = fp, color = type)) + facet_grid(vars(case), vars(estimation_type)) + geom_point() + geom_hline(yintercept = 0.05, color = "red") +theme_classic(base_size = 10) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5)+ xlab("DeltaAB") + ylab("False Positive Rate")
+ggplot(data = df_plot, aes(x = diff, y = fp, color = type)) + facet_grid(vars(case), vars(estimation_type)) + geom_point() + geom_hline(yintercept = 0.05, color = "red") +theme_classic(base_size = 10) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.05, size =0.5)+ xlab("DeltaAB") + ylab("False Positive Rate")
 
 ```
 
