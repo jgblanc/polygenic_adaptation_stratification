@@ -17,9 +17,9 @@ geno_prefix = args[2] # Prefix to pilnk files
 tvec_file = args[3] # test vect
 pops_file = args[4]
 num = as.numeric(args[5]) # number of times to resapme
-size = as.numeric(args[6]) # num individuals in the test panel
-out_pre = args[7] # output prefix
-true_file = args[8]
+out_pre = args[6] # output prefix
+true_file = args[7]
+pc_num = as.numeric(args[8])
 
 
 # Function to read in genotype matrix for a set of variants
@@ -64,21 +64,11 @@ pgs <- function(X, betas) {
   return(out)
 }
 
-# Function to calculate Qx
-#calc_Qx <- function(sscore, tvec, Va, lambda_T) {
-
-  # Compute Qx Strat
-#  Ztest <- t(tvec) %*% sscore
-#  Qx_strat <- (t(Ztest) %*% Ztest) / (Va*lambda_T)
-
-#  return(Qx_strat)
-#}
-
 # Function to calculate Q
 calc_q <- function(sscore, Va) {
 
   numerator <- dfTvec$InTvec %*% sscore
-  lambdaT <- t(dfTvec$InTvec) %*% dfTvec$Tvec 
+  lambdaT <- t(dfTvec$InTvec) %*% dfTvec$Tvec
   qhat <- (1/Va) * (numerator/lambdaT)
 
   return(qhat)
@@ -185,44 +175,40 @@ main <- function(type, snps) {
 }
 
 # Run all types of PGS
-out <- matrix(NA, nrow = 7, ncol =6)
-out[1, ] <- main(type = "", snps  = "nc")
-out[2, ] <- main(type = "-Tm", snps = "nc")
-out[3, ] <- main(type = "-ID", snps = "nc")
-out[4, ] <- main(type = "", snps  = "c")
-out[5, ] <- main(type = "-Tm", snps = "c")
-out[6, ] <- main(type = "-ID", snps = "c")
-out[7, ] <- main(type = "TRUE")
-out <- as.data.frame(out)
-out$Bias_marginal <- NA
-out$Bias_joint <- NA
-tq <- out[7,1]
-if (is.na(NA)) {
-   tq <- 0
+
+### Asecertained
+out_nc <- as.data.frame(matrix(NA, nrow = 4+pc_num, ncol =6))
+out_nc[1, ] <- main(type = "TRUE")
+out_nc[2, ] <- main(type = "", snps  = "nc")
+out_nc[3, ] <- main(type = "-Tm", snps = "nc")
+out_nc[4, ] <- main(type = "-ID", snps = "nc")
+for (i in 1:pc_num) {
+  out_nc[(4+i), ]  <- main(type = paste0("-",i), snps = "nc")
 }
+pcs <- paste0("nc-PC", seq(1,pc_num))
+out_nc$type <- c("true","nc-uncorrected", "nc-Tm", "nc-ID", pcs)
 
+### Causal
+out_c <- as.data.frame(matrix(NA, nrow = 4+pc_num, ncol =6))
+out_c[1, ] <- main(type = "TRUE")
+out_c[2, ] <- main(type = "", snps  = "c")
+out_c[3, ] <- main(type = "-Tm", snps = "c")
+out_c[4, ] <- main(type = "-ID", snps = "c")
+for (i in 1:pc_num) {
+  out_c[(4+i), ]  <- main(type = paste0("-",i), snps = "c")
+}
+pcs <- paste0("c-PC", seq(1,pc_num))
+out_c$type <- c("true","c-uncorrected", "c-Tm", "c-ID", pcs)
 
-## Marginal bias
-out[1,7] <- out[1,1] - tq
-out[2,7] <- out[2,1] - tq
-out[3,7] <- out[3,1] - tq
-out[4,7] <- out[4,1] - tq
-out[5,7] <- out[5,1] - tq
-out[6,7] <- out[6,1] - tq
-out[7,7] <- out[7,1] - tq
+### Compute  bias
+tq <- out_c[1,1]
+out <- rbind(out_nc, out_c)
+colnames(out) <- c("q_marginal", "P.Chi_marginal", "P.EN_marginal", "q_joint", "P.Chi_joint", "P.EN_joint", "type")
+out$Bias_marginal <- out$q_marginal - tq
+out$Bias_joint <- out$q_joint - tq
 
-## Joint bias
-out[1,8] <- out[1,4] - tq
-out[2,8] <- out[2,4] - tq
-out[3,8] <- out[3,4] - tq
-out[4,8] <- out[4,4] - tq
-out[5,8] <- out[5,4] - tq
-out[6,8] <- out[6,4] - tq
-out[7,8] <- out[7,4] - tq
 
 # Save output
-colnames(out) <- c("q_marginal", "P.Chi_marginal", "P.EN_marginal", "q_joint", "P.Chi_joint", "P.EN_joint", "Bias_marginal", "Bias_joint")
-rownames(out) <- c("nc-uncorrected", "nc-Tm", "nc-ID", "c-uncorrected", "c-Tm", "c-ID", "true")
 print(out)
 fwrite(out, out_pre,row.names=T,quote=F,sep="\t", col.names = T)
 
