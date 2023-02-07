@@ -2,12 +2,12 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = ["B1"]
-#for i in range(1,101):
-#  REP.append("B"+str(i))
+REP = []
+for i in range(1,101):
+  REP.append("B"+str(i))
 HERITABILITY = ["joint-0.0"]
-ENV = ["env_0.0"]
-#ENV = ["env_0.0","env_0.1", "env_0.2", "env_0.3", "env_0.5", "env_1.0"]
+#ENV = ["env_0.0"]
+ENV = ["env_0.0","env_0.1", "env_0.2", "env_0.3", "env_0.5", "env_1.0"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.50"]
 #NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
@@ -22,7 +22,8 @@ wildcard_constraints:
     h2="joint-[0-1].[0-9]",
     env="env_-?[0-9].[0-9]*",
     ts="p-[0-1].[0-9][0-9]",
-    dir="[a-z]*"
+    dir="[a-z]*",
+    pc="[0-9]" 
 
 def get_seed_msprime(rep):
   out = int(''.join(list(rep)[1::])) * 1000
@@ -525,16 +526,16 @@ rule pick_SNPS:
       gwas_u="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.pheno_strat.glm.linear",
       gwas_Tm="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear",
       gwas_ID="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear",
-      gwas_PC=expand("output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-{pc}.pheno_strat.glm.linear",pc=PC)
+      gwas_PC=expand("output/Run_GWAS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{nc}}/{{env}}/genos-gwas_common-{pc}.pheno_strat.glm.linear",pc=PC)
     output:
       "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.c.betas",
       "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.c.betas",
       "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.c.betas",
-      expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-{pc}.c.betas", pc=PC),
+      expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{nc}}/{{env}}/genos-gwas_common-{pc}.c.betas", pc=PC),
       "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.nc.betas",
       "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.nc.betas",
       "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas",
-      expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-{pc}.nc.betas", pc=PC)
+      expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{nc}}/{{env}}/genos-gwas_common-{pc}.nc.betas", pc=PC)
     params:
       pc_max = int(PC[-1])
     shell:

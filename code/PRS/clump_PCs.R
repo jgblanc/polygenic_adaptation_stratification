@@ -30,7 +30,7 @@ flip_effect = function(gwas_df,beta_colname){
 fclump <- function(df, CHR) {
 
   # Select only SNPS under threshold
-  df <-  gwas1 %>% filter(CHROM == CHR)
+  df <-  df %>% filter(CHROM == CHR)
 
   # Select lowest p-value
   min_p <- df %>% slice_min(P, with_ties = F)
@@ -100,7 +100,7 @@ main_nc <- function(gwas_path, out_path) {
 
   # Write Beta hat from LD clumping
   fwrite(gwas.red,
-         paste(output_path,".nc.betas",sep=""),
+         paste(out_path,".nc.betas",sep=""),
          col.names=T,row.names=F,quote=F,sep="\t")
 }
 
