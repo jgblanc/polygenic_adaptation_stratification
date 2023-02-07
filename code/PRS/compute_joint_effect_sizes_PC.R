@@ -85,9 +85,9 @@ fwrite(df, paste0(path_to_SNPs, "-ID.nc.betas.joint"),row.names=F,quote=F,sep="\
 ## PC corrected
 for (i in 1:pc_num) {
 
-  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-",i,".c.betas")), phenos, df_covar[,5:(i+4)])
+  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-",i,".c.betas")), phenos, as.matrix(df_covar[,5:(i+4)]))
   fwrite(df, paste0(path_to_SNPs, "-", i, ".c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
-  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-", i, ".nc.betas")), phenos, df_covar[,5:(i+4)])
+  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-", i, ".nc.betas")), phenos, as.matrix(df_covar[,5:(i+4)]))
   fwrite(df, paste0(path_to_SNPs, "-", i, ".nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
 
 }
