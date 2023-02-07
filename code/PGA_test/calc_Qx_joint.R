@@ -202,6 +202,9 @@ out_c$type <- c("true","c-uncorrected", "c-Tm", "c-ID", pcs)
 
 ### Compute  bias
 tq <- out_c[1,1]
+if (is.na(tq)) {
+   tq <- 0
+}
 out <- rbind(out_nc, out_c)
 colnames(out) <- c("q_marginal", "P.Chi_marginal", "P.EN_marginal", "q_joint", "P.Chi_joint", "P.EN_joint", "type")
 out$Bias_marginal <- out$q_marginal - tq

@@ -8,7 +8,7 @@ print(reps)
 h2 <- "joint-0.0"
 #envs <- c("env_0.0", "env_0.02","env_0.04", "env_0.06","env_0.08", "env_0.1")
 envs <- c("env_0.0","env_0.1", "env_0.2", "env_0.3", "env_0.5", "env_1.0")
-cases <- c("C1", "C2")
+cases <- c("C1")
 ts <- c("p-0.50")
 nc <- c("c-200")
 dat <- expand.grid(reps, cases, h2, ts,  envs, nc)
@@ -17,7 +17,7 @@ colnames(dat) <- c("rep", "case", "h2", "ts", "envs", "nc")
 agg_all_data <- function(rep, dir_path, case, h2, ts, envs, nc) {
   
   Qx <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/", nc, "/", envs, "/",  "Qx.txt"))
-  Qx$type <- c("nc-uncorrected", "nc-Tm", "nc-ID", "c-uncorrected", "c-Tm","c-ID","true")
+  #Qx$type <- c("nc-uncorrected", "nc-Tm", "nc-ID", "c-uncorrected", "c-Tm","c-ID","true")
 
   return(Qx)
 }
