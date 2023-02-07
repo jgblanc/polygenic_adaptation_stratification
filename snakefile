@@ -2,12 +2,12 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = ["B1"]
-#for i in range(1,101):
-#  REP.append("B"+str(i))
+REP = []
+for i in range(1,101):
+  REP.append("B"+str(i))
 HERITABILITY = ["joint-0.0"]
-#ENV = ["env_0.0", "env_0.02","env_0.04", "env_0.06","env_0.08", "env_0.1"]
-ENV = ["env_0.0","env_0.1", "env_0.2", "env_0.3", "env_0.5", "env_1.0"]
+ENV = ["env_0.0"]
+#ENV = ["env_0.0","env_0.1", "env_0.2", "env_0.3", "env_0.5", "env_1.0"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.50"]
 #NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
@@ -53,9 +53,18 @@ def get_seed(rep, config, h2, ts, env):
   print(out)
   return out
 
+def get_pc_num(x):
+  end = str(int(x) + 4)
+  start = str(5)
+  out = start + "-" + end
+  if int(x) == 1:
+     out = str(5)
+  print(out)
+  return out
+
 rule all:
     input:
-        expand(""output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-{pc}.pheno_strat.glm.linear"", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-{pc}.pheno_strat.glm.linear", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 # Simluate Genotypes
 
@@ -418,7 +427,7 @@ rule GWAS_PCA:
         plink2 \
 	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
 	      --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas \
-		    --pca 10
+		    --pca 10 approx
 		    """
 
 # Run GWAS
@@ -495,13 +504,15 @@ rule gwas_PC:
       Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
     output:
       "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-{pc}.pheno_strat.glm.linear"
+    params:
+       pc_num = lambda wildcards: get_pc_num(wildcards.pc)	  
     shell:
       """
       plink2 \
       --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
       --glm hide-covar \
       --covar {input.Tm} \
-      --covar-col-nums 5-{wildcards.pc} \
+      --covar-col-nums {params.pc_num} \
       --pheno {input.pheno} \
       --pheno-name pheno_strat \
       --out output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common-{wildcards.pc}

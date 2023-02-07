@@ -2,11 +2,11 @@
 #SBATCH --job-name=4PopSplitB
 #SBATCH --output=logs/4PopSplitB.out
 #SBATCH --error=logs/4PopSplitB.err
-#SBATCH --time=15:00:00
-#SBATCH --partition=broadwl
-#SBATCH --nodes=3
+#SBATCH --partition=bigmem2
+#SBATCH --time=06:00:00
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
-#SBATCH --mem-per-cpu=2000
+#SBATCH --mem-per-cpu=16000
 
 module load python/cpython-3.7.0
 module load R
