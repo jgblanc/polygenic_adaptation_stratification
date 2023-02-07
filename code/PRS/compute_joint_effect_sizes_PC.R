@@ -71,23 +71,23 @@ df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, ".nc.betas")), phen
 fwrite(df, paste0(path_to_SNPs, ".nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
 
 ## Tm corrected
-df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-Tm.c.betas")), phenos, rep(0, nrow(phenos)))
+df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-Tm.c.betas")), phenos, df_covar$Tm)
 fwrite(df, paste0(path_to_SNPs, "-Tm.c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
-df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-Tm.nc.betas")), phenos, rep(0, nrow(phenos)))
+df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-Tm.nc.betas")), phenos, df_covar$Tm)
 fwrite(df, paste0(path_to_SNPs, "-Tm.nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
 
 ## ID corrected
-df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-ID.c.betas")), phenos, rep(0, nrow(phenos)))
+df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-ID.c.betas")), phenos, df_covar$PopID)
 fwrite(df, paste0(path_to_SNPs, "-ID.c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
-df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-ID.nc.betas")), phenos, rep(0, nrow(phenos)))
+df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-ID.nc.betas")), phenos, df_covar$PopID)
 fwrite(df, paste0(path_to_SNPs, "-ID.nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
 
 ## PC corrected
 for (i in 1:pc_num) {
 
-  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-",i,".c.betas")), phenos, rep(0, nrow(phenos)))
+  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-",i,".c.betas")), phenos, df_covar[,5:(i+4)])
   fwrite(df, paste0(path_to_SNPs, "-", i, ".c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
-  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-", i, ".nc.betas")), phenos, rep(0, nrow(phenos)))
+  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-", i, ".nc.betas")), phenos, df_covar[,5:(i+4)])
   fwrite(df, paste0(path_to_SNPs, "-", i, ".nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
 
 }
