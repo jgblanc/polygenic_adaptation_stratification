@@ -3,7 +3,7 @@ for i in range(0, 2000):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
 REP = []
-for i in range(1,101):
+for i in range(1,3):
   REP.append("C"+str(i))
 HERITABILITY = ["joint-0.0"]
 ENV = ["env_0.0"]
@@ -64,13 +64,13 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.ids.vcf.gz", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 # Simluate Genotypes
 
 rule simulate_genotypes_4popsplit:
     output:
-        expand("output/Simulate_Genotypes/4PopSplit/{{rep}}/genos_{chr}.vcf", chr=CHR),
+        #expand("output/Simulate_Genotypes/4PopSplit/{{rep}}/genos_{chr}.vcf", chr=CHR),
 	      "output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     params:
         chr_num = len(CHR),
@@ -89,8 +89,8 @@ rule simulate_genotypes_4popsplit:
 	      -b 40000 \
 	      -c 40000 \
 	      -d 40000 \
-        -s1 4400 \
-        -s2 2200 \
+        -s1 5000 \
+        -s2 2500 \
         -L 100000 \
         --seed {params.seed}
         """
