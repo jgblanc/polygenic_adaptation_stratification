@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = []
-for i in range(1, 101):
-  REP.append("C"+str(i))
+REP = ["C1"]
+#for i in range(1, 101):
+#  REP.append("C"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["LAT", "DIAG", "PS"]
@@ -52,7 +52,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
+        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/inverse_Tvec.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
 
 # Simluate Genotypes
 
@@ -308,6 +308,85 @@ rule simulate_phenotype_SimpleGrid:
     shell:
         "Rscript code/Simulate_Phenotypes/simulate_phenotypes_SimpleGrid.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {wildcards.pheno}"
 
+# Project Test vector
+
+rule make_test_vector:
+    input:
+        pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
+        fam="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam"
+    output:
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt"
+    shell:
+        "Rscript code/Calculate_Tm/SimpleGrid_make_tvec.R {input.pops} {input.fam} {wildcards.test} {output}"
+
+rule test_panel_cov_matrix:
+    input:
+        psam="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
+        pgen="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.pgen",
+        pvar="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.pvar"
+    output:
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel",
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel.id"
+    shell:
+        """
+        plink2 \
+	      --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common \
+	      --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test \
+		    --make-rel cov square
+		    """
+rule compute_inverse_T:
+    input:
+        cov="output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel",
+        id="output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel.id",
+        Tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tvec.txt"
+    output:
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/inverse_Tvec.txt"
+    shell:
+        """
+        Rscript code/Calculate_Tm/compute_inverse_Tvec.R {input.cov} {input.id} {input.Tvec} {output}
+
+
+
+
+
+
+
+
+rule proj_T:
+    input:
+        test="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
+        gwas="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
+        tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt"
+    output:
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt"
+    shell:
+        """
+        Rscript code/Calculate_Tm/calc_GXT.R  output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.test}/
+        """
+
+
+# GWAS PCA
+
+rule GWAS_PCA:
+    input:
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pgen",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pvar",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam"
+    params:
+        n_minus_1 = int(GWAS_SIZE)-1,
+    output:
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec",
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenval",
+    shell:
+        """
+        plink2 \
+        --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+       --pca {params.n_minus_1} \
+       --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/gwas_pca
+        """
+
+
+
 # Run GWAS
 
 rule gwas_no_correction:
@@ -342,69 +421,11 @@ rule pick_SNPS:
         "Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/genos-gwas_common {params.pt} output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/genos-gwas_common"
 
 
-# Calculate true genetic value in test panel
-
-rule calc_true_gv:
-    input:
-        genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
-        causal_effect="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.effects.txt",
-        freq="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.afreq"
-    output:
-        "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-test_common.true.sscore",
-    shell:
-        """
-        plink2 \
-        --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common \
-        --read-freq {input.freq} \
-        --score {input.causal_effect} cols=dosagesum,scoresums \
-        --out output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/genos-test_common.true \
-        """
-
-## Include Tm as a covariate
-
-# Generate Test Vector
-
-rule make_test_vector:
-    input:
-        pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
-        fam="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam"
-    output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt"
-    shell:
-        "Rscript code/Calculate_Tm/SimpleGrid_make_tvec.R {input.pops} {input.fam} {wildcards.test} {output}"
 
 
-# Project T using Plink2
 
-rule proj_T:
-    input:
-        test="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
-        gwas="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
-        tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt"
-    output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt"
-    shell:
-        """
-        Rscript code/Calculate_Tm/calc_GXT.R  output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.test}/
-        """
 
-rule GWAS_PCA:
-    input:
-        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pgen",
-        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pvar",
-        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam"
-    params:
-        n_minus_1 = int(GWAS_SIZE)-1,
-    output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec",
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenval",
-    shell:
-        """
-        plink2 \
-        --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-       --pca {params.n_minus_1} \
-       --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/gwas_pca
-        """
+
 
 rule Test_PCA:
     input:
