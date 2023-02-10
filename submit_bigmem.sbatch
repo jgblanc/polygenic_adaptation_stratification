@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplitB
-#SBATCH --output=logs/4PopSplitB.out
-#SBATCH --error=logs/4PopSplitB.err
+#SBATCH --job-name=4PopSplit_Concat
+#SBATCH --output=logs/4PopSplit_Concat.out
+#SBATCH --error=logs/4PopSplit_Concat.err
 #SBATCH --partition=bigmem2
-#SBATCH --time=06:00:00
+#SBATCH --time=09:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
 #SBATCH --mem-per-cpu=16000
@@ -16,5 +16,5 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake --cores all --rerun-incomplete  
-#snakemake -j3 --rerun-incomplete 
+#snakemake --cores all --rerun-incomplete  
+snakemake -j3 --rerun-incomplete 
