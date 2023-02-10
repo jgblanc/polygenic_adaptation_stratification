@@ -334,13 +334,14 @@ rule test_panel_cov_matrix:
 	      --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test \
 		    --make-rel cov square
 		    """
+
 rule compute_inverse_T:
     input:
         cov="output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel",
         id="output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel.id",
-        Tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/Tvec.txt"
+        Tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt"
     output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/inverse_Tvec.txt"
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/inverse_Tvec.txt"
     shell:
         """
         Rscript code/Calculate_Tm/compute_inverse_Tvec.R {input.cov} {input.id} {input.Tvec} {output}
