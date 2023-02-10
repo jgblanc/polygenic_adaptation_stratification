@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<7){stop("Rscript simphenotype_ge.R <genetic value file> <pop file> <output_file> <hertaibility> <environmental shift> <seed> <type of stratification>")}
+if(length(args)<6){stop("Rscript simphenotype_ge.R <genetic value file> <pop file> <output_file> <hertaibility> <environmental shift> <type of stratification>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -14,9 +14,7 @@ popfile = args[2] # pop file from msprime simulation
 output_file = args[3] #name of output file
 h2 = as.numeric(args[4]) # hertiability
 env_s=as.numeric(args[5]) # magnitude of environmental shift
-print(as.numeric(args[6]))
-set.seed(as.numeric(args[6])) # random seed
-pheno_pattern = args[7]
+pheno_pattern = args[6]
 
 
 # Read in genetic values
@@ -27,7 +25,7 @@ colnames(prs)<-c("IID","dosage","prs")
 sample_size=nrow(prs)
 
 # Set larger GWAS sample size (we will match errors to this sample size)
-N_GWAS = 500000 #### Fix to be per pop
+#N_GWAS = 500000 #### Fix to be per pop
 
 # Load file containing the pop ID for each inidividual
 pop=fread(popfile,header=F)
@@ -38,18 +36,18 @@ prs=merge(prs, pop, by="IID", sort=F)
 
 # Calculate average phenotype per pop
 prs$env = rnorm(sample_size,0, sqrt(1 - h2))
-Z <- prs %>% group_by(Pop) %>% summarise(avg = mean(env)) %>% pull(avg)
+#Z <- prs %>% group_by(Pop) %>% summarise(avg = mean(env)) %>% pull(avg)
 
 # Rescale averages to larger GWAS size
-n_sim <- prs %>% group_by(Pop) %>% summarise(num = n()) %>% pull(num)
-Z_gwas <- sqrt(n_sim/ ((n_sim/sum(n_sim) * N_GWAS))) * Z
+#n_sim <- prs %>% group_by(Pop) %>% summarise(num = n()) %>% pull(num)
+#Z_gwas <- sqrt(n_sim/ ((n_sim/sum(n_sim) * N_GWAS))) * Z
 
 # Rescale individual phenotypes
-delta <- Z - Z_gwas
-pops <- seq(0, length(delta)-1)
-for (i in 1:length(delta)) {
-  prs = prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == pops[i], env - delta[i], env))
-}
+#delta <- Z - Z_gwas
+#pops <- seq(0, length(delta)-1)
+#for (i in 1:length(delta)) {
+#  prs = prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == pops[i], env - delta[i], env))
+#}
 
 if (pheno_pattern == "LAT") {
 
