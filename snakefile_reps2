@@ -3,7 +3,7 @@ for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
 REP = []
-for i in range(41,51):
+for i in range(21,31):
   REP.append("C"+str(i))
 HERITABILITY = ["joint-0.0"]
 ENV = ["env_0.0"]
@@ -64,7 +64,7 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.ids.vcf.gz", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 # Simluate Genotypes
 
@@ -107,7 +107,6 @@ rule format_VCF:
 	      cat output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/header_{wildcards.chr}.txt <(cat output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos_{wildcards.chr}.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
 		    #bcftools index {output.gz}
 			  rm output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/header_{wildcards.chr}.txt
-			  rm {input}
 			  """
 
 rule concat_vcfs:
