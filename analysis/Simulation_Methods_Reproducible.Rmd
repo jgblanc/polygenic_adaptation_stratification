@@ -686,13 +686,15 @@ x <- format(x, scientific = T)
 Fts <- c(0.01, 0.001, 0.0001,0.00001, 0)
 png("~/Desktop/TestPanel_Structure.png", width = 6.5, height = 5, units = 'in', res = 300)
 for (i in 1:length(Fts)) {
-  curve(compute_fpr(x, Ft = Fts[i]), from = 10, to = 1000000,add=i!=1, col=col[i], log = "x", xlab = "Test panel sample size", ylab = "False positive rate", lwd=2, xaxt='n')
+  curve(compute_fpr(x, Ft = Fts[i]), from = 10, to = 1000000,add=i!=1, col=col[i], log = "x", xlab = "", ylab = "", lwd=2, xaxt='n')
 }
-abline(v = 300000, col="red", lwd=3, lty=2)
+#abline(v = 300000, col="red", lwd=3, lty=2)
 axis(1, x, labels = x)
-text(x=670000, y=0.16, labels="300,000", col = "red")
+#text(x=670000, y=0.16, labels="300,000", col = "red")
 Fts <-c(format(Fts[1:4], scientific = T), 0)
 legend("topleft", inset = 0.05,legend = Fts, col=col, lty=1, lwd = 2,  title=TeX("$f_{TX}$"))
+mtext("False positive rate", side=2, line=2.5, cex=1.3)
+mtext("Test panel sample size", side=1, line=2.5, cex=1.3)
 dev.off()
 ```
 

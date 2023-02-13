@@ -52,7 +52,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/inverse_Tvec.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
+        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/{test}/Tm.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST)
 
 # Simluate Genotypes
 
@@ -308,6 +308,7 @@ rule simulate_phenotype_SimpleGrid:
     shell:
         "Rscript code/Simulate_Phenotypes/simulate_phenotypes_SimpleGrid.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {wildcards.pheno}"
 
+
 # Project Test vector
 
 rule make_test_vector:
@@ -346,6 +347,18 @@ rule compute_inverse_T:
         """
         Rscript code/Calculate_Tm/compute_inverse_Tvec.R {input.cov} {input.id} {input.Tvec} {output}
 	"""
+
+rule proj_T:
+    input:
+        test="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
+        gwas="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
+        tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/{test}/inverse_Tvec.txt"
+    output:
+        "output/Calculate_Tm/4PopSplit/{rep}/{config}/{test}/Tm.txt"
+    shell:
+        """
+        Rscript code/Calculate_Tm/project_T.R  output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/{wilcards.test}/
+        """
 
 
 
