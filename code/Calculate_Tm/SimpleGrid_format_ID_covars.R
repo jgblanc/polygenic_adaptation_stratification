@@ -29,7 +29,7 @@ Tm <- fread(Tm_file)
 Tm <- Tm$Tm
 
 ## Read in PCs
-vecs <- fread(evec_file)
+vecs <- fread(pc_file)
 colnames(vecs)[1] <- "FID"
 pcs <-  vecs[,2:(pc_num+2)]
 
