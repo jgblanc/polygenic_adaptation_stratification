@@ -8,7 +8,7 @@ suppressWarnings(suppressMessages({
 
 args=commandArgs(TRUE)
 
-if( length(args) != 5){stop("Usage: <pop file> <Tm> <fam file of GWAS> <test type> <output file> ") }
+if( length(args) != 7){stop("Usage: <pop file> <Tm> <fam file of GWAS> <test type> <output file> <PC file> <pc number>") }
 
 # Parse args
 pop_file = args[1]
@@ -16,6 +16,8 @@ Tm_file = args[2]
 fam_file = args[3]
 test_type = args[4]
 output_file = args[5]
+pc_file = args[6]
+pc_num = as.numeric(args[7])
 
 # Read in files
 pops <- fread(pop_file, header = F)
@@ -25,6 +27,11 @@ colnames(pops) <- c("#FID", "IID", "POP", "LAT", "LONG")
 # Read in Tm
 Tm <- fread(Tm_file)
 Tm <- Tm$Tm
+
+## Read in PCs
+vecs <- fread(evec_file)
+colnames(vecs)[1] <- "FID"
+pcs <-  vecs[,2:(pc_num+2)]
 
 
 if (test_type == "LAT") {
@@ -50,6 +57,7 @@ if (test_type == "LAT") {
 
 }
 
+df <- cbind(df,pcs)
 
 # Write Tm to file
 fwrite(df, output_file,row.names=F,quote=F,sep="\t", col.names = T)
