@@ -14,7 +14,9 @@ suppressWarnings(suppressMessages({
 geffects_file=args[1] # Causal SNP IDs
 gwas_file_prefix=args[2] # GWAS file prefix
 output_file_prefix=args[3] # Out file prefix
-max_pc = as.numeric(args[4])
+pc_list = args[4]
+print(pc_list)
+pcs <- as.numeric(strsplit(pc_list)[[1]])
 
 # Function to get the effect size for the T allele
 flip_effect = function(gwas_df,beta_colname){
@@ -119,13 +121,12 @@ main_casual(paste0(gwas_file_prefix, "-ID"), paste0(output_file_prefix, "-ID"))
 main_nc(paste0(gwas_file_prefix, "-ID"), paste0(output_file_prefix, "-ID"))
 
 ## PC corrected
-for (i in 1:max_pc) {
+for (i in pcs) {
 
   main_casual(paste0(gwas_file_prefix, "-", i), paste0(output_file_prefix, "-", i))
   main_nc(paste0(gwas_file_prefix, "-", i), paste0(output_file_prefix, "-", i))
 
 }
-
 
 
 
