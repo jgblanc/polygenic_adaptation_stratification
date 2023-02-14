@@ -16,7 +16,7 @@ gwas_file_prefix=args[2] # GWAS file prefix
 output_file_prefix=args[3] # Out file prefix
 pc_list = args[4]
 print(pc_list)
-pcs <- as.numeric(strsplit(pc_list)[[1]])
+pcs <- as.numeric(strsplit(pc_list,"-")[[1]])
 
 # Function to get the effect size for the T allele
 flip_effect = function(gwas_df,beta_colname){
