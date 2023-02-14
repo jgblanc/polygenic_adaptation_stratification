@@ -17,7 +17,6 @@ fam_file = args[3]
 test_type = args[4]
 output_file = args[5]
 pc_file = args[6]
-pc_num = as.numeric(args[7])
 
 # Read in files
 pops <- fread(pop_file, header = F)
@@ -31,7 +30,7 @@ Tm <- Tm$Tm
 ## Read in PCs
 vecs <- fread(pc_file)
 colnames(vecs)[1] <- "FID"
-pcs <-  vecs[,2:(pc_num+2)]
+pcs <-  vecs[,3:ncol(vecs)]
 
 
 if (test_type == "LAT") {
