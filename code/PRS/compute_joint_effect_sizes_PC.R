@@ -15,7 +15,9 @@ path_to_gwas = args[1] # path to GWAS genotypes
 path_to_SNPs = args[2]
 path_to_phenotype = args[3]
 covar_file = args[4]
-pc_num = as.numeric(args[5])
+pc_list = as.numeric(args[5])
+print(pc_list)
+pcs <- as.numeric(strsplit(pc_list,"-")[[1]])
 
 # Read in phenotypes
 phenos <- fread(path_to_phenotype)
@@ -83,7 +85,7 @@ df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-ID.nc.betas")), p
 fwrite(df, paste0(path_to_SNPs, "-ID.nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
 
 ## PC corrected
-for (i in 1:pc_num) {
+for (i in pcs) {
 
   df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-",i,".c.betas")), phenos, as.matrix(df_covar[,5:(i+4)]))
   fwrite(df, paste0(path_to_SNPs, "-", i, ".c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
