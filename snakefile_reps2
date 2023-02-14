@@ -3,7 +3,7 @@ for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
 REP = []
-for i in range(21,31):
+for i in range(41,71):
   REP.append("C"+str(i))
 HERITABILITY = ["joint-0.0"]
 ENV = ["env_0.0"]

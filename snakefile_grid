@@ -24,7 +24,7 @@ wildcard_constraints:
     pheno="[A-Z]*",
     env="env-[0-9]*.[0-9]*",
     test="[A-Z]*",
-    pc="[0-9]"
+    pc="[0-9]*"
 
 def get_params(x):
   out = x.split("-")[1]
@@ -32,18 +32,18 @@ def get_params(x):
 
 def get_seed(rep, h2, pheno, env):
   rep = str(int(''.join(list(rep)[1::])))
-  print(rep)
+  #print(rep)
   h2 = h2.split("-")[1]
   pheno_list = list(pheno)
   pheno_list = [ord(i) for i in pheno_list]
   pheno = sum(pheno_list)
-  print(pheno)
+  #print(pheno)
   env_list = float(env.split("-")[1])
   env = env_list + 3.1415
-  print(env)
+  #print(env)
   out = float(rep) + float(h2) + pheno + env
   out = str(out * 1000)
-  print(out)
+  #print(out)
   return out
 
 def get_pc_num(x):
@@ -52,7 +52,7 @@ def get_pc_num(x):
   out = start + "-" + end
   if int(x) == 1:
      out = str(5)
-  print(out)
+  #print(out)
   return out
 
 def get_seed_msprime(rep):

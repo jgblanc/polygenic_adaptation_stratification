@@ -2,7 +2,7 @@
 #SBATCH --job-name=4PopSplit_Reps2
 #SBATCH --output=logs/4PopSplit_Rep2.out
 #SBATCH --error=logs/4PopSplit_Rep2.err
-#SBATCH --time=03:00:00
+#SBATCH --time=16:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28

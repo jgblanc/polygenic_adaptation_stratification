@@ -8,7 +8,7 @@ suppressWarnings(suppressMessages({
 
 args=commandArgs(TRUE)
 
-if( length(args) != 7){stop("Usage: <pop file> <Tm> <fam file of GWAS> <test type> <output file> <PC file> <pc number>") }
+if( length(args) != 6){stop("Usage: <pop file> <Tm> <fam file of GWAS> <test type> <output file> <PC file>") }
 
 # Parse args
 pop_file = args[1]
