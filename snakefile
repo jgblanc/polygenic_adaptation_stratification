@@ -3,7 +3,7 @@ for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
 REP = []
-for i in range(71,81):
+for i in range(1,101):
   REP.append("C"+str(i))
 HERITABILITY = ["joint-0.0"]
 ENV = ["env_0.0"]
@@ -64,7 +64,7 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.ids.vcf.gz", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos.psam", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 # Simluate Genotypes
 

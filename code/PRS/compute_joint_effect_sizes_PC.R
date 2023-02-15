@@ -15,7 +15,7 @@ path_to_gwas = args[1] # path to GWAS genotypes
 path_to_SNPs = args[2]
 path_to_phenotype = args[3]
 covar_file = args[4]
-pc_list = as.numeric(args[5])
+pc_list = args[5]
 print(pc_list)
 pcs <- as.numeric(strsplit(pc_list,"-")[[1]])
 
