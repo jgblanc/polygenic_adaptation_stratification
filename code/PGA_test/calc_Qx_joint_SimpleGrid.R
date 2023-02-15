@@ -101,16 +101,15 @@ en <- function(X, betas, Va, tvec) {
 
 # Load Test vector
 dfTvec <- fread(tvec_file)
-# Mean center inverse Tvec
-dfTvec$InTvec <- scale(dfTvec$InTvec, scale = F)
-inv_tvec <- dfTvec$InTvec
+Tvec <- dfTvec$Tvec - mean(dfTvec$Tvec)
 
 # Make longitude test vector
 pops <- fread(pops_file)
 fam <-  fread(paste0(geno_prefix, ".psam"))
 colnames(pops) <- c("IID", "FID", "Pop", "Lat", "Long")
 pop <- dplyr::inner_join(pops, fam, by = c("IID"= "IID"))
-tvec_long <- pop$Long
+Tvec_long <- pop$Long
+Tvec_long <- Tvec_long - mean(Tvec_long)
 
 
 # Compute inverse longitude
@@ -124,12 +123,15 @@ myE <-eigen(cov_mat)
 
 ## Compute inverse covariance matrix
 n <- ncol(cov_mat) - 1
-FXXinv <- myE$vectors[,1:n] %*% diag(1/myE$values[1:n]) %*% t(myE$vectors[,1:n])
+FXXinv <- myE$vectors[,1:n] %*% diag(1/sqrt(myE$values[1:n])) %*% t(myE$vectors[,1:n])
 
-## Multiply inverse by Tvec
-inv_tvec_long <- FXXinv %*% tvec_long
-inv_tvec_long <- inv_tvec_long - mean(inv_tvec_long)
+## Compute sd
+gamma <- sd(FXXinv %*% Tvec)
+gamma_long <- sd(FXXinv %*% Tvec_long)
 
+## Rescale test vec
+tvec_scaled <- Tvec / gamma
+tvec_scaled_long <- Tvec_long / gamma_long
 
 
 # Wrapper function to calculate Qx and empirical p values
@@ -163,15 +165,15 @@ main <- function(type, snps) {
   sscore_joint <- pgs(X, betas$joint)
 
   # Calc Q
-  q_marginal <- t(calc_q(sscore_marginal, Va_marginal, inv_tvec))
-  q_joint <- t(calc_q(sscore_joint, Va_joint, inv_tvec))
-  q_marginal_long <- t(calc_q(sscore_marginal, Va_marginal, inv_tvec_long))
-  q_joint_long <- t(calc_q(sscore_joint, Va_joint, inv_tvec_long))
+  q_marginal <- t(calc_q(sscore_marginal, Va_marginal, tvec_scaled))
+  q_joint <- t(calc_q(sscore_joint, Va_joint, tvec_scaled))
+  q_marginal_long <- t(calc_q(sscore_marginal, Va_marginal,  tvec_scaled_long))
+  q_joint_long <- t(calc_q(sscore_joint, Va_joint, tvec_scaled_long))
 
   # Generate Empirical null marginal
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(X,  betas$marginal, Va_marginal, inv_tvec)
+    redraws[i,] <- en(X,  betas$marginal, Va_marginal, tvec_scaled)
   }
 
   # Calculate empirical p-values
@@ -184,7 +186,7 @@ main <- function(type, snps) {
   # Generate Empirical null joint
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(X, betas$joint, Va_joint, inv_tvec)
+    redraws[i,] <- en(X, betas$joint, Va_joint, tvec_scaled)
   }
 
   # Calculate empirical p-values
@@ -199,7 +201,7 @@ main <- function(type, snps) {
   # Generate Empirical null marginal
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(X,  betas$marginal, Va_marginal, inv_tvec_long)
+    redraws[i,] <- en(X,  betas$marginal, Va_marginal, tvec_scaled_long)
   }
 
   # Calculate empirical p-values
@@ -212,7 +214,7 @@ main <- function(type, snps) {
   # Generate Empirical null joint
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(X, betas$joint, Va_joint, inv_tvec_long)
+    redraws[i,] <- en(X, betas$joint, Va_joint, tvec_scaled_long)
   }
 
   # Calculate empirical p-values
@@ -310,33 +312,33 @@ main2 <- function(type, snps) {
 # Output File with all the PGS
 fam <- fread(paste0(geno_prefix, ".psam"))
 fam <- fam[,1:2]
-fam$c <- main2(type = "", snps  = "c")
-fam$nc <- main2(type = "", snps  = "nc")
-fam$c_Tm <- main2(type = "Tm", snps  = "c")
-fam$nc_Tm <- main2(type = "Tm", snps  = "nc")
-fam$c_ID <- main2(type = "ID", snps  = "c")
-fam$nc_ID <- main2(type = "", snps  = "nc")
+
+tmp <- main2(type = "", snps  = "c")
+fam$c.marginal <- tmp[[1]]
+fam$c.joint <- tmp[[2]]
+
+tmp <- main2(type = "", snps  = "nc")
+fam$nc.marginal <- tmp[[1]]
+fam$nc.joint <- tmp[[2]]
+
+tmp <- main2(type = "Tm", snps  = "c")
+fam$c_Tm.marginal <- tmp[[1]]
+fam$c_Tm.joint <- tmp[[2]]
+
+tmp <- main2(type = "Tm", snps  = "nc")
+fam$nc_Tm.marginal <- tmp[[1]]
+fam$nc_Tm.joint <- tmp[[2]]
+
+tmp <- main2(type = "ID", snps  = "c")
+fam$c_ID.marginal <- tmp[[1]]
+fam$c_ID.joint <- tmp[[2]]
+
+tmp <- main2(type = "ID", snps  = "nc")
+fam$nc_ID.marginal <- tmp[[1]]
+fam$nc_ID.joint <- tmp[[2]]
+
+
 fam$Tvec <- tvec
 
-df_pcs_c <- as.data.frame(matrix(NA, nrow=nrow(fam), ncol = length(pc_list)))
-for (i in 1:length(pc_list)) {
 
-  pc <- pc_list[i]
-  df_pcs_c[,i] <- main2(type = paste0("-",pc), snps = "c")
-
-}
-pcs <- paste0("c-PC", pc_list)
-colnames(df_pcs_c, pcs)
-
-df_pcs_nc <- as.data.frame(matrix(NA, nrow=nrow(fam), ncol = length(pc_list)))
-for (i in 1:length(pc_list)) {
-
-  pc <- pc_list[i]
-  df_pcs_c[,i] <- main2(type = paste0("-",pc), snps = "nc")
-
-}
-pcs <- paste0("nc-PC", pc_list)
-colnames(df_pcs_nc, pcs)
-
-fam <- cbind(fam, df_pcs_n, df_pcs_c)
 fwrite(fam, out_pgs,row.names=F,quote=F,sep="\t", col.names = T)
