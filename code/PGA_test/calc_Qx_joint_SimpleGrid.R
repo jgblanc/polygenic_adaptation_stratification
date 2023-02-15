@@ -20,8 +20,8 @@ num = as.numeric(args[5]) # number of times to resapme
 out_pre = args[6] # output prefix
 true_file = args[7]
 pc_list=args[8]
+pc_list <- as.numeric(strsplit(pc_list,"-")[[1]])
 print(pc_list)
-pcs <- as.numeric(strsplit(pc_list,"-")[[1]])
 cov_file <- args[9]
 out_pgs <- args[10]
 
@@ -70,8 +70,9 @@ pgs <- function(X, betas) {
 
 # Function to calculate Q
 calc_q <- function(sscore, Va, tvec) {
-
-  numerator <- tvec %*% sscore
+  
+  tvec <- as.matrix(tvec)
+  numerator <- t(tvec) %*% sscore
   lambdaT <- t(tvec) %*% tvec
   qhat <- (1/sqrt(Va)) * (numerator/lambdaT)
 
@@ -143,7 +144,7 @@ main <- function(type, snps) {
     betas <- fread(beta_file, header=FALSE)
     colnames(betas) <- c("ID", "A1", "joint")
     betas$marginal <- betas$joint
-    print(head(betas))
+    #print(head(betas))
   } else {
     # Load effect sizes
     beta_file <- paste0(gwas_prefix, type,".", snps, ".betas.joint")
@@ -243,7 +244,8 @@ out_nc[2, ] <- main(type = "", snps  = "nc")
 out_nc[3, ] <- main(type = "-Tm", snps = "nc")
 out_nc[4, ] <- main(type = "-ID", snps = "nc")
 for (i in 1:length(pc_list)) {
-  out_nc[(4+i), ]  <- main(type = paste0("-",i), snps = "nc")
+  pc <- pc_list[i]
+  out_nc[(4+i), ]  <- main(type = paste0("-",pc), snps = "nc")
 }
 pcs <- paste0("nc-PC", pc_list)
 out_nc$type <- c("true","nc-uncorrected", "nc-Tm", "nc-ID", pcs)
@@ -255,7 +257,8 @@ out_c[2, ] <- main(type = "", snps  = "c")
 out_c[3, ] <- main(type = "-Tm", snps = "c")
 out_c[4, ] <- main(type = "-ID", snps = "c")
 for (i in 1:length(pc_list)) {
-  out_c[(4+i), ]  <- main(type = paste0("-",i), snps = "c")
+  pc <-  pc_list[i]
+  out_c[(4+i), ]  <- main(type = paste0("-",pc), snps = "c")
 }
 pcs <- paste0("c-PC", pc_list)
 out_c$type <- c("true","c-uncorrected", "c-Tm", "c-ID", pcs)
