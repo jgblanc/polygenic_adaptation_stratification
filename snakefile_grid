@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = []
-for i in range(1, 101):
-  REP.append("C"+str(i))
+REP = ["C1"]
+#for i in range(1, 101):
+#  REP.append("C"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["LAT", "DIAG", "PS"]
@@ -14,7 +14,7 @@ SS_TEST = 20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
 PVALUE_THRESHOLD = 1
-NUM_RESAMPLE = 1000
+NUM_RESAMPLE = 10
 
 
 wildcard_constraints:
@@ -69,7 +69,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common.c.betas.joint", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
+        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
 
 # Simluate Genotypes
 
@@ -543,90 +543,34 @@ rule joint_effects:
       Rscript code/PRS/compute_joint_effect_sizes_PC.R output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common {input.pheno} {input.Tm} {params.pc_list}
       """
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-rule Test_PCA:
-    input:
-        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.pgen",
-        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.pvar",
-        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam"
-    params:
-        n_minus_1 = int(SIZE)-1
-    output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenvec",
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenval"
-    shell:
-        """
-        plink2 \
-        --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common \
-       --pca {params.n_minus_1} \
-       --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/pca
-        """
-
-rule GWAS_PCA_weights:
-    input:
-        vecs="output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec",
-        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt"
-    output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt"
-    shell:
-        """
-        Rscript code/Calculate_Tm/GWAS_PC_weights.R {input.vecs} {input.Tm} {output}
-        """
-
-
-
-
 # Do polygenic adaptation test
 
-rule calc_lambdaT:
-    input:
-        vecs="output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenvec",
-        vals="output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenval",
-        tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt",
-    output:
-        "output/PGA_test/SimpleGrid/{rep}/{config}/{test}/Lambda_T.txt"
-    shell:
-        """
-	Rscript code/PGA_test/SimpleGrid_calc_lambdaT.R {input.vecs} {input.vals} {input.tvec} {output}
-	"""
-
 rule Calc_Qx:
-    input:
-        c="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.c.betas",
-        cp="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.c.p.betas",
-        nc="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.nc.betas",
-        c_Tm="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.c.betas",
-        cp_Tm="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.c.p.betas",
-        nc_Tm="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.nc.betas",
-        c_ID="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.c.betas",
-        cp_ID="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.c.p.betas",
-        nc_ID="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.nc.betas",
-        genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
-        lambda_T="output/PGA_test/SimpleGrid/{rep}/{config}/{test}/Lambda_T.txt",
-        true="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-test_common.true.sscore",
-        Tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt",
-        pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop"
-    output:
-        qx="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt",
-        pgs="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/PGS.txt"
-    params:
-        num=NUM_RESAMPLE
-    shell:
-      """
-          Rscript code/PGA_test/calc_Qx_SimpleGrid.R {input.c} {input.cp} {input.nc} {input.c_Tm} {input.cp_Tm} {input.nc_Tm} {input.c_ID} {input.cp_ID} {input.nc_ID} output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.true} {input.Tvec} {input.pops} {params.num} {output.qx} {output.pgs}
-	        """
+  input:
+    "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common.c.betas.joint",
+    "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.c.betas.joint",
+    "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.c.betas.joint",
+    expand("output/PRS/SimpleGrid/{{rep}}/{{config}}/{{h2}}/{{pheno}}/{{env}}/{{test}}/genos-gwas_common-{pc}.c.betas.joint", pc=PC),
+    "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common.nc.betas.joint",
+    "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.nc.betas.joint",
+    "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.nc.betas.joint",
+    expand("output/PRS/SimpleGrid/{{rep}}/{{config}}/{{h2}}/{{pheno}}/{{env}}/{{test}}/genos-gwas_common-{pc}.nc.betas.joint", pc=PC),
+    genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
+    Tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/inverse_Tvec.txt",
+    pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
+    es="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common.effects.txt",
+    cov="output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel"
+  output:
+    qx="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt",
+    pgs="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/PGS.txt"
+  params:
+    num=NUM_RESAMPLE,
+    pc_list = get_pc_list(PC)
+  shell:
+    """
+    Rscript code/PGA_test/calc_Qx_joint_SimpleGrid.R output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {params.pc_list} {input.cov} {output.pgs}
+    """
+
 
 # Rule to calculate Fst across demes in GWAS panel
 
@@ -660,5 +604,35 @@ rule Fst_GWAS:
 
         rm output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common.cmpruned*
         """
+
+rule Test_PCA:
+    input:
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.pgen",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.pvar",
+        "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam"
+    params:
+        n_minus_1 = int(SIZE)-1
+    output:
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenvec",
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/pca.eigenval"
+    shell:
+        """
+        plink2 \
+        --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common \
+       --pca {params.n_minus_1} \
+       --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/pca
+        """
+
+rule GWAS_PCA_weights:
+    input:
+        vecs="output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec",
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt"
+    output:
+        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt"
+    shell:
+        """
+        Rscript code/Calculate_Tm/GWAS_PC_weights.R {input.vecs} {input.Tm} {output}
+        """
+
 
 

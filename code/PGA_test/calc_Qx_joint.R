@@ -69,7 +69,7 @@ calc_q <- function(sscore, Va) {
 
   numerator <- dfTvec$InTvec %*% sscore
   lambdaT <- t(dfTvec$InTvec) %*% dfTvec$Tvec
-  qhat <- (1/Va) * (numerator/lambdaT)
+  qhat <- (1/sqrt(Va)) * (numerator/lambdaT)
 
   return(qhat)
 }
