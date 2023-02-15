@@ -70,11 +70,11 @@ pgs <- function(X, betas) {
 
 # Function to calculate Q
 calc_q <- function(sscore, Va, tvec) {
-  
+
   tvec <- as.matrix(tvec)
   numerator <- t(tvec) %*% sscore
   lambdaT <- t(tvec) %*% tvec
-  qhat <- (1/sqrt(Va)) * (numerator/lambdaT)
+  qhat <- (1/sqrt(N * Va)) * (numerator/lambdaT)
 
   return(qhat)
 }
@@ -103,6 +103,9 @@ en <- function(X, betas, Va, tvec) {
 # Load Test vector
 dfTvec <- fread(tvec_file)
 Tvec <- dfTvec$Tvec - mean(dfTvec$Tvec)
+
+# count number of TP individuals
+N <- length(Tvec)
 
 # Make longitude test vector
 pops <- fread(pops_file)
