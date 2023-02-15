@@ -556,9 +556,9 @@ rule Calc_Qx:
     "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.nc.betas.joint",
     expand("output/PRS/SimpleGrid/{{rep}}/{{config}}/{{h2}}/{{pheno}}/{{env}}/{{test}}/genos-gwas_common-{pc}.nc.betas.joint", pc=PC),
     genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
-    Tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/inverse_Tvec.txt",
+    Tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/inverse_Tvec.txt",
     pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
-    es="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common.effects.txt",
+    es="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.effects.txt",
     cov="output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel"
   output:
     qx="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt",
