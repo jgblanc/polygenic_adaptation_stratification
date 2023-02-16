@@ -20,4 +20,4 @@ agg_all_data <- function(rep, dir_path, case, test) {
 
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Calculate_Tm/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_gw_C.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_gw_C_new.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
