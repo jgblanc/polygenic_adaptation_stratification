@@ -8,8 +8,8 @@ CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["LAT", "DIAG", "PS"]
 TEST = ["LAT", "PS"]
-ENV = ["env-0.0", "env-0.5", "env-0.07"]
-PC = [5, 10]
+ENV = ["env-0.0", "env-1.0", "env-0.2"]
+PC = [10]
 SS_TEST = 20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
@@ -69,7 +69,8 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
+        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC),
+        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt ", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
 
 # Simluate Genotypes
 
@@ -511,6 +512,7 @@ rule pick_SNPS:
     shell:
       """
       Rscript code/PRS/clump_PCs.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common {params.pc_list}
+      rm {input.gwas_u} {input.gwas_Tm} {input.gwas_ID} {input.gwas_PC}
       """
 
 # Compute joint effect sizes
@@ -541,6 +543,7 @@ rule joint_effects:
     shell:
       """
       Rscript code/PRS/compute_joint_effect_sizes_PC.R output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common {input.pheno} {input.Tm} {params.pc_list}
+      rm {input.uc} {input.Tmc} {input.IDc} {input.unc} {input.Tmnc} {input.IDnc} {input.PCc}  {input.PCnc}
       """
 
 # Do polygenic adaptation test

@@ -423,18 +423,24 @@ make_fp_plot <- function(df, pheno_type, env_type, test_type, longitude=F) {
   }
   
   if (longitude == F) {
-    dat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc", "nc-Tm", "nc-ID")) %>% mutate(test = test_name) %>% mutate(type = factor(type, levels = c("nc", "nc-Tm", "nc-ID")))
-    
-  pl <-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none") + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "Including $T^{GWAS}", "Including confounder")))) + facet_wrap(~test)
+    dat <- fp %>% filter(envs == env_type & pheno == pheno_type & test == test_type & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+    dat$type <- factor(dat$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+    dat$test  <- test_name
+
+    pl <- ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen", "red4")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "$\\hat{F}_{Gr}$", "Confounder", "10 PCs")))) + facet_wrap(~test)
   } else {
     
-    dat_lat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc", "nc-Tm", "nc-ID")) %>% mutate(test = test_name) %>% mutate(type = factor(type, levels = c("nc", "nc-Tm", "nc-ID")))
+    dat_lat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+    dat_lat$type <- factor(dat_lat$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+    dat_lat$test  <- test_name
     
-    dat_long <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_Long <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc", "nc-Tm", "nc-ID")) %>% mutate(test = "Longitude") %>% mutate(type = factor(type, levels = c("nc", "nc-Tm", "nc-ID")))
+    dat_long <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_joint_long <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+    dat_long$type <- factor(dat_long$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+    dat_long$test  <- "Longitude"
     
     dat <- full_join(dat_lat, dat_long)
 
-    pl <-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none") + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "Including $T^{GWAS}", "Including confounder")))) + facet_wrap(~test)    
+    pl <-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none") + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen", "red4")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "$\\hat{F}_{Gr}$", "Confounder", "10 PCs")))) + facet_wrap(~test)   
     
   }
   
@@ -444,7 +450,7 @@ make_fp_plot <- function(df, pheno_type, env_type, test_type, longitude=F) {
 # Function to plot PGS on grid
 make_pgs_plot <- function(df, pheno_type, env_type, test_type, ll, up) {
   
-  dat <- df %>% filter(pheno == pheno_type & envs == env_type & test == test_type) %>% mutate(nc_stan = (nc - mean(nc)) / sd(nc), nc_Tm_stan = (nc_Tm - mean(nc_Tm)) / sd(nc_Tm)) %>% ungroup() %>% group_by(POP) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
+  dat <- df %>% filter(pheno == pheno_type & envs == env_type & test == test_type) %>% mutate(nc_stan = (nc.joint - mean(nc.joint)) / sd(nc.joint), nc_Tm_stan = (nc_Tm.joint - mean(nc_Tm.joint)) / sd(nc_Tm.joint)) %>% ungroup() %>% group_by(POP) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
   
   dat <- dat[,2:5] %>%  gather(variable, value, -c(LAT, LONG))
   
@@ -480,10 +486,18 @@ make_gwas_weights_plot <- function(df, test_type) {
 }
 
 
-fp <- fread("../code/Make_Plots/SimpleGrid_fp_C.txt.gz")
-pgs <- fread("../code/Make_Plots/SimpleGrid_pgs_C.txt.gz")
-phenos <- fread("../code/Make_Plots/SimpleGrid_phenos_C.txt.gz")
+fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_new.txt.gz")
+pgs <- fread("../code/Make_Plots/large_files/SimpleGrid_pgs_C_new.txt.gz")
+phenos <- fread("../code/Make_Plots/large_files/SimpleGrid_phenos_C_new.txt.gz")
 gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C.txt.gz")
+```
+
+
+```{r}
+dat <- fp %>% filter(envs == "env-0.07" & pheno == "LAT" & test == "LAT" & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+dat$type <- factor(dat$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+
+ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen", "red4")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "$\\hat{F}_{Gr}$", "Confounder", "10 PCs")))) + facet_wrap(~test)
 ```
 
 #### Lat/Lat 
@@ -497,10 +511,11 @@ pl_pgs <- make_pgs_plot(pgs, pheno_type = "LAT", env_type = "env-0.07", test_typ
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "LAT", env_type = "env-0.07")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
-ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
-#sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
+#ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
+sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
+sv
 #ggsave("~/Desktop/LAT.png", sv, height = 2.5, width = 11)
-ggsave("~/Desktop/LAT.png", pl_gw, height = 3, width = 3)
+#ggsave("~/Desktop/LAT.png", pl_gw, height = 3, width = 3)
 ```
 
 #### stratD/Lat 
@@ -515,10 +530,11 @@ pl_pgs <- make_pgs_plot(pgs, pheno_type = "DIAG", env_type = "env-0.5", test_typ
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "DIAG", env_type = "env-0.5")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
-ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
-#sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
+#ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
+sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
+sv
 #ggsave("~/Desktop/DLAT.png", sv, height = 2.5, width = 11)
-ggsave("~/Desktop/DLAT.png", pl_fp, height = 3, width = 3)
+#ggsave("~/Desktop/DLAT.png", pl_fp, height = 3, width = 3)
 ```
 
 
@@ -532,12 +548,13 @@ ggsave("~/Desktop/DLAT.png", pl_fp, height = 3, width = 3)
 pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-0.5", test_type = "LAT", longitude = F)
 pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-0.5", test_type = "LAT", -0.4, 0.4)
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-0.5")
-pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
+#pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
-ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
-#sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
+#ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
+sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
+sv
 #ggsave("~/Desktop/SLAT.png", sv, height = 2.5, width = 11)
-ggsave("~/Desktop/SLAT.png", pl_fp, height = 3, width = 3)
+#ggsave("~/Desktop/SLAT.png", pl_fp, height = 3, width = 3)
 ```
 
 
@@ -551,12 +568,13 @@ ggsave("~/Desktop/SLAT.png", pl_fp, height = 3, width = 3)
 pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-0.5", test_type = "PS", longitude = F)
 pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-0.5", test_type = "PS", -0.5, 0.5)
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-0.5")
-pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
+#pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
 
-ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
-#sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
+#ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.4, 0.2, 0.2))
+sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
+sv
 #ggsave("~/Desktop/DD.png", sv, height = 2.5, width = 11)
-ggsave("~/Desktop/DD.png", pl_gw, height = 3, width = 3)
+#ggsave("~/Desktop/DD.png", pl_gw, height = 3, width = 3)
 ```
 
 
