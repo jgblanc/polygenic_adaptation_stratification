@@ -19,9 +19,9 @@ agg_all_data <- function(rep, dir_path, case, h2, pheno, envs, test) {
   pop <- fread(paste0('../../output/Simulate_Genotypes/SimpleGrid/', rep,"/", "genos.pop"))
   colnames(pop) <- c("IID", "#FID", "POP", "LAT", "LONG" )
   
-  df <- inner_join(PGS, pop)%>% select("nc", "nc_Tm", POP, LAT, LONG)
+  df <- inner_join(PGS, pop) %>% select("nc.joint", "nc_Tm.joint", POP, LAT, LONG)
   return(df)
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_pgs_C.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_pgs_C_new.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)

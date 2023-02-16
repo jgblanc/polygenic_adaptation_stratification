@@ -22,6 +22,7 @@ output/*/*/L*
 output/*/*/B*
 output/*/*/C*
 output/1kg/*
+code/Make_Plots/large_files/*
 output/Simulate_Genotypes/*/*/*.pgen
 output/Simulate_Genotypes/*/*/*.pvar
 output/Simulate_Genotypes/*/*/*.psam

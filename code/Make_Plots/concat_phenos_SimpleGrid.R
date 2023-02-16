@@ -24,4 +24,4 @@ agg_all_data <- function(rep, dir_path, case, h2, pheno, envs) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Simulate_Phenotypes/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_phenos_C.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_phenos_C_new.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)

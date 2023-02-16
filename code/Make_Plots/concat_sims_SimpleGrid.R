@@ -16,10 +16,10 @@ colnames(dat) <- c("rep", "case", "h2", "pheno", "envs", "test")
 agg_all_data <- function(rep, dir_path, case, h2, pheno, envs, test) {
   
   Qx <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", pheno, "/", envs, "/", test, "/",  "Qx.txt"))
-  Qx$type <- c("c", "c.p", "nc", "c-Tm", "c.p-Tm", "nc-Tm", "c-ID", "c.p-ID", "nc-ID")
+  #Qx$type <- c("c", "c.p", "nc", "c-Tm", "c.p-Tm", "nc-Tm", "c-ID", "c.p-ID", "nc-ID")
   
   return(Qx)
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_fp_C.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_fp_C_new.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)

@@ -73,8 +73,7 @@ calc_q <- function(sscore, Va, tvec) {
 
   tvec <- as.matrix(tvec)
   numerator <- t(tvec) %*% sscore
-  lambdaT <- t(tvec) %*% tvec
-  qhat <- (1/sqrt(N * Va)) * (numerator/lambdaT)
+  qhat <- (1/sqrt(N * Va)) * (numerator)
 
   return(qhat)
 }
@@ -327,24 +326,24 @@ tmp <- main2(type = "", snps  = "nc")
 fam$nc.marginal <- tmp[[1]]
 fam$nc.joint <- tmp[[2]]
 
-tmp <- main2(type = "Tm", snps  = "c")
+tmp <- main2(type = "-Tm", snps  = "c")
 fam$c_Tm.marginal <- tmp[[1]]
 fam$c_Tm.joint <- tmp[[2]]
 
-tmp <- main2(type = "Tm", snps  = "nc")
+tmp <- main2(type = "-Tm", snps  = "nc")
 fam$nc_Tm.marginal <- tmp[[1]]
 fam$nc_Tm.joint <- tmp[[2]]
 
-tmp <- main2(type = "ID", snps  = "c")
+tmp <- main2(type = "-ID", snps  = "c")
 fam$c_ID.marginal <- tmp[[1]]
 fam$c_ID.joint <- tmp[[2]]
 
-tmp <- main2(type = "ID", snps  = "nc")
+tmp <- main2(type = "-ID", snps  = "nc")
 fam$nc_ID.marginal <- tmp[[1]]
 fam$nc_ID.joint <- tmp[[2]]
 
 
-fam$Tvec <- tvec
+fam$Tvec <- tvec_scaled
 
 
 fwrite(fam, out_pgs,row.names=F,quote=F,sep="\t", col.names = T)

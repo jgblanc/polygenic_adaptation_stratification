@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = ["C1"]
-#for i in range(1, 101):
-#  REP.append("C"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("C"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["LAT", "DIAG", "PS"]
@@ -14,7 +14,7 @@ SS_TEST = 20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
 PVALUE_THRESHOLD = 1
-NUM_RESAMPLE = 10
+NUM_RESAMPLE = 1000
 
 
 wildcard_constraints:
