@@ -64,7 +64,7 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-gwas.eigenvec", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 # Simluate Genotypes
 

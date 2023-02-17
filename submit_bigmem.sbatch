@@ -3,7 +3,7 @@
 #SBATCH --output=logs/4PopSplit_Plink.out
 #SBATCH --error=logs/4PopSplit_Plink.err
 #SBATCH --partition=bigmem2
-#SBATCH --time=02:00:00
+#SBATCH --time=09:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
 #SBATCH --mem-per-cpu=16000
@@ -17,4 +17,4 @@ module load bcftools
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
 #snakemake --cores all --rerun-incomplete  
-snakemake -j5 --rerun-incomplete 
+snakemake -j8 --rerun-incomplete 
