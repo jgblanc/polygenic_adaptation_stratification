@@ -121,10 +121,10 @@ main_casual(paste0(gwas_file_prefix, "-ID"), paste0(output_file_prefix, "-ID"))
 main_nc(paste0(gwas_file_prefix, "-ID"), paste0(output_file_prefix, "-ID"))
 
 ## PC corrected
-for (i in pcs) {
+for (i in 1:length(pcs)) {
 
-  main_casual(paste0(gwas_file_prefix, "-", i), paste0(output_file_prefix, "-", i))
-  main_nc(paste0(gwas_file_prefix, "-", i), paste0(output_file_prefix, "-", i))
+  main_casual(paste0(gwas_file_prefix, "-", pcs[i]), paste0(output_file_prefix, "-", pcs[i]))
+  main_nc(paste0(gwas_file_prefix, "-", pcs[i]), paste0(output_file_prefix, "-", pcs[i]))
 
 }
 

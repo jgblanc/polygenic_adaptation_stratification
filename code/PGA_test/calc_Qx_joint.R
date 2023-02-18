@@ -19,7 +19,7 @@ pops_file = args[4]
 num = as.numeric(args[5]) # number of times to resapme
 out_pre = args[6] # output prefix
 true_file = args[7]
-pc_list = as.numeric(args[8])
+pc_list = args[8]
 pc_list <- as.numeric(strsplit(pc_list,"-")[[1]])
 print(pc_list)
 cov_file = args[9]
@@ -85,7 +85,7 @@ flip <- function(betas) {
 }
 
 # Function to flip effect sizes and recompute Qx
-en <- function(X, betas, Va) {
+en <- function(X, betas, Va, tvec) {
 
   # Flip effect sizes
   betas <- flip(betas)
@@ -94,7 +94,7 @@ en <- function(X, betas, Va) {
   prs <- pgs(X, betas)
 
   ## Calc Qx - Test
-  q <- t(calc_q(prs, Va))
+  q <- t(calc_q(prs, Va, tvec))
 
   return(q)
 }
@@ -158,8 +158,8 @@ main <- function(type, snps) {
   sscore_joint <- pgs(X, betas$joint)
 
   # Calc Q
-  q_marginal <- t(calc_q(sscore_marginal, Va_marginal))
-  q_joint <- t(calc_q(sscore_joint, Va_joint))
+  q_marginal <- t(calc_q(sscore_marginal, Va_marginal, tvec_scaled))
+  q_joint <- t(calc_q(sscore_joint, Va_joint, tvec_scaled))
 
   ## Calc Qx - Test
   #qx_marginal <- t(calc_Qx(sscore_marginal, tvec, Va_marginal, lambda_T))
@@ -168,7 +168,7 @@ main <- function(type, snps) {
   # Generate Empirical null marginal
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(X,  betas$marginal, Va_marginal)
+    redraws[i,] <- en(X,  betas$marginal, Va_marginal, tvec_scaled)
   }
 
   # Calculate empirical p-values
@@ -181,7 +181,7 @@ main <- function(type, snps) {
   # Generate Empirical null joint
   redraws <- matrix(0, ncol = 1, nrow = num)
   for (i in 1:num){
-    redraws[i,] <- en(X, betas$joint, Va_joint)
+    redraws[i,] <- en(X, betas$joint, Va_joint, tvec_scaled)
   }
 
   # Calculate empirical p-values
@@ -209,7 +209,7 @@ out_nc[4, ] <- main(type = "-ID", snps = "nc")
 for (i in 1:length(pc_list)) {
   out_nc[(4+i), ]  <- main(type = paste0("-", pc_list[i]), snps = "nc")
 }
-pcs <- paste0("nc-PC", seq(1,pc_list))
+pcs <- paste0("nc-PC", pc_list)
 out_nc$type <- c("true","nc-uncorrected", "nc-Tm", "nc-ID", pcs)
 
 ### Causal
@@ -221,7 +221,7 @@ out_c[4, ] <- main(type = "-ID", snps = "c")
 for (i in 1:length(pc_list)) {
   out_c[(4+i), ]  <- main(type = paste0("-",pc_list[i]), snps = "c")
 }
-pcs <- paste0("c-PC", seq(1,pc_list))
+pcs <- paste0("c-PC", pc_list)
 out_c$type <- c("true","c-uncorrected", "c-Tm", "c-ID", pcs)
 
 ### Compute  bias

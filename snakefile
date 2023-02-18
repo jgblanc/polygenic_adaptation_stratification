@@ -6,13 +6,13 @@ REP = []
 for i in range(1,101):
   REP.append("C"+str(i))
 HERITABILITY = ["joint-0.0"]
-ENV = ["env_0.0"]
-#ENV = ["env_0.0","env_0.1", "env_0.2", "env_0.3", "env_0.5", "env_1.0"]
+#ENV = ["env_0.0"]
+ENV = ["env_0.0","env_0.1", "env_0.5", "env_1.0"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.50"]
 #NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
 NUM_CAUSAL = ["c-200"]
-PC=[1,2,3,4,5]
+PC=[1,2]
 SIZE=2000
 NUM_RESAMPLE=1000
 
@@ -29,6 +29,13 @@ def get_seed_msprime(rep):
   out = int(''.join(list(rep)[1::])) * 1000
   return out
 
+def get_pc_list(x):
+  A = [str(i) for i in x]
+  #print(A)
+  out = "-".join(A)
+  #print(out)
+  return out
+
 def get_params(x):
   out = x.split("-")[1]
   return out
@@ -39,18 +46,18 @@ def get_env(x):
 
 def get_seed(rep, config, h2, ts, env):
   rep = int(''.join(list(rep)[1::]))
-  print(rep)
+  #print(rep)
   config = list(config)[1]
-  print(config)
+  #print(config)
   h2 = h2.split(".")[1]
-  print(h2)
+  #print(h2)
   env = float(env.split("_")[1])
-  print(env)
+  #print(env)
   ts = float(ts.split("-")[1].split(".")[1]) / 100
-  print(ts)
+  #print(ts)
   out = (rep + int(config) + float(h2) + env + ts) * 1000
   out = str(out)
-  print(out)
+  #print(out)
   return out
 
 def get_pc_num(x):
@@ -59,12 +66,12 @@ def get_pc_num(x):
   out = start + "-" + end
   if int(x) == 1:
      out = str(5)
-  print(out)
+  #print(out)
   return out
 
 rule all:
     input:
-        expand("output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 # Simluate Genotypes
 
@@ -542,7 +549,7 @@ rule pick_SNPS:
       pc_list = get_pc_list(PC)
     shell:
       """
-      Rscript code/PRS/clump_PCs.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common {params.pc_max} {params.pc_list}
+      Rscript code/PRS/clump_PCs.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common {params.pc_list}
       rm {input.gwas_u} {input.gwas_Tm} {input.gwas_ID} {input.gwas_PC}
       """
 
