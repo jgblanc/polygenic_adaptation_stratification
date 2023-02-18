@@ -583,11 +583,13 @@ out <- ggarrange(sv1, sv2,sv3, sv4, nrow = 4, ncol = 1)
 ggsave("~/Desktop/fig4.png", out, height = 10, width = 12)
 ```
 
-## Grid Supplement
+## Grid Supplement 1 - fp rate over magnitude of confounder
 ```{r}
 df <- fp %>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter((pheno == "LAT" & test == "LAT") | (pheno == "PS" & test == "LAT") | (pheno == "PS" & test == "PS") | (pheno == "DIAG" & test == "LAT")) %>% separate(envs, c("env", "diff"), "-") %>% mutate(diff = as.numeric(diff)) %>% filter(type  %in% c("nc-uncorrected", "nc-PC10", "nc-Tm", "nc-ID")) %>% mutate(sim = case_when(pheno == "LAT" & test == "LAT" ~ "Latitude/Latitude", (pheno == "PS" & test == "LAT") ~ "Single Deme/Latitude", (pheno == "PS" & test == "PS") ~ "Single Deme/Single Deme", (pheno == "DIAG" & test == "LAT") ~ "Diagonal/Latitude"))
+df$type <- factor(df$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
 
 pl <- ggplot(df, aes(x = diff, y = fp_strat, color = type)) + geom_point(size=2) + facet_wrap(~sim)+ xlab("Magnitude of confounder") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.text.align = 0) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.05) + scale_color_manual(values = c("goldenrod2","navy", "darkgreen", "red4"), labels = unname(TeX(c("No covariate", "$\\hat{F}_{Gr}$", "Confounder", "10 PCs"))), name = "GWAS Type")
+pl
 ggsave("~/Desktop/grid_sup1.png", pl, width = 10, height = 6)
 ```
 
@@ -775,12 +777,27 @@ df2 <- melt(df2, c("L", "L2"))
 ggplot(data = df2, aes(x = L, y = value, color = variable)) + geom_point() + geom_smooth(method = "lm") + ylab("Var(q) / Var(Va)")
 ```
 
+```{r}
+df <- fread("../code/Make_Plots/C_4PopSplit_joint_bias.txt.gz")
+
+df_marg <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_marginal` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
+df_joint <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
+df_marg$estimation_type <- "marginal"
+df_joint$estimation_type <- "joint"
+df_plot <- rbind(df_marg, df_joint)
+df_plot$diff <- as.numeric(df_plot$diff)
+
+ggplot(data = df_plot, aes(x = diff, y = fp, color = type)) + facet_grid(vars(case), vars(estimation_type)) + geom_point() + geom_hline(yintercept = 0.05, color = "red") +theme_classic(base_size = 10) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1) + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.05, size =0.5)+ xlab("DeltaAB") + ylab("False Positive Rate")
+
+```
+
+
 
 ```{r}
 df <- fread("../code/Make_Plots/B_4PopSplit_joint_bias.txt.gz")
 
-df_marg <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm", "nc-PC5")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_marginal` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
-df_joint <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm", "nc-PC5")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
+df_marg <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_marginal` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
+df_joint <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
 df_marg$estimation_type <- "marginal"
 df_joint$estimation_type <- "joint"
 df_plot <- rbind(df_marg, df_joint)
