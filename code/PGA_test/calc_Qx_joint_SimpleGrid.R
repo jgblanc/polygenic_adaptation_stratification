@@ -137,6 +137,7 @@ tvec_scaled <- Tvec / gamma
 tvec_scaled_long <- Tvec_long / gamma_long
 
 # Use rescaled test vec
+FXXinv <- myE$vectors[,1:n] %*% diag(1/myE$values[1:n]) %*% t(myE$vectors[,1:n])
 tvec_scaled <- FXXinv %*% tvec_scaled
 tvec_scaled_long <- FXXinv %*% tvec_scaled_long
 
