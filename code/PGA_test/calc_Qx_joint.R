@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)!=8){stop("Rscript calc_TGWAS.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
+if(length(args)!=9){stop("Rscript calc_TGWAS.R <c.betas> <c.p.betas> <n.c.betas> <num resample> <output prefix>
                          <true.sscore> <Tvec.txt> <outfile name> <file with number of snps>")}
 
 suppressWarnings(suppressMessages({
@@ -19,7 +19,10 @@ pops_file = args[4]
 num = as.numeric(args[5]) # number of times to resapme
 out_pre = args[6] # output prefix
 true_file = args[7]
-pc_num = as.numeric(args[8])
+pc_list = as.numeric(args[8])
+pc_list <- as.numeric(strsplit(pc_list,"-")[[1]])
+print(pc_list)
+cov_file = args[9]
 
 
 # Function to read in genotype matrix for a set of variants
@@ -65,14 +68,15 @@ pgs <- function(X, betas) {
 }
 
 # Function to calculate Q
-calc_q <- function(sscore, Va) {
+calc_q <- function(sscore, Va, tvec) {
 
-  numerator <- dfTvec$InTvec %*% sscore
-  lambdaT <- t(dfTvec$InTvec) %*% dfTvec$Tvec
-  qhat <- (1/sqrt(Va)) * (numerator/lambdaT)
+  tvec <- as.matrix(tvec)
+  numerator <- t(tvec) %*% sscore
+  qhat <- (1/sqrt(N * Va)) * (numerator)
 
   return(qhat)
 }
+
 
 # Function to flip effect sizes
 flip <- function(betas) {
@@ -98,9 +102,29 @@ en <- function(X, betas, Va) {
 
 # Load Test vector
 dfTvec <- fread(tvec_file)
-# Mean center inverse Tvec
-dfTvec$InTvec <- scale(dfTvec$InTvec, scale = F)
-#/ (nrow(std.tvec) - 1 )
+Tvec <- dfTvec$Tvec - mean(dfTvec$Tvec)
+
+# count number of TP individuals
+N <- length(Tvec)
+
+# Compute inverse longitude
+
+## Load in covariance matrix
+cov_mat <- fread(cov_file)
+cov_mat <- apply(cov_mat, 2, as.numeric)
+
+## Do eigen decomposition on covariance matrix
+myE <-eigen(cov_mat)
+
+## Compute inverse covariance matrix
+n <- ncol(cov_mat) - 1
+FXXinv <- myE$vectors[,1:n] %*% diag(1/sqrt(myE$values[1:n])) %*% t(myE$vectors[,1:n])
+
+## Compute sd
+gamma <- sd(FXXinv %*% Tvec)
+
+## Rescale test vec
+tvec_scaled <- Tvec / gamma
 
 
 # Wrapper function to calculate Qx and empirical p values
@@ -177,27 +201,27 @@ main <- function(type, snps) {
 # Run all types of PGS
 
 ### Asecertained
-out_nc <- as.data.frame(matrix(NA, nrow = 4+pc_num, ncol =6))
+out_nc <- as.data.frame(matrix(NA, nrow = 4+length(pc_list), ncol =6))
 out_nc[1, ] <- main(type = "TRUE")
 out_nc[2, ] <- main(type = "", snps  = "nc")
 out_nc[3, ] <- main(type = "-Tm", snps = "nc")
 out_nc[4, ] <- main(type = "-ID", snps = "nc")
-for (i in 1:pc_num) {
-  out_nc[(4+i), ]  <- main(type = paste0("-",i), snps = "nc")
+for (i in 1:length(pc_list)) {
+  out_nc[(4+i), ]  <- main(type = paste0("-", pc_list[i]), snps = "nc")
 }
-pcs <- paste0("nc-PC", seq(1,pc_num))
+pcs <- paste0("nc-PC", seq(1,pc_list))
 out_nc$type <- c("true","nc-uncorrected", "nc-Tm", "nc-ID", pcs)
 
 ### Causal
-out_c <- as.data.frame(matrix(NA, nrow = 4+pc_num, ncol =6))
+out_c <- as.data.frame(matrix(NA, nrow = 4+length(pc_list), ncol =6))
 out_c[1, ] <- main(type = "TRUE")
 out_c[2, ] <- main(type = "", snps  = "c")
 out_c[3, ] <- main(type = "-Tm", snps = "c")
 out_c[4, ] <- main(type = "-ID", snps = "c")
-for (i in 1:pc_num) {
-  out_c[(4+i), ]  <- main(type = paste0("-",i), snps = "c")
+for (i in 1:length(pc_list)) {
+  out_c[(4+i), ]  <- main(type = paste0("-",pc_list[i]), snps = "c")
 }
-pcs <- paste0("c-PC", seq(1,pc_num))
+pcs <- paste0("c-PC", seq(1,pc_list))
 out_c$type <- c("true","c-uncorrected", "c-Tm", "c-ID", pcs)
 
 ### Compute  bias
