@@ -126,6 +126,9 @@ gamma <- sd(FXXinv %*% Tvec)
 ## Rescale test vec
 tvec_scaled <- Tvec / gamma
 
+# Use rescaled test vec
+tvec_scaled <- FXXinv %*% tvec_scaled
+
 
 # Wrapper function to calculate Qx and empirical p values
 main <- function(type, snps) {

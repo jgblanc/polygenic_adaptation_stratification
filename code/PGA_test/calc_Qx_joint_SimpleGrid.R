@@ -136,6 +136,9 @@ gamma_long <- sd(FXXinv %*% Tvec_long)
 tvec_scaled <- Tvec / gamma
 tvec_scaled_long <- Tvec_long / gamma_long
 
+# Use rescaled test vec
+tvec_scaled <- FXXinv %*% tvec_scaled
+tvec_scaled_long <- FXXinv %*% tvec_scaled_long
 
 # Wrapper function to calculate Qx and empirical p values
 main <- function(type, snps) {
