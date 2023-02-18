@@ -234,7 +234,7 @@ main <- function(type, snps) {
 
   # Concatenate output (Qx, p_strat)
   out <- c(q_marginal, p_strat_marginal , p_strat_en_marginal, q_joint, p_strat_joint, p_strat_en_joint,
-           q_marginal_long, p_strat_marginal_long, p_strat_en_marginal_long, q_joint_long, p_strat_en_joint_long, p_strat_en_joint_long)
+           q_marginal_long, p_strat_marginal_long, p_strat_en_marginal_long, q_joint_long, p_strat_joint_long, p_strat_en_joint_long)
 
   return(out)
 
