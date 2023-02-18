@@ -539,10 +539,11 @@ rule pick_SNPS:
       "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas",
       expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{nc}}/{{env}}/genos-gwas_common-{pc}.nc.betas", pc=PC)
     params:
-      pc_max = int(PC[-1])
+      pc_list = get_pc_list(PC)
     shell:
       """
-      Rscript code/PRS/clump_PCs.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common {params.pc_max}
+      Rscript code/PRS/clump_PCs.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common {params.pc_max} {params.pc_list}
+      rm {input.gwas_u} {input.gwas_Tm} {input.gwas_ID} {input.gwas_PC}
       """
 
 
@@ -570,10 +571,11 @@ rule joint_effects:
       "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas.joint",
       expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{nc}}/{{env}}/genos-gwas_common-{pc}.nc.betas.joint", pc=PC)
     params:
-      pc_max = int(PC[-1])
+      pc_list = get_pc_list(PC)
     shell:
       """
-      Rscript code/PRS/compute_joint_effect_sizes_PC.R output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common {input.pheno} {input.Tm} {params.pc_max}
+      Rscript code/PRS/compute_joint_effect_sizes_PC.R output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common {input.pheno} {input.Tm} {params.pc_list}
+      rm {input.uc} {input.Tmc} {input.IDc} {input.unc} {input.Tmnc} {input.IDnc} {input.PCc}  {input.PCnc}
       """
 
 # Do PGA test
@@ -591,15 +593,16 @@ rule Calc_Qx:
     genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
     Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/inverse_Tvec.txt",
     pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
-    es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt"
+    es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt",
+    cov="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel"
   output:
     qx="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt"
   params:
     num=NUM_RESAMPLE,
-    pc_max = int(PC[-1])
+    pc_list = get_pc_list(PC)
   shell:
     """
-    Rscript code/PGA_test/calc_Qx_joint.R output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {params.pc_max}
+    Rscript code/PGA_test/calc_Qx_joint.R output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {params.pc_list} {input.cov}
     """
 
 # Calculate true signal magnitude
