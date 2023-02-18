@@ -486,7 +486,7 @@ make_gwas_weights_plot <- function(df, test_type) {
 }
 
 
-fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_new.txt.gz")
+fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_new2.txt.gz")
 pgs <- fread("../code/Make_Plots/large_files/SimpleGrid_pgs_C_new.txt.gz")
 phenos <- fread("../code/Make_Plots/large_files/SimpleGrid_phenos_C_new.txt.gz")
 gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C_new.txt.gz")
@@ -500,13 +500,6 @@ dat$type <- factor(dat$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "n
 ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen", "red4")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "$\\hat{F}_{Gr}$", "Confounder", "10 PCs")))) 
 #+ facet_wrap(~test)
 ```
-```{r}
-dat <- gwas_weights %>% filter(test == "PS", rep == "C1")
-#%>% group_by(PC) %>% summarise(relative_avg_weight = mean(Relative_PC_weights))
-  
-ggplot(data = dat, aes(x=PC, y=Relative_PC_weights)) + geom_col(color = "purple4") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("Principal Component") + ylab("Avg. Relative Weight") 
-```
-
 
 
 #### Lat/Lat 
@@ -522,7 +515,7 @@ pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
 sv1 <- ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.48, 0.2, 0.22))
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
-ggsave("~/Desktop/LAT.png", sv, height = 2.5, width = 12)
+#ggsave("~/Desktop/LAT.png", sv, height = 2.5, width = 12)
 #ggsave("~/Desktop/LAT.png", pl_fp, height = 3.3, width =2.8 )
 ```
 
@@ -541,7 +534,7 @@ pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 sv2 <- ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.48, 0.2, 0.22))
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
 #sv
-ggsave("~/Desktop/DLAT.png", sv, height = 2.5, width = 12)
+#ggsave("~/Desktop/DLAT.png", sv, height = 2.5, width = 12)
 #ggsave("~/Desktop/DLAT.png", pl_fp, height = 3.3, width = 2.8)
 ```
 
@@ -560,7 +553,7 @@ pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
 sv3 <- ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.48, 0.2, 0.22))
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
-ggsave("~/Desktop/SLAT.png", sv, height = 2.5, width = 11)
+#ggsave("~/Desktop/SLAT.png", sv, height = 2.5, width = 11)
 #ggsave("~/Desktop/SLAT.png", pl_fp, height = 3.3, width = 2.8)
 ```
 
@@ -579,26 +572,25 @@ pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
 
 sv4 <- ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.2, 0.48, 0.2, 0.22))
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
-ggsave("~/Desktop/DD.png", sv, height = 2.5, width = 11)
+#ggsave("~/Desktop/DD.png", sv, height = 2.5, width = 11)
 #ggsave("~/Desktop/DD.png", pl_fp, height = 4, width = 4)
 ```
 
+## Final Figure 4
 ```{r}
 out <- ggarrange(sv1, sv2,sv3, sv4, nrow = 4, ncol = 1)
 #,labels = c("A", "B", "C", "D"),font.label=list(color="black",size=16), hjust=0.8)
+ggsave("~/Desktop/fig4.png", out, height = 10, width = 12)
+```
 
-ggsave("~/Desktop/test.png", out, height = 10, width = 12)
+## Grid Supplement
+```{r}
+df <- fp %>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter((pheno == "LAT" & test == "LAT") | (pheno == "PS" & test == "LAT") | (pheno == "PS" & test == "PS") | (pheno == "DIAG" & test == "LAT")) %>% separate(envs, c("env", "diff"), "-") %>% mutate(diff = as.numeric(diff)) %>% filter(type  %in% c("nc-uncorrected", "nc-PC10", "nc-Tm", "nc-ID")) %>% mutate(sim = case_when(pheno == "LAT" & test == "LAT" ~ "Latitude/Latidue", (pheno == "PS" & test == "LAT") ~ "Single Deme/Latitude", (pheno == "PS" & test == "PS") ~ "Single Deme/Single Deme", (pheno == "DIAG" & test == "LAT") ~ "Diagonal/Latitude"))
+
+ggplot(df, aes(x = diff, y = fp_strat, color = type)) + geom_point() + facet_wrap(~sim)+ xlab("Magintiude of confounder") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.text.align = 0) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.1) + scale_color_manual(values = c("goldenrod2","navy", "darkgreen", "red4"), labels = unname(TeX(c("No covariate", "$\\hat{F}_{Gr}$", "Confounder", "10 PCs"))), name = "GWAS Type")
 ```
 
 
-
-
-```{r, echo=FALSE, eval=FALSE}
-C2GWAS <- fread("../code/Make_Plots/4PopSplit_Fst_C2GWAS.txt")
-mean(C2GWAS$V3)
-C2Test <- fread("../code/Make_Plots/4PopSplit_Fst_C2Test.txt")
-mean(C2Test$V3)
-```
 
 
 
