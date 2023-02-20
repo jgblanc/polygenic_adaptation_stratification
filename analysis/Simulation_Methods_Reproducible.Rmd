@@ -100,16 +100,14 @@ plot_data <- function(data, color_name, eb_width = 0.005) {
 * Ascertained SNPs (minimum p-value per chromosome) 
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE}
-df <- fread("../code/Make_Plots/A_4PopSplit_h20.txt.gz")
+df <- fread("../code/Make_Plots/C_4PopSplit_joint_bias_Fig1.txt.gz")
 
 # C1 - no correction
-nc <- df %>% filter(type == "nc") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  
-nc$diff <- as.numeric(nc$diff)
+nc <- df %>% filter(type == "nc-uncorrected") %>% filter(case == "C1")%>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_") %>% mutate(diff = as.numeric(diff)) %>% filter(diff <= 0.1)  
 pl1 <- plot_data(nc, "goldenrod2") + ggtitle("C1 - No correction") + theme(plot.title = element_text(hjust = 0.5,size = 12))
 
 # C1 - correction 
-nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")
-nc$diff <- as.numeric(nc$diff)
+nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_") %>% mutate(diff = as.numeric(diff)) %>% filter(diff <= 0.1) 
 pl2 <- plot_data(nc, "navy") + ggtitle("C1 - TGWAS") + theme(plot.title = element_text(hjust = 0.5,size = 12))
 
 # C2 - No correction 
@@ -593,7 +591,21 @@ pl
 ggsave("~/Desktop/grid_sup1.png", pl, width = 10, height = 6)
 ```
 
+## Grid Supplement 2 - PS with different number of PCs
+```{r}
+fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_PS.txt.gz")
+df <- fp %>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()))%>% separate(type, c("tmp", "type"), "-") %>% filter(tmp == "nc")
+df1 <- df %>% filter(type %in% c("PC10", "PC50", "PC100", "PC200", "PC300", "PC500")) 
+df1$type <- factor(df1$type, levels = c("PC10", "PC50", "PC100", "PC200", "PC300", "PC500"))
+df2 <- df %>% filter(type %in% c("uncorrected", "Tm", "ID"))
+df2$type <- factor(df2$type, levels = c("Tm", "ID", "uncorrected"))
 
+pl1 <- ggplot(data = df1, aes(x = type, y = fp_strat)) + geom_col(fill ="red4")+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0, axis.text.y = element_blank(), axis.ticks = element_blank()) + ylim(-0.01,1.004) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) 
+
+pl2 <- ggplot(data = df2, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1.004) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("navy", "darkgreen", "goldenrod2")) + scale_x_discrete(labels = unname(TeX(c("$\\hat{F}_{Gr}$", "Confounder", "No covariate")))) 
+
+egg::ggarrange(pl2, pl1, nrow=1, widths = c(0.4, 0.6))
+```
 
 
 
@@ -780,8 +792,8 @@ ggplot(data = df2, aes(x = L, y = value, color = variable)) + geom_point() + geo
 ```{r}
 df <- fread("../code/Make_Plots/C_4PopSplit_joint_bias.txt.gz")
 
-df_marg <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_marginal` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
-df_joint <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
+df_marg <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm", "nc-PC2")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_marginal` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
+df_joint <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm", "nc-PC2")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
 df_marg$estimation_type <- "marginal"
 df_joint$estimation_type <- "joint"
 df_plot <- rbind(df_marg, df_joint)
