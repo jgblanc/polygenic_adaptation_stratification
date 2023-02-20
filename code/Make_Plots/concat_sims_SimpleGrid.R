@@ -23,4 +23,4 @@ agg_all_data <- function(rep, dir_path, case, h2, pheno, envs, test) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_fp_C_PS.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_fp_C_PS2.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)

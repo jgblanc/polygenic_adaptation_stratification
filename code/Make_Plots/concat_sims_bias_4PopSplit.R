@@ -6,7 +6,7 @@ reps <- rep(NA, n)
 for (i in 1:n){reps[i] <- paste0("C", i)}
 print(reps)
 h2 <- "joint-0.0"
-envs <- c("env_0.0", "env_0.02", "env_0.04", "env_0.04", "env_0.06", "env_0.08", "env_0.1", "env_0.12", "env_0.14","env_1.0")
+envs <- c("env_0.0", "env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08","env_0.09", "env_0.1")
 #envs <- c("env_0.0","env_0.1", "env_0.5", "env_1.0")
 cases <- c("C1")
 ts <- c("p-0.50")
