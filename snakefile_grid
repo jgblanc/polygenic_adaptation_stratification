@@ -1,16 +1,17 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = []
-for i in range(1, 101):
-  REP.append("C"+str(i))
+REP = ["C1"]
+#for i in range(1, 101):
+#  REP.append("C"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
-PHENO = ["PS"]
-TEST = ["PS"]
+PHENO = ["PS", "LAT", "DIAG"]
+TEST = ["PS", "LAT"]
 #ENV = ["env-0.0", "env-1.0", "env-0.2", "env-0.4", "env-0.6", "env-0.8"]
-ENV = ["env-2.0"]
-PC = [10, 50, 100, 200, 300,500,1000]
+ENV = ["env-0.0"]
+#PC = [10, 50, 100, 200, 300,500,1000]
+PC = [10]
 SS_TEST = 20 # Number of inidividuals per deme
 SIZE = SS_TEST * 36
 GWAS_SIZE = 60 * 36
@@ -408,9 +409,9 @@ rule format_covars:
       Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt",
       pc="output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec"
     output:
-      "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm-ID_covars.txt"
+      "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{pheno}/Tm-ID_covars.txt"
     shell:
-      "Rscript code/Calculate_Tm/SimpleGrid_format_ID_covars.R {input.pops} {input.Tm} {input.fam} {wildcards.test} {output} {input.pc}"
+      "Rscript code/Calculate_Tm/SimpleGrid_format_ID_covars.R {input.pops} {input.Tm} {input.fam} {wildcards.pheno} {output} {input.pc}"
 
 
 rule gwas_no_correction:
@@ -434,7 +435,7 @@ rule gwas_Tm:
         genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.afreq",
         pheno="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt",
-        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm-ID_covars.txt"
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{pheno}/Tm-ID_covars.txt"
     output:
         "output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.pheno_strat.glm.linear"
     shell:
@@ -453,7 +454,7 @@ rule gwas_PopID:
         genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.afreq",
         pheno="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt",
-        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm-ID_covars.txt"
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{pheno}/Tm-ID_covars.txt"
     output:
         "output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.pheno_strat.glm.linear"
     shell:
@@ -472,7 +473,7 @@ rule gwas_PC:
         genos="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
         freq="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.afreq",
         pheno="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt",
-        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm-ID_covars.txt"
+        Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{pheno}/Tm-ID_covars.txt"
     output:
         "output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-{pc}.pheno_strat.glm.linear"
     params:
@@ -529,7 +530,7 @@ rule joint_effects:
       IDnc="output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-ID.nc.betas",
       PCnc=expand("output/PRS/SimpleGrid/{{rep}}/{{config}}/{{h2}}/{{pheno}}/{{env}}/{{test}}/genos-gwas_common-{pc}.nc.betas", pc=PC),
       pheno="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt",
-      Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm-ID_covars.txt"
+      Tm="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{pheno}/Tm-ID_covars.txt"
     output:
       "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common.c.betas.joint",
       "output/PRS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common-Tm.c.betas.joint",
