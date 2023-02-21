@@ -7,7 +7,7 @@ for i in range(1,101):
   REP.append("C"+str(i))
 HERITABILITY = ["joint-0.3"]
 #ENV = ["env_0.0","env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08", "env_0.09", "env_0.1",]
-ENV = ["env_0.0","env_-0.1", "env_0.1"]
+ENV = ["env_0.0","env_-0.2", "env_0.2"]
 TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 #TS=["p-0.50"]
 #NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
@@ -71,7 +71,8 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC),
+	expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/ts_magnitude.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 # Simluate Genotypes
 
@@ -618,9 +619,9 @@ rule calc_ts_magnitude:
   input:
     psam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
     pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
-    true_es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt"
+    true_es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt"
   output:
-    "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/ts_magnitude.txt"
+    "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/ts_magnitude.txt"
   shell:
     "Rscript code/Simulate_Phenotypes/calculate_true_signal_magnitude.R {input.pops} {input.true_es} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {output}"
 
