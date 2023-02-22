@@ -40,6 +40,8 @@ fclump <- function(df, CHR) {
   return(min_p)
 }
 
+causal=fread(geffects_file)
+n_snps <- rnow(causal)
 
 ## main function to get causal SNP effect sizes
 
@@ -89,7 +91,8 @@ main_nc <- function(gwas_path, out_path) {
   gwas.red = gwas.red[order(gwas.red), ]
 
   # Repeat clumping for each chromosome
-  for (i in 2:length(nchrms)) {
+  if (n_snps < length(nhrms)) {n <- n_snps} else {n <- length(nchrms)}
+  for (i in 2:n) {
     new = fclump(gwas1, nchrms[i])
     new = new[order(new), ]
     gwas.red = rbind(gwas.red, new)

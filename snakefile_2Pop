@@ -71,7 +71,7 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.nc.betas", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 # Simluate Genotypes
 
