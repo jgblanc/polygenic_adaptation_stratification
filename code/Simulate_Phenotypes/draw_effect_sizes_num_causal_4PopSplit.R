@@ -63,12 +63,12 @@ if (nc == "all") {
   causal.variants <- p
 
 } else if (as.numeric(nc) > nrow(p)/2){
-  
+
   causal.variants <- sample_n(p,as.numeric(nc))
   print(nrow(causal.variants))
 
-} else {
-  
+} else if (as.numeric(nc) < 200) {
+
   nc <- as.numeric(nc)
   #carry this out grouped by chromosome
   df = p %>% filter(CHROM == 1)
@@ -79,7 +79,22 @@ if (nc == "all") {
     df = p %>% filter(CHROM == i)
     out <- sample.variant(as.data.table(df), k_pc)
     causal.variants <- rbind(causal.variants, out)
- }
+    }
+} else {
+
+  nc <- as.numeric(nc)
+  #carry this out grouped by chromosome
+  df = p %>% filter(CHROM == 1)
+  nchrms <- length(unique(p$CHROM))
+  k_pc <- round(nc / nchrms)
+  causal.variants <- sample.variant(as.data.table(df), k_pc)
+  for (i in 2:as.numeric(nc)){
+    df = p %>% filter(CHROM == i)
+    out <- sample.variant(as.data.table(df), k_pc)
+    causal.variants <- rbind(causal.variants, out)
+  }
+
+
 }
 
 #Now generate the effect sizes from these variants
