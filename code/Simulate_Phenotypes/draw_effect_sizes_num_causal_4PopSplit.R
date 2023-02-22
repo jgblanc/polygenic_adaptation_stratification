@@ -73,29 +73,29 @@ if (nc == "all") {
   #carry this out grouped by chromosome
   df = p %>% filter(CHROM == 1)
   nchrms <- length(unique(p$CHROM))
-  k_pc <- round(nc / nchrms)
+  k_pc <- 1
   causal.variants <- sample.variant(as.data.table(df), k_pc)
-  for (i in 2:nchrms){
+  for (i in 2:nc){
     df = p %>% filter(CHROM == i)
     out <- sample.variant(as.data.table(df), k_pc)
     causal.variants <- rbind(causal.variants, out)
     }
 } else {
-
+  
   nc <- as.numeric(nc)
   #carry this out grouped by chromosome
   df = p %>% filter(CHROM == 1)
   nchrms <- length(unique(p$CHROM))
   k_pc <- round(nc / nchrms)
   causal.variants <- sample.variant(as.data.table(df), k_pc)
-  for (i in 2:as.numeric(nc)){
+  for (i in 2:nchrms){
     df = p %>% filter(CHROM == i)
     out <- sample.variant(as.data.table(df), k_pc)
     causal.variants <- rbind(causal.variants, out)
   }
-
-
 }
+
+#print(causal.variants)
 
 #Now generate the effect sizes from these variants
 #calculate the independent component of variance required

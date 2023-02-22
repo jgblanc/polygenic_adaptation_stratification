@@ -1,0 +1,5 @@
+#!/bin/bash
+for i in {2..2}
+do
+   cp output/Simulate_Genotypes/4PopSplit/C${i}/genos*  output/Simulate_Genotypes/4PopSplit/A${i}/
+done
