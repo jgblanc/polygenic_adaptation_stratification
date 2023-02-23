@@ -2,12 +2,12 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
-REP = ["A1"]
-#for i in range(1,101):
-#  REP.append("A"+str(i))
+REP = []
+for i in range(1,101):
+  REP.append("A"+str(i))
 HERITABILITY = ["h2-0.0"]
 #ENV = ["env_0.0","env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08", "env_0.09", "env_0.1",]
-ENV = ["env_0.0"]
+ENV = ["env_0.0", "env_0.1"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.50"]
 #NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
@@ -71,7 +71,7 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.nc.betas", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 # Simluate Genotypes
 
@@ -446,11 +446,11 @@ rule format_covars:
       pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
       fam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
       Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt",
-      PC="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-gwas.eigenvec"
+      #PC="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-gwas.eigenvec"
     output:
       "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt",
     shell:
-      "Rscript code/Calculate_Tm/format_ID_covars.R {input.pops} {input.Tm} {input.fam} {output} {input.PC}"
+      "Rscript code/Calculate_Tm/format_ID_covars.R {input.pops} {input.Tm} {input.fam} {output}"
 
 rule gwas_no_correction:
   input:
