@@ -2,7 +2,7 @@
 #SBATCH --job-name=2PopSplit
 #SBATCH --output=logs/2PopSplit.out
 #SBATCH --error=logs/2PopSplit.err
-#SBATCH --time=03:00:00
+#SBATCH --time=04:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
