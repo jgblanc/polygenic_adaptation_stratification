@@ -71,8 +71,9 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC),
-        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
+        expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{pheno}/{test}/Tm-ID_covars.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
+
+#expand("output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
 
 # Simluate Genotypes
 
@@ -411,7 +412,7 @@ rule format_covars:
     output:
       "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{pheno}/{test}/Tm-ID_covars.txt"
     shell:
-      "Rscript code/Calculate_Tm/SimpleGrid_format_ID_covars.R {input.pops} {input.Tm} {input.fam} {wildcards.pheno} {output} {input.pc}"
+      "Rscript code/Calculate_Tm/SimpleGrid_format_ID_covars.R {input.pops} {input.Tm} {input.fam} {wildcards.test} {output} {input.pc}"
 
 
 rule gwas_no_correction:
