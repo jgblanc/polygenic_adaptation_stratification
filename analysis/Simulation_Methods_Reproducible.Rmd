@@ -252,21 +252,15 @@ df <- full_join(ts, df)
 # Ascertained sites
 data_nc <- df %>% group_by(envs, ts, type) %>% summarise(fp_strat = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), avg_mag = mean(ts_magnitude)) %>% separate(ts, c("ts", "prob"), "-") %>% separate(envs, c("env", "diff"), "_") %>% filter(type %in% c("nc-uncorrected", "nc-Tm", "nc-ID", "true")) %>% mutate(prob = as.numeric(prob)) %>% mutate(direction = case_when(diff == "-0.2" ~ "Opposite Direction", diff == "0.0" ~ "No Environmental Stratification", diff == "0.2" ~ "Same Direction")) %>% mutate(PRS = case_when(type == "nc-uncorrected" ~ "Uncorrected", type == "nc-Tm" ~  "TGWAS", type == "nc-ID" ~ "Population ID", type == "true" ~ "True Effect Size")) %>% mutate(type = factor(type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "true")))
 d2_nc <- data_nc %>% filter(type %in% c("nc-uncorrected", "nc-Tm", "nc-ID"))
-#avg_mag = mean(ts_magnitude)
-
 labs <- c("Uncorrected", expression(T^{GWAS}),"Population ID", "True Effect Size")
-ggplot(data = data_nc, aes(x = prob, y = fp_strat, color = type, shape = type, size = type)) + geom_point() + facet_grid(~direction) + theme_classic(base_size = 12) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1)+scale_colour_manual(name = "",labels = labs,values = c("goldenrod2", "navy","darkgreen", "red")) + scale_shape_manual(name = "",labels = labs,values = c(16, 16, 16, 8)) + scale_size_manual(name = "",labels = labs,values = c(2, 2, 2, 3)) + geom_errorbar(data = d2_nc, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5)  +  scale_y_continuous(name = "Positive Rate", breaks = seq(0, 1, 0.2)) + scale_x_continuous(name = "True Signal", breaks = seq(0.5, 0.62, 0.03))
 ```
 
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=3, fig.width=8}
-# Ascertained sites
+# Causal sites
 data_c <- df %>% group_by(envs, ts, type) %>% summarise(fp_strat = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), avg_mag = mean(ts_magnitude)) %>% separate(ts, c("ts", "prob"), "-") %>% separate(envs, c("env", "diff"), "_") %>% filter(type %in% c("c-uncorrected", "c-Tm", "c-ID", "true")) %>% mutate(prob = as.numeric(prob)) %>% mutate(direction = case_when(diff == "-0.2" ~ "Opposite Direction", diff == "0.0" ~ "No Environmental Stratification", diff == "0.2" ~ "Same Direction")) %>% mutate(PRS = case_when(type == "c-uncorrected" ~ "Uncorrected", type == "c-Tm" ~  "TGWAS", type == "c-ID" ~ "Population ID", type == "true" ~ "True Effect Size")) %>% mutate(type = factor(type,  levels = c("c-uncorrected", "c-Tm", "c-ID",  "true")))
 d2_c <- data_c %>% filter(type %in% c("c-uncorrected", "c-Tm", "c-ID"))
-#avg_mag = mean(ts_magnitude)
 
-labs <- c("Uncorrected", expression(hat{F}_{Gr}),"Population ID", "True Effect Size")
-ggplot(data = data_c, aes(x = prob, y = fp_strat, color = type, shape = type, size = type)) + geom_point() + facet_grid(~direction) + theme_classic(base_size = 12) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red")+ theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1)+scale_colour_manual(name = "",labels = labs,values = c("goldenrod2", "navy","darkgreen", "red"))+ scale_shape_manual(name = "",labels = labs,values = c(16, 16, 16, 8)) + scale_size_manual(name = "",labels = labs,values = c(2, 2, 2, 3)) + geom_errorbar(data = d2_c, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5)  +  scale_y_continuous(name = "Positive Rate", breaks = seq(0, 1, 0.2)) + scale_x_continuous(name = "True Signal", breaks = seq(0.5, 0.62, 0.03))
 ```
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=5, fig.width=8}
@@ -303,6 +297,29 @@ pl <- ggplot(data = data, aes(x = avg_mag, y = fp_strat, color = PRS, shape = PR
 pl
 ggsave("~/Desktop/TS.png", pl,width = 10, height = 6)
 ```
+
+
+### Marginal vs Joint figure 
+
+```{r}
+df <- fread("../code/Make_Plots/A_2PopSplit_bias.txt.gz")
+
+dat  <- df %>% dplyr::group_by( case, envs, nc, type) %>% summarise(avg_marg = mean(q_marginal), avg_joint = mean(q_joint)) %>% separate(envs, c("tmp", "diff"), "_") %>% separate(nc, c("tmp2", "L"), "-") %>% filter(case == "C1", type %in% c( "nc-uncorrected")) %>% select(diff, L, avg_marg, avg_joint, type)
+
+df_plot <- reshape2::melt(dat)
+
+ggplot(data =df_plot, aes(x = diff, y = value, color = variable, shape = L)) + geom_point()
+```
+
+
+
+
+
+
+
+
+
+
 
 #### Varying the number of SNPs 
 
@@ -497,13 +514,7 @@ gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C_new.txt.gz")
 ```
 
 
-```{r}
-dat <- fp %>% filter(envs == "env-0.2" & pheno == "LAT" & test == "LAT" & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
-dat$type <- factor(dat$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
 
-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen", "red4")) + scale_x_discrete(labels = unname(TeX(c("No covariate", "$\\hat{F}_{Gr}$", "Confounder", "10 PCs")))) 
-#+ facet_wrap(~test)
-```
 
 
 #### Lat/Lat 
