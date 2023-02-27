@@ -71,18 +71,21 @@ df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, ".c.betas")), pheno
 fwrite(df, paste0(path_to_SNPs, ".c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
 df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, ".nc.betas")), phenos, rep(0, nrow(phenos)))
 fwrite(df, paste0(path_to_SNPs, ".nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
+print("Finished uncorrected")
 
 ## Tm corrected
 df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-Tm.c.betas")), phenos, df_covar$Tm)
 fwrite(df, paste0(path_to_SNPs, "-Tm.c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
 df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-Tm.nc.betas")), phenos, df_covar$Tm)
 fwrite(df, paste0(path_to_SNPs, "-Tm.nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
+print("Finished Tm")
 
 ## ID corrected
 df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-ID.c.betas")), phenos, df_covar$PopID)
 fwrite(df, paste0(path_to_SNPs, "-ID.c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
 df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-ID.nc.betas")), phenos, df_covar$PopID)
 fwrite(df, paste0(path_to_SNPs, "-ID.nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
+print("Finished ID")
 
 ## PC corrected
 for (i in pcs) {
@@ -93,7 +96,7 @@ for (i in pcs) {
   fwrite(df, paste0(path_to_SNPs, "-", i, ".nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
 
 }
-
+print("Finished PC")
 
 
 

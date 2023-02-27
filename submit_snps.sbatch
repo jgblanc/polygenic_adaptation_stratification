@@ -16,5 +16,5 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake --cores all --rerun-incomplete -s snakefile_snps   
-#snakemake -j1 --rerun-incomplete -s snakefile_snps 
+#snakemake --cores all --rerun-incomplete -s snakefile_snps   
+snakemake -j10 --rerun-incomplete -s snakefile_snps 

@@ -62,8 +62,8 @@ if (nc == "all") {
 
   causal.variants <- p
 
-} else if (as.numeric(nc) > nrow(p)/2){
-
+} else if (as.numeric(nc) > (nrow(p)/4)){
+  print("F")
   causal.variants <- sample_n(p,as.numeric(nc))
   print(nrow(causal.variants))
 
@@ -77,19 +77,22 @@ if (nc == "all") {
   causal.variants <- sample.variant(as.data.table(df), k_pc)
   for (i in 2:nc){
     df = p %>% filter(CHROM == i)
+    if (nrow(df) == 0) {df = p %>% filter(CHROM == (i+1))}
     out <- sample.variant(as.data.table(df), k_pc)
     causal.variants <- rbind(causal.variants, out)
     }
 } else {
-  
+
   nc <- as.numeric(nc)
   #carry this out grouped by chromosome
   df = p %>% filter(CHROM == 1)
+  print(nrow(df))
   nchrms <- length(unique(p$CHROM))
   k_pc <- round(nc / nchrms)
   causal.variants <- sample.variant(as.data.table(df), k_pc)
   for (i in 2:nchrms){
     df = p %>% filter(CHROM == i)
+    if (nrow(df) == 0) {df = p %>% filter(CHROM == (i+1))}
     out <- sample.variant(as.data.table(df), k_pc)
     causal.variants <- rbind(causal.variants, out)
   }

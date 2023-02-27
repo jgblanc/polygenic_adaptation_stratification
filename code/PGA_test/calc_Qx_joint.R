@@ -118,7 +118,11 @@ myE <-eigen(cov_mat)
 
 ## Compute inverse covariance matrix
 n <- ncol(cov_mat) - 1
+n <- which(myE$values<0)[1] - 1
+print(n)
 FXXinv <- myE$vectors[,1:n] %*% diag(1/sqrt(myE$values[1:n])) %*% t(myE$vectors[,1:n])
+
+
 
 ## Compute sd
 gamma <- sd(FXXinv %*% Tvec)
