@@ -21,6 +21,7 @@ output/*/*/K*
 output/*/*/L*
 output/*/*/B*
 output/*/*/C*
+output/*/*/D*
 output/1kg/*
 code/Make_Plots/large_files/*
 output/Simulate_Genotypes/*/*/*.pgen

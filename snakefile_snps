@@ -4,18 +4,17 @@ for i in range(0, 200):
 CONFIG=["C1"]
 REP = []
 for i in range(1,101):
-  REP.append("C"+str(i))
+  REP.append("D"+str(i))
 HERITABILITY = ["joint-0.3"]
-ENV = ["env_0.02"]
-#ENV = ["env_0.0", "env_-0.1", "env_0.1"]
+#ENV = ["env_0.0","env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08", "env_0.09", "env_0.1",]
+ENV = ["env_0.2"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.62"]
-NUM_CAUSAL = ["c-200", "c-2000", "c-20000"]
+NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
 #NUM_CAUSAL = ["c-200"]
-SIZE=2000
 PC=[1]
-NUM_RESAMPLE=1
-PVALUE_THRESHOLD=1
+SIZE=2000
+NUM_RESAMPLE=1000
 
 wildcard_constraints:
     rep="[A-Z]\d+",
@@ -26,13 +25,8 @@ wildcard_constraints:
     dir="[a-z]*",
     pc="[0-9]"
 
-def get_pc_num(x):
-  end = str(int(x) + 4)
-  start = str(5)
-  out = start + "-" + end
-  if int(x) == 1:
-     out = str(5)
-  #print(out)
+def get_seed_msprime(rep):
+  out = int(''.join(list(rep)[1::])) * 1000
   return out
 
 def get_pc_list(x):
@@ -40,10 +34,6 @@ def get_pc_list(x):
   #print(A)
   out = "-".join(A)
   #print(out)
-  return out
-
-def get_seed_msprime(rep):
-  out = int(''.join(list(rep)[1::])) * 1000
   return out
 
 def get_params(x):
@@ -70,9 +60,19 @@ def get_seed(rep, config, h2, ts, env):
   #print(out)
   return out
 
+def get_pc_num(x):
+  end = str(int(x) + 4)
+  start = str(5)
+  out = start + "-" + end
+  if int(x) == 1:
+     out = str(5)
+  #print(out)
+  return out
+
 rule all:
     input:
-        expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-{pc}.nc.betas", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+#expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/ts_magnitude.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 # Simluate Genotypes
 
@@ -87,19 +87,19 @@ rule simulate_genotypes_4popsplit:
         """
         python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
 	      --outpre output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
-	            --chr {params.chr_num} \
-       		    --Nanc 10000 \
-		          --NA 10000 \
-			        --NB 10000 \
-				      --NC 10000 \
-				            --ND 10000 \
-  					        -a 20000 \
-						      -b 20000 \
-						            -c 20000 \
-							          -d 20000 \
-        -s1 4400 \
-        -s2 2200 \
-        -L 100000 \
+	      --chr {params.chr_num} \
+       	--Nanc 10000 \
+	      --NA 10000 \
+	      --NB 10000 \
+	      --NC 10000 \
+	      --ND 10000 \
+  	    -a 40000 \
+	      -b 40000 \
+	      -c 40000 \
+	      -d 40000 \
+        -s1 5000 \
+        -s2 2500 \
+        -L 10000 \
         --seed {params.seed}
         """
 
@@ -112,10 +112,11 @@ rule format_VCF:
     shell:
         """
 	      head -n6 {input} > output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/header_{wildcards.chr}.txt
-	            cat output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/header_{wildcards.chr}.txt <(cat output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos_{wildcards.chr}.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
-		    	    #bcftools index {output.gz}
-			    	      	      rm output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/header_{wildcards.chr}.txt
-							  """
+	      cat output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/header_{wildcards.chr}.txt <(cat output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos_{wildcards.chr}.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
+		    #bcftools index {output.gz}
+			  rm output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/header_{wildcards.chr}.txt
+			  rm {input}
+			  """
 
 rule concat_vcfs:
     input:
@@ -127,6 +128,7 @@ rule concat_vcfs:
         bcftools concat {input} -o output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/temp.vcf.gz -O z
         bcftools annotate --rename-chrs code/Simulate_Genotypes/convert_chr.txt output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/temp.vcf.gz -o {output} -O z
         rm output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/temp.vcf.gz
+	rm {input}
         """
 
 rule convert_vcf_to_plink:
@@ -174,11 +176,11 @@ rule split_into_test_gwas:
     shell:
         """
 	      plink2 \
-	            --keep {input.gwas} \
-		    	       --make-pgen \
-						  --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas \
-						  											   --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
-																	   	   							      --rm-dup exclude-all
+	      --keep {input.gwas} \
+		    --make-pgen \
+			  --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas \
+				--pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
+				--rm-dup exclude-all
 
         plink2 \
         --keep {input.test} \
@@ -186,7 +188,7 @@ rule split_into_test_gwas:
         --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test \
         --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/genos \
 	      --rm-dup exclude-all
-	            """
+	      """
 
 rule get_variant_freq:
     input:
@@ -198,10 +200,10 @@ rule get_variant_freq:
         """
         plink2 \
 	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test \
-	            --freq \
-		    	       --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test
+	      --freq \
+		    --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test
 
-					  plink2 \
+			  plink2 \
         --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas \
         --freq \
         --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas
@@ -250,14 +252,14 @@ rule common_snp_freq:
         """
         plink2 \
 	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	            --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-		    	      --freq
+	      --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
+		    --freq
 
-				    plink2 \
-				          --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
-					        --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
-						          --freq
-								    """
+		    plink2 \
+	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
+	      --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
+		    --freq
+		    """
 
 rule calculate_fst:
     input:
@@ -272,16 +274,16 @@ rule calculate_fst:
         """
         plink2 \
 	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	            --pheno {input.gwas_ids} \
-		          --fst POP \
-			        --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common
+	      --pheno {input.gwas_ids} \
+	      --fst POP \
+	      --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common
 
-				          plink2 \
-					        --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
-						      --pheno {input.test_ids} \
-						            --fst POP \
-							          --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common
-								  	    """
+		    plink2 \
+	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
+	      --pheno {input.test_ids} \
+	      --fst POP \
+	      --out output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common
+		    """
 
 #rule aggregate_genotypes:
 #    input:
@@ -305,24 +307,24 @@ rule calculate_fst:
 #        expand("output/Simulate_Genotypes/4PopSplit/{rep}/ff.txt", rep=REP)
 #    shell:
 #        """
-#	       touch {output}
-#	             echo {input.frq_common_gwas}
-#		           echo {input.frq_common_test}
-#			         rm {input.genos}
-#				       rm {input.frq_test}
-#				             rm {input.frq_gwas}
-#					           rm {input.gz}
-#						         rm {input.gz_chr}
-#							       rm {input.gwas_pgen}
-#							             rm {input.gwas_pvar}
-#								           rm {input.gwas_psam}
-#									         rm {input.test_pgen}
-#										       rm {input.test_pvar}
-#										             rm {input.test_psam}
-#											           rm {input.pgen}
-#												         rm {input.pvar}
-#													       rm {input.psam}
-#													             """
+#	      touch {output}
+#	      echo {input.frq_common_gwas}
+#	      echo {input.frq_common_test}
+#	      rm {input.genos}
+#	      rm {input.frq_test}
+#	      rm {input.frq_gwas}
+#	      rm {input.gz}
+#	      rm {input.gz_chr}
+#	      rm {input.gwas_pgen}
+#	      rm {input.gwas_pvar}
+#	      rm {input.gwas_psam}
+#	      rm {input.test_pgen}
+#	      rm {input.test_pvar}
+#	      rm {input.test_psam}
+#	      rm {input.pgen}
+#	      rm {input.pvar}
+#	      rm {input.psam}
+#	      """
 
 # Simluate Phenotypes
 
@@ -352,9 +354,9 @@ rule generate_genetic_values:
         """
         plink2 \
 	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	            --out output/Simulate_Phenotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common.gvalue \
-		    	      --score output/Simulate_Phenotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common.effects.txt cols=dosagesum,scoresums
-			      	          """
+	      --out output/Simulate_Phenotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common.gvalue \
+		    --score output/Simulate_Phenotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common.effects.txt cols=dosagesum,scoresums
+		    """
 
 rule simulate_phenotype_4PopSplit:
     input:
@@ -368,7 +370,6 @@ rule simulate_phenotype_4PopSplit:
         seed = lambda wildcards: get_seed(wildcards.rep, wildcards.config, wildcards.h2, wildcards.ts, wildcards.env)
     shell:
         "Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit_unscaled.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
-
 
 # Project Test vector
 
@@ -393,9 +394,9 @@ rule test_panel_cov_matrix:
         """
         plink2 \
 	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
-	            --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test \
-		    	      --make-rel cov square
-			      		     """
+	      --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test \
+		    --make-rel cov square
+		    """
 
 rule compute_inverse_T:
     input:
@@ -435,10 +436,9 @@ rule GWAS_PCA:
         """
         plink2 \
 	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	            --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas \
-		    	      --pca 10 approx
-			      	        """
-
+	      --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas \
+		    --pca 10 approx
+		    """
 
 # Run GWAS
 
@@ -554,6 +554,7 @@ rule pick_SNPS:
       rm {input.gwas_u} {input.gwas_Tm} {input.gwas_ID} {input.gwas_PC}
       """
 
+
 # Compute joint effect sizes
 
 rule joint_effects:
@@ -625,29 +626,6 @@ rule calc_ts_magnitude:
     "Rscript code/Simulate_Phenotypes/calculate_true_signal_magnitude.R {input.pops} {input.true_es} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {output}"
 
 
-
-# Comute Qx using all SNPs
-
-#rule Calc_Qx_SNPs:
-#  input:
-#    gwas="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.nc.betas",
-#    gwasTm="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.nc.betas",
-#    gwasID="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas",
-#    genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
-#    lambda_T="output/PGA_test/4PopSplit/{rep}/{config}/Lambda_T.txt",
-#    Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt",
-#    pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
-#    es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt"
-#  output:
-#    qx="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt"
-#  params:
-#    num=NUM_RESAMPLE,
-#    size = SIZE
-#  shell:
-#    """
-#    Rscript code/PGA_test/calc_Qx_4PopSplit_allSNPs.R output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.lambda_T} {input.Tvec} {input.pops} {params.num} {params.size} {output.qx} {input.es}
-#    """
-
 # Bin and average effect size estimates
 
 rule bin_effect_size:
@@ -696,19 +674,4 @@ rule bin_causal_effect_size:
       Rscript code/Run_GWAS/bin_avg_effect_sizes_causal.R {input.r} {input.gwas} {input.gwas_Tm} {input.gwas_ID} {input.te} {output.es} {output.es_Tm} {output.es_ID} {output.es_true}
       """
 
-rule compute_sigma:
-    input:
-      gwas="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.pheno_strat.glm.linear",
-      gwas_Tm="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear",
-      gwas_ID="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear",
-      te = "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.effects.txt",
-      r="output/Calculate_Tm/4PopSplit/{rep}/{config}/r.txt"
-    output:
-      es="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common.causal_mean",
-      es_Tm="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-Tm.causal_mean",
-      es_ID="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/genos-gwas_common-ID.causal_mean",
-      es_true="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{env}/true_effects.causal_mean"
-    shell:
-      """
-      Rscript code/Run_GWAS/bin_avg_effect_sizes_causal.R {input.r} {input.gwas} {input.gwas_Tm} {input.gwas_ID} {input.te} {output.es} {output.es_Tm} {output.es_ID} {output.es_true}
-      """
+
