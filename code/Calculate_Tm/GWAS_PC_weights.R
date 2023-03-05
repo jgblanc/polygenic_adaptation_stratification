@@ -26,7 +26,10 @@ vecs <- apply(vecs, 2, as.numeric)
 Tm = fread(Tm_file)
 print(head(Tm))
 #Tm = Tm$Tm
-Tm = Tm$phenostrat
+Tm = Tm$pheno_strat
+print(head(Tm))
+#print(dim(Tm))
+#print(dim(vecs))
 
 # Get weights
 B = t(vecs) %*% Tm

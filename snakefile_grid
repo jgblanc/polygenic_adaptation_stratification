@@ -1,15 +1,15 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = ["C1"]
-#for i in range(1, 101):
-#  REP.append("C"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("C"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["PS", "LAT", "DIAG"]
 TEST = ["PS", "LAT"]
-ENV = ["env-0.0", "env-1.0", "env-0.2", "env-0.4", "env-0.6", "env-0.8",  "env-1.2", "env-1.4", "env-1.6", "env-1.8", "env-2.0"]
-#ENV = ["env-0.0"]
+#ENV = ["env-0.0", "env-1.0", "env-0.2", "env-0.4", "env-0.6", "env-0.8",  "env-1.2", "env-1.4", "env-1.6", "env-1.8", "env-2.0"]
+ENV = ["env-0.0", "env-0.2", "env-1.0"]
 #PC = [10, 50, 100, 200, 300,500,1000]
 PC = [10]
 SS_TEST = 20 # Number of inidividuals per deme
@@ -649,7 +649,7 @@ rule confounder_PCA_weights:
         "output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/pca_weights.txt"
     shell:
         """
-        Rscript code/Calculate_Tm/GWAS_PC_weights.R {input.vecs} {input.Tm} {output}
+        Rscript code/Calculate_Tm/GWAS_PC_weights.R {input.vecs} {input.phenos} {output}
         """
 
 
