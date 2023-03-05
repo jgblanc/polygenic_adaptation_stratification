@@ -482,50 +482,6 @@ phenos <- fread("../code/Make_Plots/large_files/SimpleGrid_phenos_C_new.txt.gz")
 gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C_new.txt.gz")
 ```
 
-
-
-```{r}
-# Function to plot the false positive rates 
-make_fp_plot <- function(df, pheno_type, env_type, test_type, longitude=F) {
-  
-  if (test_type == "LAT") {
-    test_name <- "Latitude"
-  }
-  if (test_type == "PS") {
-    test_name = "Single Deme"
-  }
-  
-  if (longitude == F) {
-    dat <- fp %>% filter(envs == env_type & pheno == pheno_type & test == test_type & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
-    dat$type <- factor(dat$type,  levels = c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
-    dat$test  <- test_name
-
-    pl <- ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 14, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "red4")) + scale_x_discrete(labels = unname(TeX(c("Uncorrected", "$\\hat{F}_{Gr}$", "10 PCs")))) + facet_wrap(~test)
-  } else {
-    
-    dat_lat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
-    dat_lat$type <- factor(dat_lat$type,  levels = c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
-    dat_lat$test  <- test_name
-    
-    dat_long <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_joint_long <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
-    dat_long$type <- factor(dat_long$type,  levels = c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
-    dat_long$test  <- "Longitude"
-    
-    dat <- full_join(dat_lat, dat_long)
-
-    pl <-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 10, color = "black",  angle = 45, hjust=1, vjust=1), legend.position = "none", strip.text.x = element_text(size = 12)) + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "red4")) + scale_x_discrete(labels = unname(TeX(c("Uncorrected", "$\\hat{F}_{Gr}$", "10 PCs")))) + facet_wrap(~test)   
-    
-  }
-  
-  return(pl)
-}
-```
-
-
-
-
-
-
 #### Lat/Lat 
 
 * Simulated phenotype according to latitudinal gradient 
@@ -638,26 +594,25 @@ pl2 <- ggplot(data = df2, aes(x = type, y = fp_strat, fill = type)) + geom_col()
 
 sv <- egg::ggarrange(pl2, pl1, nrow=1, widths = c(0.4, 0.6))
 ggsave("~/Desktop/grid_sup2.png", sv, width = 10, height = 6)
-
-
-
 ```
+
+### Grid supp 3 - pc weights of phenotype
 
 ```{r}
-fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_PS2.txt.gz")
-df <- fp %>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()))%>% separate(type, c("tmp", "type"), "-") %>% filter(tmp == "nc")
-df1 <- df %>% filter(type %in% c("PC10", "PC100", "PC500", "PC1000")) 
-df1$type <- factor(df1$type, levels = c("PC10", "PC100","PC500", "PC1000"))
-df2 <- df %>% filter(type %in% c("uncorrected","Tm"))
-df2$type <- factor(df2$type, levels = c("Tm", "uncorrected"))
+df <- fread("../code/Make_Plots/large_files/SimpleGrid_pheno_weights.txt.gz")
 
-pl1 <- ggplot(data = df1, aes(x = type, y = fp_strat)) + geom_col(fill ="red4")+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("") + theme_classic(base_size = 20) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 20, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0, axis.text.y = element_blank(), axis.ticks = element_blank()) + ylim(-0.01,1.004) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) 
+pheno_type <- "LAT"
+env_type <- "env-0.2"
+rep_type <- "C1"
+dat_10 <- df %>% filter(pheno == pheno_type & env == env_type & PC %in% seq(0,10))%>% group_by(rep) %>% summarise(var_10 = sum(Relative_PC_weights))
+dat_other <-df %>% filter(pheno == pheno_type & env == env_type & PC %in% seq(11,2159))%>% group_by(rep) %>% summarise(var_other = sum(Relative_PC_weights)) 
+  
+pl <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none",axis.text=element_text(size=8), axis.title.x =element_text(size=10)) + xlab("Principal Component") + ylab("Avg. Relative Weight") 
+pl
 
-pl2 <- ggplot(data = df2, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 20) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 20, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1.004) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("navy", "goldenrod2")) + scale_x_discrete(labels = unname(TeX(c("$\\hat{F}_{Gr}$", "Uncorrected")))) 
 
-sv <- egg::ggarrange(pl2, pl1, nrow=1, widths = c(0.4, 0.6))
-ggsave("~/Desktop/grid_sup2.png", sv, width = 8, height = 8)
 ```
+
 
 ```{r}
 df <- fread("../code/Make_Plots/A_4PopSplit_snps.txt.gz")
