@@ -25,7 +25,8 @@ vecs <- apply(vecs, 2, as.numeric)
 # Load T^GWAS
 Tm = fread(Tm_file)
 print(head(Tm))
-Tm = Tm$Tm
+#Tm = Tm$Tm
+Tm = Tm$phenostrat
 
 # Get weights
 B = t(vecs) %*% Tm
