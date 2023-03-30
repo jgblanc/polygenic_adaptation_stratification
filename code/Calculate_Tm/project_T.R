@@ -69,6 +69,14 @@ compute_b <- function(path_to_test, path_to_gwas, path_to_testvec, outpath) {
   # Read in and return b
   b = fread(paste0(outpath, "b.sscore"))
   b = as.matrix(b$BETA_SUM)
+
+  # Remove temporary files
+  fn <- paste0(outpath, "xt_temp*")
+  cmd <- paste("rm", fn, sep = " ")
+  fn <- paste0(outpath, "b*")
+  cmd <- paste("rm", fn, sep = " ")
+
+
   return(b)
 }
 
@@ -91,4 +99,8 @@ b = compute_b(path_to_test = test_prefix, path_to_gwas = gwas_prefix, path_to_te
 b = as.data.frame(scale(b))
 colnames(b) <- "Tm"
 
+# Write output
 fwrite(b, paste0(out_prefix, "Tm.txt"), row.names = F, col.names = T, quote = F, sep = "\t")
+
+
+

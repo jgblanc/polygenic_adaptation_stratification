@@ -31,9 +31,7 @@ def get_seed_msprime(rep):
 
 def get_pc_list(x):
   A = [str(i) for i in x]
-  #print(A)
   out = "-".join(A)
-  #print(out)
   return out
 
 def get_params(x):
@@ -42,22 +40,6 @@ def get_params(x):
 
 def get_env(x):
   out = x.split("_")[1]
-  return out
-
-def get_seed(rep, config, h2, ts, env):
-  rep = int(''.join(list(rep)[1::]))
-  #print(rep)
-  config = list(config)[1]
-  #print(config)
-  h2 = h2.split(".")[1]
-  #print(h2)
-  env = float(env.split("_")[1])
-  #print(env)
-  ts = float(ts.split("-")[1].split(".")[1]) / 100
-  #print(ts)
-  out = (rep + int(config) + float(h2) + env + ts) * 1000
-  out = str(out)
-  #print(out)
   return out
 
 def get_pc_num(x):
@@ -71,7 +53,7 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.phenos.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/Calculate_FGr/4PopSplit/{rep}/{config}/FGr.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 
 # Simluate Genotypes
@@ -380,45 +362,17 @@ rule make_test_vector:
     shell:
         "Rscript code/Calculate_FGr/4PopSplit_make_tvec.R {input.pops} {input.fam} {output}"
 
-rule test_panel_cov_matrix:
-    input:
-        psam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
-        pgen="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.pgen",
-        pvar="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.pvar"
-    output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel.id"
-    shell:
-        """
-        plink2 \
-	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common \
-	      --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test \
-		    --make-rel cov square
-		    """
-
-rule compute_inverse_T:
-    input:
-        cov="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel",
-        id="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel.id",
-        Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
-    output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/inverse_Tvec.txt"
-    shell:
-        """
-        Rscript code/Calculate_Tm/compute_inverse_Tvec.R {input.cov} {input.id} {input.Tvec} {output}
-	"""
-
-rule proj_T:
+rule compute_FGr:
     input:
         test="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
-        gwas="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
-        tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/inverse_Tvec.txt"
+        gwas="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pgen",
+        tvec="output/Calculate_FGr/4PopSplit/{rep}/{config}/Tvec.txt"
     output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt"
+        "output/Calculate_FGr/4PopSplit/{rep}/{config}/FGr.txt"
     shell:
         """
-        Rscript code/Calculate_Tm/project_T.R  output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/
-        """
+        Rscript calc_FGr.R output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} {output}
+ 		    """
 
 # GWAS PCA
 

@@ -688,3 +688,28 @@ t3 <- G[,1]/sqrt(length_mc_genos[1])
 ```
 
 
+```{r}
+# Read GWAS Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-gwas_common.pgen")
+G <- ReadList(d1,seq(1,932), meanimpute=F)
+G <- scale(G, scale = F)
+
+
+# Read in Test Matrix 
+pvar <- NewPvar("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pvar")
+d1 <- NewPgen("../output/Simulate_Genotypes/4PopSplit/S1/C1/genos-test_common.pgen")
+X <- ReadList(d1,seq(1, 932), meanimpute=F)
+X <- scale(X, scale = F)
+
+# Read in Test Vector 
+Tvec <- fread("../output/Calculate_Tm/4PopSplit/S1/C1/Tvec.txt")$Tvec
+
+Gvar <- apply(G, 2, var)
+r <- t(X) %*% Tvec
+r_adj <- r / Gvar
+FGr <- G %*% r_adj      
+plot(FGr[,1], b$BETA_SUM) 
+abline(0,1)
+```
+

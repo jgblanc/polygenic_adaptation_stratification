@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)<4){stop("Rscript calc_GXT.R <test_prefix> <gwas_prefix> <tvec_file> <out_prefix>")}
+if(length(args)<4){stop("Rscript calc_FGr.R <test_prefix> <gwas_prefix> <tvec_file> <out_prefix>")}
 
 suppressWarnings(suppressMessages({
   library(pgenlibr)
@@ -29,7 +29,7 @@ compute_b <- function(path_to_test, path_to_gwas, path_to_testvec, outpath) {
 
   # Compute t(X)T
   outfile_XT <- paste0(outpath, "xt_temp")
-  cmd_XT <- paste("sh code/Calculate_Tm/compute_XT.sh", path_to_test, path_to_testvec, outfile_XT, sep = " ")
+  cmd_XT <- paste("sh code/Calculate_FGr/compute_XT.sh", path_to_test, path_to_testvec, outfile_XT, sep = " ")
   system(cmd_XT)
 
   # Adjust Betas to account for variance in x
@@ -47,14 +47,27 @@ compute_b <- function(path_to_test, path_to_gwas, path_to_testvec, outpath) {
   # Fix betas
   betas_plink_norm <- beta_plink$BETA * length_mc_genos
 
+  # Compute GWAS genotype counts
+  outfile_count <- paste0(outpath, "G_count")
+  cmd_count <- paste("sh code/Calculate_FGr/compute_GWAScount.sh", path_to_gwas, outfile_count, sep = " ")
+  system(cmd_count)
+
+  # Calculate length of mean centered genotypes from counts
+  count_plink <- fread(paste0(outpath, "G_count.gcount"))
+  nOBS <- (count_plink$HOM_REF_CT + count_plink$HET_REF_ALT_CTS + count_plink$TWO_ALT_GENO_CTS)
+  counts <- (count_plink$HOM_REF_CT * 0) + (count_plink$HET_REF_ALT_CTS * 1) + (count_plink$TWO_ALT_GENO_CTS * 2)
+  mean_gc <- counts / nOBS
+  length_mc_genos <- (count_plink$HOM_REF_CT * (-1 * mean_gc)^2) + (count_plink$HET_REF_ALT_CTS * (1 - mean_gc)^2) +  (count_plink$TWO_ALT_GENO_CTS * (2 - mean_gc)^2)
+  length_mc_genos <- length_mc_genos * (1/(m-1))
+
   #  Re-write .linear file with correct betas
-  beta_plink$BETA <- betas_plink_norm
+  beta_plink$BETA <- betas_plink_norm * (1/length_mc_genos)
   beta_reformat <- beta_plink %>% dplyr::select(ID, A1, BETA)
   fwrite(beta_reformat, paste0(outpath, "xt_temp.Tvec.glm.linear"), sep = "\t")
 
   # Compute b
   outfile_b <- paste0(outpath, "b")
-  cmd_b <- paste("sh code/Calculate_Tm/GWAS_score.sh", path_to_gwas, paste0(outpath, "xt_temp.Tvec.glm.linear"), outfile_b, sep = " ")
+  cmd_b <- paste("sh code/Calculate_FGr/GWAS_score.sh", path_to_gwas, paste0(outpath, "xt_temp.Tvec.glm.linear"), outfile_b, sep = " ")
   system(cmd_b)
 
   # Read in and return b
@@ -63,11 +76,9 @@ compute_b <- function(path_to_test, path_to_gwas, path_to_testvec, outpath) {
   return(b)
 }
 
-
 #####################
 ##     Main       ###
 #####################
-
 
 # Gather parameters
 gwasID <- fread(paste0(gwas_prefix, ".psam"))
