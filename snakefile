@@ -53,7 +53,7 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/Calculate_FGr/4PopSplit/{rep}/{config}/FGr.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/Calculate_FGr/4PopSplit/{rep}/{config}/Tm.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 
 # Simluate Genotypes
@@ -368,10 +368,10 @@ rule compute_FGr:
         gwas="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pgen",
         tvec="output/Calculate_FGr/4PopSplit/{rep}/{config}/Tvec.txt"
     output:
-        "output/Calculate_FGr/4PopSplit/{rep}/{config}/FGr.txt"
+        "output/Calculate_FGr/4PopSplit/{rep}/{config}/Tm.txt"
     shell:
         """
-        Rscript calc_FGr.R output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} {output}
+        Rscript code/Calculate_FGr/calc_FGr.R output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_FGr/4PopSplit/{wildcards.rep}/{wildcards.config}/
  		    """
 
 # GWAS PCA

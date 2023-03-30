@@ -73,6 +73,18 @@ compute_b <- function(path_to_test, path_to_gwas, path_to_testvec, outpath) {
   # Read in and return b
   b = fread(paste0(outpath, "b.sscore"))
   b = as.matrix(b$BETA_SUM)
+
+  # Remove temporary files
+  fn <- paste0(outpath, "xt_temp*")
+  cmd <- paste("rm", fn, sep = " ")
+  system(cmd)
+  fn <- paste0(outpath, "b*")
+  cmd <- paste("rm", fn, sep = " ")
+  system(cmd)
+  fn <- paste0(outpath, "G_count*")
+  cmd <- paste("rm", fn, sep = " ")
+  system(cmd)
+
   return(b)
 }
 
