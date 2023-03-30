@@ -1,23 +1,25 @@
-## This script calculates the relative weights of GWAS PCs on T^GWAS
-
-## Requires: gwas_pca.eigenvec, Tm.txt
-
 args=commandArgs(TRUE)
 
-if(length(args)<3){stop("Rscript calc_Tm.R <eigenvecs> <Tm> <outfile name>")}
 
-suppressWarnings(suppressMessages({
-  library(data.table)
-  library(dplyr)
-  library(Matrix)
-}))
+library(data.table)
+library(dplyr)
+library(Matrix)
 
+print(args[1])
+print(args[2])
+print(args[3])
+print(args[4])
 
 vecs_file = args[1] # eigenvectors
-pheno_type = args[2] # Tm
-popfile = args[3]
-gvalue_file = args[4]
-out_file = args[5]
+popfile = args[2]
+gvalue_file = args[3]
+out_file = args[4]
+
+pheno_pattern = strsplit(out_file, "/")[[1]][7]
+print(pheno_pattern)
+
+env_s = as.numeric(strsplit(strsplit(out_file, "/")[[1]][8], "-")[[1]][2])
+print(env_s)
 
 # Load gwas eigen vecs
 vecs <- fread(vecs_file)
@@ -36,6 +38,7 @@ sample_size=nrow(prs)
 
 # Load file containing the pop ID for each inidividual
 pop=fread(popfile,header=F)
+print(head(pop))
 colnames(pop)<-c("IID","FID","Pop", "Lat", "Long")
 
 # Add this info to genetic value file
