@@ -9,7 +9,7 @@ HERITABILITY = ["h2-0.0"]
 #ENV = ["env_0.0","env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08", "env_0.09", "env_0.1"]
 ENV = ["env_0,0","env_0.2"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
-TS=["p-0.62"]
+TS=["p-0.50"]
 #NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
 NUM_CAUSAL = ["c-200"]
 PC=[1]
@@ -19,7 +19,7 @@ NUM_RESAMPLE=1000
 wildcard_constraints:
     rep="[A-Z]\d+",
     config="C.",
-    h2="joint-[0-1].[0-9]",
+    h2="h2-[0-1].[0-9]",
     env="env_-?[0-9].[0-9]*",
     ts="p-[0-1].[0-9][0-9]",
     dir="[a-z]*",
@@ -335,7 +335,7 @@ rule draw_effect_sizes:
     output:
         "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt"
     params:
-        her = lambda wildcards: get_params(wildcards.h2)
+        her = lambda wildcards: get_params(wildcards.h2),
         prob = lambda wildcards: get_params(wildcards.ts),
         nc = lambda wildcards: get_params(wildcards.nc)
     shell:

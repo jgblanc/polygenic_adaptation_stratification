@@ -1,6 +1,6 @@
 #!/bin/bash
 for i in {3..100}
 do
-   echo "Welcome $i times"
-   cp output/Simulate_Genotypes/4PopSplit/C${i}/genos*  output/Simulate_Genotypes/4PopSplit/A${i}/
+   echo "Print $i times"
+   cp -R output/Simulate_Genotypes/4PopSplit/C${i}/*  output/Simulate_Genotypes/4PopSplit/B${i}/
 done
