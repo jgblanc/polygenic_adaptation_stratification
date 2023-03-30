@@ -53,7 +53,7 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/Calculate_FGr/4PopSplit/{rep}/{config}/Tm.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/Calculate_FGr/4PopSplit/{rep}/{config}/Tm-ID_covars.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 
 # Simluate Genotypes
@@ -382,13 +382,13 @@ rule GWAS_PCA:
         pgen="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pgen",
         pvar="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pvar"
     output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-gwas.eigenvec",
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-gwas.eigenval"
+        "output/Calculate_FGr/4PopSplit/{rep}/{config}/genos-gwas.eigenvec",
+        "output/Calculate_FGr/4PopSplit/{rep}/{config}/genos-gwas.eigenval"
     shell:
         """
         plink2 \
 	      --pfile output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-	      --out output/Calculate_Tm/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas \
+	      --out output/Calculate_FGr/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas \
 		    --pca 10 approx
 		    """
 
@@ -398,12 +398,12 @@ rule format_covars:
     input:
       pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
       fam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
-      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm.txt",
-      PC="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-gwas.eigenvec"
+      Tm="output/Calculate_FGr/4PopSplit/{rep}/{config}/Tm.txt",
+      PC="output/Calculate_FGr/4PopSplit/{rep}/{config}/genos-gwas.eigenvec"
     output:
-      "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt",
+      "output/Calculate_FGr/4PopSplit/{rep}/{config}/Tm-ID_covars.txt",
     shell:
-      "Rscript code/Calculate_Tm/format_ID_covars.R {input.pops} {input.Tm} {input.fam} {output} {input.PC}"
+      "Rscript code/Calculate_FGr/format_ID_covars.R {input.pops} {input.Tm} {input.fam} {output} {input.PC}"
 
 rule gwas_no_correction:
   input:
@@ -425,7 +425,7 @@ rule gwas_Tm:
     input:
       genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
       pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.phenos.txt",
-      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
+      Tm="output/Calculate_FGr/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
     output:
       "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.pheno_strat.glm.linear"
     shell:
