@@ -1,6 +1,9 @@
+## Select causal sites and draw effect sizes
+
 args=commandArgs(TRUE)
 
-if(length(args)<9){stop("Rscript draw_effects_sizes_4PopSplit.R <frequency file> <output_file> <heritability> <alpha> <test panel genotype prefix> <popfile> <probability of flipping effect size> <seed>")}
+if(length(args)<8){stop("Rscript draw_effects_sizes_num_causal_4PopSplit.R <frequency file> <output_file> <heritability> <alpha>
+                        <test panel genotype prefix> <popfile> <probability of flipping effect size> ")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -26,22 +29,18 @@ print(paste("The heritability is",h2))
 alpha = as.numeric(args[4])
 print(paste("Alpha is", alpha))
 
-#random seed
-#seed = as.numeric(args[5])
-#set.seed(seed)
-
 #genotypes prefix
-geno_prefix = args[6]
+geno_prefix = args[5]
 
 # pop file
-popfile = args[7]
+popfile = args[6]
 
 # probability effect size is positive given pC - pD is positive
-prob = as.numeric(args[8])
+prob = as.numeric(args[7])
 print(paste("Prob is", prob))
 
 # number of total causal variants
-nc = args[9]
+nc = args[8]
 print(paste("The number of causal variants is ", nc))
 
 # load variant frequency file
@@ -98,7 +97,8 @@ if (nc == "all") {
   }
 }
 
-#print(causal.variants)
+print(head(causal.variants))
+print(paste0("The number of draw variants is ", nrow(causal.variants)))
 
 #Now generate the effect sizes from these variants
 #calculate the independent component of variance required

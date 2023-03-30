@@ -482,6 +482,7 @@ phenos <- fread("../code/Make_Plots/large_files/SimpleGrid_phenos_C_new.txt.gz")
 gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C_new.txt.gz")
 ```
 
+
 #### Lat/Lat 
 
 * Simulated phenotype according to latitudinal gradient 
@@ -603,14 +604,31 @@ df <- fread("../code/Make_Plots/large_files/SimpleGrid_pheno_weights.txt.gz")
 
 pheno_type <- "LAT"
 env_type <- "env-0.2"
-rep_type <- "C1"
+
 dat_10 <- df %>% filter(pheno == pheno_type & env == env_type & PC %in% seq(0,10))%>% group_by(rep) %>% summarise(var_10 = sum(Relative_PC_weights))
 dat_other <-df %>% filter(pheno == pheno_type & env == env_type & PC %in% seq(11,2159))%>% group_by(rep) %>% summarise(var_other = sum(Relative_PC_weights)) 
-  
-pl <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none",axis.text=element_text(size=8), axis.title.x =element_text(size=10)) + xlab("Principal Component") + ylab("Avg. Relative Weight") 
-pl
 
 
+pheno_type <- "LAT"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(Relative_PC_weights))
+pl_LAT <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 16) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("Principal Component") + ylab("Avg. Relative Weight") + ggtitle("Latitude") +theme(plot.title = element_text(hjust = 0.5))
+pl_LAT
+
+pheno_type <- "DIAG"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(Relative_PC_weights))
+pl_DIAG <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 16) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("Principal Component") + ylab("Avg. Relative Weight") + ggtitle("Diagonal") +theme(plot.title = element_text(hjust = 0.5))
+pl_DIAG
+
+pheno_type <- "PS"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(Relative_PC_weights))
+pl_PS <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 16) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("Principal Component") + ylab("Avg. Relative Weight") + ggtitle("Single Deme") +theme(plot.title = element_text(hjust = 0.5))
+pl_PS
+
+sv <- egg::ggarrange(pl_LAT, pl_DIAG, pl_PS, nrow=1)
+ggsave("~/Desktop/grid_sup3.png", sv, width = 12, height = 5)
 ```
 
 
@@ -879,8 +897,8 @@ var(redraw)
 ```
 
 ```{r}
-B <- rnorm(500, 0, 1)
-r <- (3*B) + rnorm(500, 0, 1)
+B <- rnorm(1000, 0, 1)
+r <- (0.2*B) + rnorm(1000, 0, 1)
 df <- as.data.frame(cbind(B,r))
 
 pl <- ggplot(data = df, aes(x = r, y = B)) + geom_point(color = "palegreen3") + theme_classic(base_size = 30) + geom_smooth(method = "lm", se = F, linetype="dashed", color = "black") + xlab("Time frequency gradient (r)") + ylab(TeX("\\hat{\\beta}")) + theme( axis.text.x = element_blank(),axis.text.y = element_blank(),axis.ticks = element_blank())

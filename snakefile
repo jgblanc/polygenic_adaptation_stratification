@@ -1,17 +1,17 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1"]
-REP = ["C1"]
+CONFIG=["C1", "C2"]
+REP = ["B1"]
 #for i in range(1,101):
-#  REP.append("C"+str(i))
-HERITABILITY = ["joint-0.3"]
-#ENV = ["env_0.0","env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08", "env_0.09", "env_0.1",]
-ENV = ["env_0.2"]
+#  REP.append("B"+str(i))
+HERITABILITY = ["h2-0.0"]
+#ENV = ["env_0.0","env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08", "env_0.09", "env_0.1"]
+ENV = ["env_0,0","env_0.2"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.62"]
-NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
-#NUM_CAUSAL = ["c-200"]
+#NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
+NUM_CAUSAL = ["c-200"]
 PC=[1]
 SIZE=2000
 NUM_RESAMPLE=1000
@@ -71,8 +71,8 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC),
-	expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/ts_magnitude.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.phenos.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+
 
 # Simluate Genotypes
 
@@ -335,12 +335,11 @@ rule draw_effect_sizes:
     output:
         "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt"
     params:
-        her = lambda wildcards: get_params(wildcards.h2),
-        seed = lambda wildcards: get_seed(wildcards.rep, wildcards.config, wildcards.h2, wildcards.ts, wildcards.env),
+        her = lambda wildcards: get_params(wildcards.h2)
         prob = lambda wildcards: get_params(wildcards.ts),
         nc = lambda wildcards: get_params(wildcards.nc)
     shell:
-        "Rscript code/Simulate_Phenotypes/draw_effect_sizes_num_causal_4PopSplit.R {input.freq} {output} {params.her} 0.4 {params.seed} output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob} {params.nc}"
+        "Rscript code/Simulate_Phenotypes/draw_effect_sizes_num_causal_4PopSplit.R {input.freq} {output} {params.her} 0.4 output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.pops} {params.prob} {params.nc}"
 
 rule generate_genetic_values:
     input:
@@ -366,10 +365,9 @@ rule simulate_phenotype_4PopSplit:
         "output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.phenos.txt"
     params:
         her = lambda wildcards: get_params(wildcards.h2),
-        en = lambda wildcards: get_env(wildcards.env),
-        seed = lambda wildcards: get_seed(wildcards.rep, wildcards.config, wildcards.h2, wildcards.ts, wildcards.env)
+        en = lambda wildcards: get_env(wildcards.env)
     shell:
-        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit_unscaled.R {input.gvalues} {input.pops} {output} {params.her} {params.en} {params.seed}"
+        "Rscript code/Simulate_Phenotypes/simulate_phenotypes_4PopSplit.R {input.gvalues} {input.pops} {output} {params.her} {params.en}"
 
 # Project Test vector
 
@@ -378,9 +376,9 @@ rule make_test_vector:
         pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
         fam="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam"
     output:
-        "output/Calculate_Tm/4PopSplit/{rep}/{config}/Tvec.txt"
+        "output/Calculate_FGr/4PopSplit/{rep}/{config}/Tvec.txt"
     shell:
-        "Rscript code/Calculate_Tm/4PopSplit_make_tvec.R {input.pops} {input.fam} {output}"
+        "Rscript code/Calculate_FGr/4PopSplit_make_tvec.R {input.pops} {input.fam} {output}"
 
 rule test_panel_cov_matrix:
     input:
