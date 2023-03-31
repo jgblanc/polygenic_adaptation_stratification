@@ -53,7 +53,7 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/Calculate_FGr/4PopSplit/{rep}/{config}/Tm-ID_covars.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.c.betas.joint", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 
 # Simluate Genotypes
@@ -444,7 +444,7 @@ rule gwas_PopID:
     input:
       genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
       pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.phenos.txt",
-      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
+      Tm="output/Calculate_FGr/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
     output:
       "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.pheno_strat.glm.linear"
     shell:
@@ -463,7 +463,7 @@ rule gwas_PC:
     input:
       genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam",
       pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.phenos.txt",
-      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
+      Tm="output/Calculate_FGr/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
     output:
       "output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-{pc}.pheno_strat.glm.linear"
     params:
@@ -520,7 +520,7 @@ rule joint_effects:
       IDnc="output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-ID.nc.betas",
       PCnc=expand("output/PRS/4PopSplit/{{rep}}/{{config}}/{{h2}}/{{ts}}/{{nc}}/{{env}}/genos-gwas_common-{pc}.nc.betas", pc=PC),
       pheno="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.phenos.txt",
-      Tm="output/Calculate_Tm/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
+      Tm="output/Calculate_FGr/4PopSplit/{rep}/{config}/Tm-ID_covars.txt"
     output:
       "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.c.betas.joint",
       "output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common-Tm.c.betas.joint",
