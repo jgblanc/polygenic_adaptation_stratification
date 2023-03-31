@@ -502,7 +502,7 @@ rule pick_SNPS:
       pc_list = get_pc_list(PC)
     shell:
       """
-      Rscript code/PRS/clump_PCs.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common {params.pc_list}
+      Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common {params.pc_list}
       rm {input.gwas_u} {input.gwas_Tm} {input.gwas_ID} {input.gwas_PC}
       """
 
@@ -534,7 +534,7 @@ rule joint_effects:
       pc_list = get_pc_list(PC)
     shell:
       """
-      Rscript code/PRS/compute_joint_effect_sizes_PC.R output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common {input.pheno} {input.Tm} {params.pc_list}
+      Rscript code/PRS/compute_joint_effect_sizes.R output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common {input.pheno} {input.Tm} {params.pc_list}
       rm {input.uc} {input.Tmc} {input.IDc} {input.unc} {input.Tmnc} {input.IDnc} {input.PCc}  {input.PCnc}
       """
 

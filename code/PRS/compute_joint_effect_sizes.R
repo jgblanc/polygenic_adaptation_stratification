@@ -1,8 +1,9 @@
-# This script takes in selected SNPs, re-estimates effect sizes jointly, and computes q for different numbers of SNPs
+# This script takes in selected SNPs and re-estimates effect sizes jointly
 
 args=commandArgs(TRUE)
 
-if(length(args)<10){stop("Rscript joint_effect_sizes.R <asecertained snps> <causal snps> <path to gwas> <path to phenotype> <path to test> <test vec> <outfile>")}
+if(length(args)<5){stop("Rscript joint_effect_sizes.R <path to gwas genotype> <path to SNPs>
+                        <paht to phenotype> <path to covariates> <list of PCs>")}
 
 suppressWarnings(suppressMessages({
   library(data.table)
@@ -10,30 +11,17 @@ suppressWarnings(suppressMessages({
   library(pgenlibr)
 }))
 
-c_u_file = args[1] # causal uncorrected snps
-a_u_file = args[2] # ascertained uncorrected snps
-c_Tm_file = args[3] # causal Tm snps
-a_Tm_file = args[4] # ascertained Tm snps
-c_ID_file = args[5] # causal ID snps
-a_ID_file = args[6] # ascertained ID snps
-path_to_gwas = args[7] # path to GWAS genotypes
-path_to_phenotype = args[8]
-path_to_test = args[9]
-covar_file = args[10]
 
-
-# Read in SNPs
-c_u <- fread(c_u_file)
-a_u <- fread(a_u_file)
-c_Tm <- fread(c_Tm_file)
-a_Tm <- fread(a_Tm_file)
-c_ID <- fread(c_ID_file)
-a_ID <- fread(a_ID_file)
+path_to_gwas = args[1] # path to GWAS genotypes
+path_to_SNPs = args[2]
+path_to_phenotype = args[3]
+covar_file = args[4]
+pc_list = args[5]
+print(pc_list)
+pcs <- as.numeric(strsplit(pc_list,"-")[[1]])
 
 # Read in phenotypes
 phenos <- fread(path_to_phenotype)
-
-print("Loaded data")
 
 # Function to read in genotype matrix for a set of variants
 read_genos <- function(geno_prefix, betas) {
@@ -76,23 +64,41 @@ compute_joint <- function(geno_prefix, betas, phenos, covar) {
   return(betas)
 }
 
-# Compute joint effect sizes
+# Compute joint effect sizes and save
 df_covar <- fread(covar_file)
-df_cu <- compute_joint(path_to_gwas, c_u, phenos, rep(0, nrow(phenos)))
-df_au <- compute_joint(path_to_gwas, a_u, phenos, rep(0, nrow(phenos)))
-df_cTm <- compute_joint(path_to_gwas, c_Tm, phenos, df_covar$Tm)
-df_aTm <- compute_joint(path_to_gwas, a_Tm, phenos, df_covar$Tm)
-df_cID <- compute_joint(path_to_gwas, c_ID, phenos, df_covar$PopID)
-df_aID <- compute_joint(path_to_gwas, a_ID, phenos, df_covar$PopID)
-print("Computed joint effects")
 
-# Save output
-fwrite(df_cu, paste0(c_u_file, ".joint"),row.names=F,quote=F,sep="\t", col.names = T)
-fwrite(df_au, paste0(a_u_file, ".joint"),row.names=F,quote=F,sep="\t", col.names = T)
-fwrite(df_cTm, paste0(c_Tm_file, ".joint"),row.names=F,quote=F,sep="\t", col.names = T)
-fwrite(df_aTm, paste0(a_Tm_file, ".joint"),row.names=F,quote=F,sep="\t", col.names = T)
-fwrite(df_cID, paste0(c_ID_file, ".joint"),row.names=F,quote=F,sep="\t", col.names = T)
-fwrite(df_aID, paste0(a_ID_file, ".joint"),row.names=F,quote=F,sep="\t", col.names = T)
+## Uncorrected
+df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, ".c.betas")), phenos, rep(0, nrow(phenos)))
+fwrite(df, paste0(path_to_SNPs, ".c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
+df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, ".nc.betas")), phenos, rep(0, nrow(phenos)))
+fwrite(df, paste0(path_to_SNPs, ".nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
+print("Finished uncorrected")
+
+## Tm corrected
+df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-Tm.c.betas")), phenos, df_covar$Tm)
+fwrite(df, paste0(path_to_SNPs, "-Tm.c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
+df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-Tm.nc.betas")), phenos, df_covar$Tm)
+fwrite(df, paste0(path_to_SNPs, "-Tm.nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
+print("Finished Tm")
+
+## ID corrected
+df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-ID.c.betas")), phenos, df_covar$PopID)
+fwrite(df, paste0(path_to_SNPs, "-ID.c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
+df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-ID.nc.betas")), phenos, df_covar$PopID)
+fwrite(df, paste0(path_to_SNPs, "-ID.nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
+print("Finished ID")
+
+## PC corrected
+for (i in pcs) {
+
+  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-",i,".c.betas")), phenos, as.matrix(df_covar[,5:(i+4)]))
+  fwrite(df, paste0(path_to_SNPs, "-", i, ".c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
+  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-", i, ".nc.betas")), phenos, as.matrix(df_covar[,5:(i+4)]))
+  fwrite(df, paste0(path_to_SNPs, "-", i, ".nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
+
+}
+print("Finished PC")
+
 
 
 
