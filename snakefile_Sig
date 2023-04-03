@@ -1,0 +1,42 @@
+CHR =[]
+for i in range(0, 200):
+  CHR.append(str(i))
+CONFIG=["C1"]
+REP = []
+for i in range(1,101):
+  REP.append("D"+str(i))
+#HERITABILITY = ["h2-0.0"]
+#ENV = ["env_0.0","env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08", "env_0.09", "env_0.1"]
+#ENV = ["env_0.0","env_0.2", "env_0.5", "env_1.0"]
+#TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
+#TS=["p-0.50"]
+##NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
+NUM_CAUSAL = ["c-200"]
+#PC=[1]
+#SIZE=2000
+#NUM_RESAMPLE=1000
+
+wildcard_constraints:
+    rep="[A-Z]\d+",
+    config="C."
+
+
+rule all:
+    input:
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/q.txt", chr=CHR,rep=REP)
+
+# Do PGA test
+
+rule Calc_Qx:
+  input:
+    tp_genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
+    gp_genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam"
+  output:
+    qx="output/PGA_test/4PopSplit/q.txt"
+  shell:
+    """
+    Rscript code/PGA_test/ts_fig.R output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {output}
+    """
+
+
+
