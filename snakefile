@@ -1,13 +1,13 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1", "C2"]
+CONFIG=["C1"]
 REP = []
 for i in range(1,101):
   REP.append("B"+str(i))
 HERITABILITY = ["h2-0.0"]
 #ENV = ["env_0.0","env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08", "env_0.09", "env_0.1"]
-ENV = ["env_0.0","env_0.2"]
+ENV = ["env_0.0","env_0.2", "env_0.5", "env_1.0"]
 #TS=["p-0.50", "p-0.53", "p-0.56", "p-0.59", "p-0.62"]
 TS=["p-0.50"]
 #NUM_CAUSAL = ["c-200", "c-2000", "c-20000", "c-all"]
