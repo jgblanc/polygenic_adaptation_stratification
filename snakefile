@@ -2,9 +2,9 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1", "C2"]
-REP = []
-for i in range(1,101):
-  REP.append("B"+str(i))
+REP = ["B1"]
+#for i in range(1,101):
+#  REP.append("B"+str(i))
 HERITABILITY = ["h2-0.0"]
 #ENV = ["env_0.0","env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08", "env_0.09", "env_0.1"]
 ENV = ["env_0.0","env_0.2"]
@@ -53,7 +53,7 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/PRS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.c.betas.joint", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 
 # Simluate Genotypes
@@ -553,8 +553,7 @@ rule Calc_Qx:
     genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
     Tvec="output/Calculate_Tm/4PopSplit/{rep}/{config}/inverse_Tvec.txt",
     pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
-    es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt",
-    cov="output/Calculate_Tm/4PopSplit/{rep}/{config}/genos-test.rel"
+    es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt"
   output:
     qx="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt"
   params:
@@ -562,7 +561,7 @@ rule Calc_Qx:
     pc_list = get_pc_list(PC)
   shell:
     """
-    Rscript code/PGA_test/calc_Qx_joint.R output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {params.pc_list} {input.cov}
+    Rscript code/PGA_test/calc_Qx_joint.R output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/genos-gwas_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {params.pc_list}
     """
 
 # Calculate true signal magnitude
