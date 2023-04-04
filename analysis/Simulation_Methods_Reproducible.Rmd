@@ -101,7 +101,7 @@ plot_data <- function(data, color_name, eb_width = 0.005) {
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE}
 #df <- fread("../code/Make_Plots/C_4PopSplit_joint_bias_Fig1.txt.gz")
-df <- fread("../code/Plots/B_4PopSplit_Fig1.txt.gz")
+df <- fread("../code/Plots/Fig1.txt.gz")
 
 # C1 - no correction
 nc <- df %>% filter(type == "nc-uncorrected") %>% filter(case == "C1")%>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_") %>% mutate(diff = as.numeric(diff)) %>% filter(diff <= 0.2)  
@@ -832,8 +832,8 @@ ggplot(data = df_plot, aes(x = diff, y = fp, color = type)) + facet_grid(vars(ca
 ```{r}
 df <- fread("../code/Make_Plots/B_4PopSplit_joint_bias.txt.gz")
 
-df_marg <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_marginal` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
-df_joint <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
+df_marg <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm", "nc-PC1")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_marginal` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
+df_joint <- df %>% filter(type %in% c("nc-uncorrected","nc-ID", "nc-Tm", "nc-PC1")) %>% group_by(envs, type, case) %>% summarise(fp = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp - 1.96 * sqrt((fp * (1-fp))/ n()), upperci = fp + 1.96 * sqrt((fp * (1-fp))/ n())) %>% separate(envs, c("env", "diff"), "_") 
 df_marg$estimation_type <- "marginal"
 df_joint$estimation_type <- "joint"
 df_plot <- rbind(df_marg, df_joint)

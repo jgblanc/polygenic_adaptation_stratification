@@ -119,6 +119,9 @@ Gvar <- apply(G, 2, var)
 FGr <- G %*% (r.all/Gvar)
 FGr <- scale(FGr)
 
+# Compute fist eigen vector
+myE <- eigen(G %*% t(G))
+
 # Set parameters
 prob <- 1
 m <- nrow(G)
@@ -229,51 +232,16 @@ real.stat.s <- rep(0, length(num_causal))
 
 
 
+
 ```{r}
-for (i in 1:length(num_causal)) {
-  
-  print(i)
-  
-  # Draw effect sizes
-  B <- rep(0, nsnps)
-  indx <- sample(which(diff > 0),num_causal[i] )
-  betas <- abs(rnorm(num_causal[i],0,nsnps/num_causal[i]))
-  B[indx] <- betas
-  
-  # Separate causal and non-causal sites
-  test.genos.causals <- test.genos.all[,indx]
-  test.genos.noncausals <- test.genos.all[,-indx]
+df <- fread("../code/Plots/Sig_Results.txt.gz")
+colnames(df) <- c("rep", "true.q", "S.q", "L.q", "n.causal", "eq")
+df2 <- melt(df, id.vars = c("n.causal", "rep"))
 
-  # Separate causal and non-causal sites
-  gwas.genos.causals <- gwas.genos.all[,indx]
-  gwas.genos.noncausals <- gwas.genos.all[,-indx]
+df_plot <- df2 %>% group_by(n.causal, variable) %>% summarise(q = mean(value), upper.ci = q + 1.96*(sd(value)/sqrt(n())), lower.ci= q -  1.96*(sd(value)/sqrt(n())))
 
-  # Compute GVs and Phenos 
-  gwas.gvs <- gwas.genos.causals%*%betas
-  pheno.raw <- gwas.gvs+rnorm(gwas.ninds)
-  phenos <- scale(pheno.raw)
-
-  # Compute R 
-  r.causals <- t(test.genos.causals)%*%tvec/(test.ninds-1)
-  
-  # Compute Bhat
-  adj.lm.betas <- numeric()
-  for(k in 1:nsnps){
-    adj.lm.betas[k] <- lm(phenos~gwas.genos.all[,k] + proj.tvec)$coef[2]
-  }
-
-  # Compute Bhat PCA 
-  adj.lm.betas.pca <- numeric()
-  for(k in 1:nsnps){
-    adj.lm.betas.pca[k] <- lm(phenos~gwas.genos.all[,k] + u1)$coef[2]
-  }
-
-  true_q[i] <- t(r.causals)%*%(betas / sd(pheno.raw))
-  real.stat.s[i] <- t(r.causals)%*% as.matrix(adj.lm.betas[indx])
-  real.stat[i] <- t(r.all)%*%as.matrix(adj.lm.betas)
-  real.stat.pca[i] <- t(r.all)%*%as.matrix(adj.lm.betas.pca)
-  
-}
+ggplot(data = df_plot, aes(x = n.causal, y = q, color = variable)) + geom_point() + geom_errorbar(aes(ymin = lower.ci, ymax = upper.ci),  width = 80)
 ```
+
 
 

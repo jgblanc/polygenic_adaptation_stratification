@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)!=3){stop("Rscript calcQ_4PopSplit.R <prefix to effect sizes> <test panel genotypes prefix> <test vector>
+if(length(args)!=4){stop("Rscript calcQ_4PopSplit.R <prefix to effect sizes> <test panel genotypes prefix> <test vector>
                          <number of times to resample in empirical null> <output prefix> <true effect sizes> <list of PCs>")}
 
 suppressWarnings(suppressMessages({
@@ -12,11 +12,12 @@ suppressWarnings(suppressMessages({
   library(pgenlibr)
 }))
 
-gwas_prefix = args[1] # causal betas
+gwas_prefix = args[1]
 print(gwas_prefix)
-test_prefix = args[2] # Prefix to pilnk files
+test_prefix = args[2]
 print(test_prefix)
 out_file = args[3]
+evec_file = args[4]
 
 
 # Function to read in genotype matrix for a set of variants
@@ -42,6 +43,9 @@ X <- read_genos(test_prefix, vars)
 print(dim(G))
 print(dim(X))
 
+# Read in PCs
+PCs <- fread(evec_file)
+u1 <- PCs$PC1
 
 # Set parameters
 prob <- 1
@@ -72,7 +76,7 @@ FGr <- scale(FGr)
 
 ########################
 
-out <- matrix(NA, nrow = length(ncausal_list), ncol = 5)
+out <- matrix(NA, nrow = length(ncausal_list), ncol = 7)
 
 for (j in 1:length(ncausal_list)) {
 
@@ -107,12 +111,20 @@ for (j in 1:length(ncausal_list)) {
     Tm_Bhat[k] <- lm(phenos~G[,k] + FGr)$coef[2]
   }
 
+  # Compute Bhat including PC1
+  PC_Bhat <- numeric()
+  for(k in 1:L){
+    PC_Bhat[k] <- lm(phenos~G[,k] + u1)$coef[2]
+  }
+
   # Compute different versions of q
   r.causal <- r.all[indx]
   true.q <- (1/(n-1)) * (B %*% r.causal)
   S.q <- (1/(n-1)) * (Tm_Bhat[indx] %*% r.causal)
   L.q <- (1/(n-1)) * (Tm_Bhat %*% r.all)
   eq <- true.q * (1 - (ncausal/L))
+  PC_S.q <- (1/(n-1)) * (PC_Bhat[indx] %*% r.causal)
+  PC_L.q <- (1/(n-1)) * (PC_Bhat %*% r.all)
 
   tmp <- c(true.q, S.q, L.q, ncausal, eq)
   out[j,] <- tmp
@@ -120,6 +132,6 @@ for (j in 1:length(ncausal_list)) {
 
 # Save output
 print(out)
-fwrite(out, out_file,row.names=T,quote=F,sep="\t", col.names = T)
+fwrite(out, out_file,row.names=F,quote=F,sep="\t", col.names = T)
 
 
