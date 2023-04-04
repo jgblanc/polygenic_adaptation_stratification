@@ -23,7 +23,7 @@ wildcard_constraints:
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/q.txt", chr=CHR,rep=REP)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/q.txt", config=CONFIG,rep=REP)
 
 # Do PGA test
 
@@ -32,10 +32,10 @@ rule Calc_Qx:
     tp_genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
     gp_genos="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.psam"
   output:
-    qx="output/PGA_test/4PopSplit/q.txt"
+    qx="output/PGA_test/4PopSplit/{rep}/{config}/q.txt"
   shell:
     """
-    Rscript code/PGA_test/ts_fig.R output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common output/PRS/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {output}
+    Rscript code/PGA_test/ts_fig.R output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-gwas_common output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {output}
     """
 
 

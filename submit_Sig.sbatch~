@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=4PopSplitSNPs
-#SBATCH --output=logs/4PopSplitSNPs.out
-#SBATCH --error=logs/4PopSplitSNPs.err
-#SBATCH --time=10:00:00
+#SBATCH --job-name=4PopSplitSIG
+#SBATCH --output=logs/4PopSplitSIG.out
+#SBATCH --error=logs/4PopSplitSIG.err
+#SBATCH --time=03:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
@@ -16,5 +16,5 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-#snakemake --cores all --rerun-incomplete -s snakefile_snps   
-snakemake -j10 --rerun-incomplete -s snakefile_snps 
+snakemake --cores all --rerun-incomplete -s snakefile_Sig   
+#snakemake -j10 --rerun-incomplete -s snakefile_snps 

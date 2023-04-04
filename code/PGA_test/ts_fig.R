@@ -13,7 +13,9 @@ suppressWarnings(suppressMessages({
 }))
 
 gwas_prefix = args[1] # causal betas
+print(gwas_prefix)
 test_prefix = args[2] # Prefix to pilnk files
+print(test_prefix)
 out_file = args[3]
 
 
@@ -34,9 +36,19 @@ read_genos <- function(geno_prefix, betas) {
 }
 
 # Read in genotype matrices
-vars <- fread("../output/Simulate_Genotypes/4PopSplit/D1/genos-gwas_common.pvar", skip = 200)
-G <- read_genos("../output/Simulate_Genotypes/4PopSplit/D1/genos-gwas_common", vars)
-X <- read_genos("../output/Simulate_Genotypes/4PopSplit/D1/genos-test_common", vars)
+vars <- fread(paste0(gwas_prefix, ".pvar"), skip = 200)
+G <- read_genos(gwas_prefix, vars)
+X <- read_genos(test_prefix, vars)
+print(dim(G))
+print(dim(X))
+
+
+# Set parameters
+prob <- 1
+m <- nrow(G)
+n <- nrow(X)
+L <- ncol(G)
+ncausal_list <- c(1, 2, 10, 100, 500, 1000, 2000)
 
 #### Only once #####
 
@@ -57,13 +69,6 @@ r.all <- t(X) %*% tvec
 Gvar <- apply(G, 2, var)
 FGr <- G %*% (r.all/Gvar)
 FGr <- scale(FGr)
-
-# Set parameters
-prob <- 1
-m <- nrow(G)
-n <- nrow(X)
-L <- ncol(G)
-ncausal_list <- c(1, 2, 10, 100, 500, 1000, 2000)
 
 ########################
 
@@ -86,7 +91,7 @@ for (j in 1:length(ncausal_list)) {
       B[i] <- sample(c(1, -1),1, prob = c((1-prob), prob)) * abs(B[i])
     }
   }
-  betas <- rep(0, nsps)
+  betas <- rep(0, L)
   betas[indx] <- B
 
   # Calculate True GV
@@ -98,7 +103,7 @@ for (j in 1:length(ncausal_list)) {
 
   # Compute Bhat including Tm
   Tm_Bhat <- numeric()
-  for(k in 1:nsnps){
+  for(k in 1:L){
     Tm_Bhat[k] <- lm(phenos~G[,k] + FGr)$coef[2]
   }
 
