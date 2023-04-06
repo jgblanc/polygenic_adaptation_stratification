@@ -11,8 +11,7 @@ colnames(dat) <- c("rep")
 agg_all_data <- function(rep, dir_path) {
   
   Qx <- fread(paste0(dir_path, rep,"/C1/", "q.txt"))
-  Qx <- Qx[,2:6]
-  print(head(Qx))
+  #print(head(Qx))
   
   return(Qx)
 }
