@@ -52,7 +52,7 @@ prob <- 1
 m <- nrow(G)
 n <- nrow(X)
 L <- ncol(G)
-ncausal_list <- c(1, 2, 10, 100, 500, 1000, 2000)
+ncausal_list <- c(1, 2, 10, 100, 200, 500, 1000, 2000)
 
 #### Only once #####
 

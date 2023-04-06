@@ -38,7 +38,7 @@ X <- read_genos("../output/Simulate_Genotypes/4PopSplit/D1/genos-test_common", v
 
 ```{r}
 #### Set change-able parameters###
-ncausal <- 1
+ncausal <- 100
 prob <- 1
 m <- nrow(G)
 n <- nrow(X)
@@ -61,7 +61,7 @@ for (i in 1:ncausal){
     B[i] <- sample(c(1, -1),1, prob = c((1-prob), prob)) * abs(B[i])
   }
 }
-betas <- rep(0, nsps)
+betas <- rep(0, nsnps)
 betas[indx] <- B
 
 # Mean center both genotype matrices
@@ -90,11 +90,24 @@ for(k in 1:nsnps){
   Tm_Bhat[k] <- lm(phenos~G[,k] + FGr)$coef[2]
 }
 
+# Compute Bhat including PC1
+PC_Bhat <- numeric()
+u1 <- scale(PC$PC1)
+u1 <- scale(c(rep(0,m/2),rep(1,m/2)))
+for(k in 1:nsnps){
+  PC_Bhat[k] <- lm(phenos~G[,k] + u1)$coef[2]
+}
+
 r.causal <- r.all[indx]
 true.q <- (1/(n-1)) * (B %*% r.causal)
 S.q <- (1/(n-1)) * (Tm_Bhat[indx] %*% r.causal)
 L.q <- (1/(n-1)) * (Tm_Bhat %*% r.all)
+eq <- true.q * (1 - (ncausal/nsnps))
+PC_S.q <- (1/(n-1)) * (PC_Bhat[indx] %*% r.causal)
+PC_L.q <- (1/(n-1)) * (PC_Bhat %*% r.all)
 
+plot(Tm_Bhat, PC_Bhat)
+abline(0,1)
 ```
 
 
@@ -235,12 +248,15 @@ real.stat.s <- rep(0, length(num_causal))
 
 ```{r}
 df <- fread("../code/Plots/Sig_Results.txt.gz")
-colnames(df) <- c("rep", "true.q", "S.q", "L.q", "n.causal", "eq")
+colnames(df) <- c("rep", "true.q", "S.q", "L.q", "n.causal", "eq", "PC.S.q", "PC.L.q")
 df2 <- melt(df, id.vars = c("n.causal", "rep"))
 
 df_plot <- df2 %>% group_by(n.causal, variable) %>% summarise(q = mean(value), upper.ci = q + 1.96*(sd(value)/sqrt(n())), lower.ci= q -  1.96*(sd(value)/sqrt(n())))
 
 ggplot(data = df_plot, aes(x = n.causal, y = q, color = variable)) + geom_point() + geom_errorbar(aes(ymin = lower.ci, ymax = upper.ci),  width = 80)
+```
+```{r}
+PC <- fread("~/Downloads/genos-gwas.eigenvec")
 ```
 
 
