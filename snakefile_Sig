@@ -5,6 +5,7 @@ CONFIG=["C1"]
 REP = ["E1"]
 #for i in range(1,101):
 #  REP.append("E"+str(i))
+SIZE=2000
 
 wildcard_constraints:
     rep="[A-Z]\d+",
@@ -12,7 +13,7 @@ wildcard_constraints:
 
 rule all:
     input:
-        expand("output/Simulate_Genotypes/4PopSplit/{{rep}}/genos_{chr}.vcf", config=CONFIG,rep=REP, chr=CHR)
+        expand("output/Simulate_Genotypes/4PopSplit/{rep}/genos_{chr}.vcf", config=CONFIG,rep=REP, chr=CHR)
 
 
 # Simluate Genotypes
@@ -22,8 +23,7 @@ rule simulate_genotypes_4popsplit:
         expand("output/Simulate_Genotypes/4PopSplit/{{rep}}/genos_{chr}.vcf", chr=CHR),
 	      "output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop"
     params:
-        chr_num = len(CHR),
-        seed = lambda wildcards: get_seed_msprime(wildcards.rep)
+        chr_num = len(CHR)
     shell:
         """
         python code/Simulate_Genotypes/generate_genotypes_4PopSplit.py \
@@ -40,8 +40,7 @@ rule simulate_genotypes_4popsplit:
 	      -d 40000 \
         -s1 5000 \
         -s2 2500 \
-        -L 1000 \
-        --seed {params.seed}
+        -L 10000 
         """
 
 rule format_VCF:
