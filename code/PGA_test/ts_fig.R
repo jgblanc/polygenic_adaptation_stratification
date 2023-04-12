@@ -52,7 +52,7 @@ prob <- 1
 m <- nrow(G)
 n <- nrow(X)
 L <- ncol(G)
-ncausal_list <- c(1, 2, 10, 100, 200, 500, 1000, 2000)
+ncausal_list <- c(1, 2, 10, 100, 250, 500, 750, 1000, 1250, 1500)
 
 #### Only once #####
 
@@ -68,6 +68,18 @@ X <- scale(X, scale = F)
 # Make 2 pop test vector
 tvec <- scale(c(rep(0,n/2),rep(1,n/2)))
 
+# Sample 500 independent SNPs
+indx <- sample(seq(1,L), 500)
+r.indep <- t(X[,indx]) %*% tvec
+Gvar <- apply(G[,indx], 2, var)
+FGr.indep <- G[,indx] %*% (r.indep/Gvar)
+FGr.indep <- scale(FGr.indep)
+
+# Remove independent sites
+X <- X[,-indx]
+G <- G[,-indx]
+L <- ncol(X)
+
 # Compute FGr
 r.all <- t(X) %*% tvec
 Gvar <- apply(G, 2, var)
@@ -76,7 +88,7 @@ FGr <- scale(FGr)
 
 ########################
 
-out <- matrix(NA, nrow = length(ncausal_list), ncol = 7)
+out <- matrix(NA, nrow = length(ncausal_list), ncol = 9)
 
 for (j in 1:length(ncausal_list)) {
 
@@ -117,6 +129,12 @@ for (j in 1:length(ncausal_list)) {
     PC_Bhat[k] <- lm(phenos~G[,k] + u1)$coef[2]
   }
 
+  # Compute Bhat including FGr from independent SNPs
+  indep_Bhat <- numeric()
+  for(k in 1:L){
+    indep_Bhat[k] <- lm(phenos~G[,k] + FGr.indep)$coef[2]
+  }
+
   # Compute different versions of q
   r.causal <- r.all[indx]
   true.q <- (1/(n-1)) * (B %*% r.causal)
@@ -125,8 +143,10 @@ for (j in 1:length(ncausal_list)) {
   eq <- true.q * (1 - (ncausal/L))
   PC_S.q <- (1/(n-1)) * (PC_Bhat[indx] %*% r.causal)
   PC_L.q <- (1/(n-1)) * (PC_Bhat %*% r.all)
+  indep_S.q <- (1/(n-1)) * (PC_Bhat[indx] %*% r.causal)
+  indep_L.q <- (1/(n-1)) * (PC_Bhat %*% r.all)
 
-  tmp <- c(true.q, S.q, L.q, ncausal, eq, PC_S.q, PC_L.q)
+  tmp <- c(true.q, S.q, L.q, ncausal, eq, PC_S.q, PC_L.q, indep_S.q, indep_L.q)
   out[j,] <- tmp
 }
 
