@@ -247,14 +247,23 @@ real.stat.s <- rep(0, length(num_causal))
 
 
 ```{r}
-df <- fread("../code/Plots/Sig_Results.txt.gz")
-colnames(df) <- c("rep", "true.q", "S.q", "L.q", "n.causal", "eq", "PC.S.q", "PC.L.q")
-df2 <- melt(df, id.vars = c("n.causal", "rep"))
+df <- fread("../code/Plots/Sig_Results_Indep.txt.gz")
+colnames(df) <- c("rep", "true.q", "S.q", "L.q", "n.causal", "eq", "PC.S.q", "PC.L.q", "indep.S.q", "indep.L.q")
+df2 <- melt(df, id.vars = c("n.causal", "rep")) %>% filter(variable %in% c("true.q", "S.q", "L.q", "n.causal", "eq"))
 
 df_plot <- df2 %>% group_by(n.causal, variable) %>% summarise(q = mean(value), upper.ci = q + 1.96*(sd(value)/sqrt(n())), lower.ci= q -  1.96*(sd(value)/sqrt(n())))
+df_plot$upper.ci[df_plot$variable == "eq"] <- NA
+df_plot$lower.ci[df_plot$variable == "eq"] <- NA
 
-ggplot(data = df_plot, aes(x = n.causal, y = q, color = variable)) + geom_point() + geom_errorbar(aes(ymin = lower.ci, ymax = upper.ci),  width = 80)
+cols <- c("darkorange2", "slateblue3", "lightseagreen", "red")
+labs <- c("True Signal","Ascertained Signal using S SNPs","Signal using L SNPs", "")
+pl <- ggplot(data = df_plot, aes(x = n.causal, y = q, color = variable)) + geom_point()  + theme_classic(base_size = 16) 
+pl
+#+ scale_color_manual(name = "",labels = labs, values = cols)+ scale_shape_manual(name = "", labels = labs, values = c(16, 16, 16, 8))+ scale_size_manual(name = "", labels = labs, values = c(3,3,3,5)) + ylab(TeX("Mean $\\hat{q}$")) + xlab("Number of Causal SNPs (S)") + theme(panel.grid.major = element_line(colour = "gray87")) + geom_errorbar(aes(ymin = lower.ci, ymax = upper.ci),  width = 90)
+pl
+ggsave("~/Desktop/pl.png", pl, width = 12, height = 7)
 ```
+
 ```{r}
 PC <- fread("~/Downloads/genos-gwas.eigenvec")
 ```

@@ -78,6 +78,7 @@ FGr.indep <- scale(FGr.indep)
 # Remove independent sites
 X <- X[,-indx]
 G <- G[,-indx]
+diff <- diff[-indx]
 L <- ncol(X)
 
 # Compute FGr
