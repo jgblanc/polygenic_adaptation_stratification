@@ -18,4 +18,4 @@ agg_all_data <- function(rep, dir_path) {
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/4PopSplit/' )
 #colnames(df) <- c("rep", "case", "num","true.q", "S.q", "L.q","ncausal", "eq")
 
-fwrite(df, "Sig_Results.txt", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "Sig_Results_Indep.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)

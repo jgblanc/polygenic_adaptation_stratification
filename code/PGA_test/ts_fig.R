@@ -143,8 +143,8 @@ for (j in 1:length(ncausal_list)) {
   eq <- true.q * (1 - (ncausal/L))
   PC_S.q <- (1/(n-1)) * (PC_Bhat[indx] %*% r.causal)
   PC_L.q <- (1/(n-1)) * (PC_Bhat %*% r.all)
-  indep_S.q <- (1/(n-1)) * (PC_Bhat[indx] %*% r.causal)
-  indep_L.q <- (1/(n-1)) * (PC_Bhat %*% r.all)
+  indep_S.q <- (1/(n-1)) * (indep_Bhat[indx] %*% r.causal)
+  indep_L.q <- (1/(n-1)) * (indep_Bhat %*% r.all)
 
   tmp <- c(true.q, S.q, L.q, ncausal, eq, PC_S.q, PC_L.q, indep_S.q, indep_L.q)
   out[j,] <- tmp
