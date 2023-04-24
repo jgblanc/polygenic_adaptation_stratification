@@ -24,8 +24,6 @@ colnames(prs)<-c("IID","dosage","prs")
 # Get simulation sample size
 sample_size=nrow(prs)
 
-# Set larger GWAS sample size (we will match errors to this sample size)
-#N_GWAS = 500000 #### Fix to be per pop
 
 # Load file containing the pop ID for each inidividual
 pop=fread(popfile,header=F)
@@ -36,18 +34,6 @@ prs=merge(prs, pop, by="IID", sort=F)
 
 # Calculate average phenotype per pop
 prs$env = rnorm(sample_size,0, sqrt(1 - h2))
-#Z <- prs %>% group_by(Pop) %>% summarise(avg = mean(env)) %>% pull(avg)
-
-# Rescale averages to larger GWAS size
-#n_sim <- prs %>% group_by(Pop) %>% summarise(num = n()) %>% pull(num)
-#Z_gwas <- sqrt(n_sim/ ((n_sim/sum(n_sim) * N_GWAS))) * Z
-
-# Rescale individual phenotypes
-#delta <- Z - Z_gwas
-#pops <- seq(0, length(delta)-1)
-#for (i in 1:length(delta)) {
-#  prs = prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == pops[i], env - delta[i], env))
-#}
 
 if (pheno_pattern == "LAT") {
 

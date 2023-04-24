@@ -1,6 +1,6 @@
 args=commandArgs(TRUE)
 
-if(length(args)<3){stop("Rscript simphenotype_ge_3.R <frequency file> <output_file> <seed>")}
+if(length(args)<4){stop("Rscript draw_effect_sizes.R <frequency file> <output_file> <heritability> <seed>")}
 
 suppressWarnings(suppressMessages({
 library(data.table)
@@ -24,10 +24,6 @@ print(paste("The heritability is",h2))
 alpha = as.numeric(args[4])
 print(paste("Alpha is", alpha))
 
-#random seed
-print(args[5])
-set.seed(as.numeric(args[5]))
-print(paste("The seed is", as.numeric(args[5])))
 
 # load variant frequency file
 p = fread(freq_file)

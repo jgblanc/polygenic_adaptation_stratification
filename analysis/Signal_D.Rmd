@@ -249,7 +249,7 @@ real.stat.s <- rep(0, length(num_causal))
 ```{r}
 df <- fread("../code/Plots/Sig_Results_Indep.txt.gz")
 colnames(df) <- c("rep", "true.q", "S.q", "L.q", "n.causal", "eq", "PC.S.q", "PC.L.q", "indep.S.q", "indep.L.q")
-df2 <- melt(df, id.vars = c("n.causal", "rep")) %>% filter(variable %in% c("true.q", "S.q", "L.q", "n.causal", "eq"))
+df2 <- melt(df, id.vars = c("n.causal", "rep")) %>% filter(variable %in% c("true.q", "S.q", "L.q", "n.causal", "eq","indep.S.q", "indep.L.q"))
 
 df_plot <- df2 %>% group_by(n.causal, variable) %>% summarise(q = mean(value), upper.ci = q + 1.96*(sd(value)/sqrt(n())), lower.ci= q -  1.96*(sd(value)/sqrt(n())))
 df_plot$upper.ci[df_plot$variable == "eq"] <- NA
