@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = ["B1"]
-#for i in range(1, 101):
-#  REP.append("B"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("B"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["PS", "LAT", "DIAG"]
@@ -205,11 +205,7 @@ rule get_common_snp_list:
     output:
         "output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/common_snp_ids.txt"
     script:
-        """
-        code/Simulate_Genotypes/get_common_snp_list.R
-        rm {input.test}
-        rm {input.gwas}
-        """
+        "code/Simulate_Genotypes/get_common_snp_list.R"
 
 rule remake_panels_with_common_snps:
     input:
@@ -253,12 +249,12 @@ rule remake_panels_with_common_snps:
 	      --out output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common \
 		    --freq
 
-		    rm {test_psam}
-		    rm {test_pvar}
-		    rm {test_pgen}
-		    rm {gwas_psam}
-		    rm {gwas_pvar}
-		    rm {gwas_pgen}
+		    rm {input.test_psam}
+		    rm {input.test_pvar}
+		    rm {input.test_pgen}
+		    rm {input.gwas_psam}
+		    rm {input.gwas_pvar}
+		    rm {input.gwas_pgen}
         """
 
 rule aggregate_genotypes:
