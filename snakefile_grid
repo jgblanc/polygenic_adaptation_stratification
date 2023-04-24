@@ -55,7 +55,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
+        expand("output/Calculate_FGr/4PopSplit/{rep}/{config}/{test}/Tm.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
 
 
 rule confounder_PCA_weights:
@@ -344,49 +344,22 @@ rule make_test_vector:
         pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
         fam="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam"
     output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt"
+        "output/Calculate_FGr/SimpleGrid/{rep}/{config}/{test}/Tvec.txt"
     shell:
-        "Rscript code/Calculate_Tm/SimpleGrid_make_tvec.R {input.pops} {input.fam} {wildcards.test} {output}"
+        "Rscript code/Calculate_FGr/SimpleGrid_make_tvec.R {input.pops} {input.fam} {wildcards.test} {output}"
 
-rule test_panel_cov_matrix:
-    input:
-        psam="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
-        pgen="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.pgen",
-        pvar="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.pvar"
-    output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel",
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel.id"
-    shell:
-        """
-        plink2 \
-	      --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common \
-	      --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test \
-		    --make-rel cov square
-		    """
 
-rule compute_inverse_T:
+rule compute_FGr:
     input:
-        cov="output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel",
-        id="output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-test.rel.id",
-        Tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tvec.txt"
+        test="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
+        gwas="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pgen",
+        tvec="output/Calculate_FGr/4PopSplit/{rep}/{config}/{test}/Tvec.txt"
     output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/inverse_Tvec.txt"
+        "output/Calculate_FGr/4PopSplit/{rep}/{config}/{test}/Tm.txt"
     shell:
         """
-        Rscript code/Calculate_Tm/compute_inverse_Tvec.R {input.cov} {input.id} {input.Tvec} {output}
-	"""
-
-rule proj_T:
-    input:
-        test="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
-        gwas="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
-        tvec="output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/inverse_Tvec.txt"
-    output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/{test}/Tm.txt"
-    shell:
-        """
-        Rscript code/Calculate_Tm/project_T.R  output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.test}/
-        """
+        Rscript code/Calculate_FGr/calc_FGr.R output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_FGr/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.test}/
+ 		    """
 
 # GWAS PCA
 
