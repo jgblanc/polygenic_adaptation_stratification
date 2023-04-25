@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = ["B1"]
-#for i in range(1, 101):
-#  REP.append("B"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("B"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["PS", "LAT", "DIAG"]
@@ -55,7 +55,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Calculate_FGr/4PopSplit/{rep}/{config}/{test}/Tm.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
+        expand("output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
 
 
 rule confounder_PCA_weights:
@@ -351,11 +351,11 @@ rule make_test_vector:
 
 rule compute_FGr:
     input:
-        test="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
-        gwas="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-gwas_common.pgen",
-        tvec="output/Calculate_FGr/4PopSplit/{rep}/{config}/{test}/Tvec.txt"
+        test="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
+        gwas="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.pgen",
+        tvec="output/Calculate_FGr/SimpleGrid/{rep}/{config}/{test}/Tvec.txt"
     output:
-        "output/Calculate_FGr/4PopSplit/{rep}/{config}/{test}/Tm.txt"
+        "output/Calculate_FGr/SimpleGrid/{rep}/{config}/{test}/Tm.txt"
     shell:
         """
         Rscript code/Calculate_FGr/calc_FGr.R output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common {input.tvec} output/Calculate_FGr/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.test}/
@@ -371,14 +371,14 @@ rule GWAS_PCA:
     params:
         n_minus_1 = int(GWAS_SIZE)-1,
     output:
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec",
-        "output/Calculate_Tm/SimpleGrid/{rep}/{config}/gwas_pca.eigenval",
+        "output/Calculate_FGr/SimpleGrid/{rep}/{config}/genos-gwas.eigenvec",
+        "output/Calculate_FGr/SimpleGrid/{rep}/{config}/genos-gwas.eigenval",
     shell:
         """
         plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-       --pca {params.n_minus_1} \
-       --out output/Calculate_Tm/SimpleGrid/{wildcards.rep}/{wildcards.config}/gwas_pca
+       --pca 100 approx \
+       --out output/Calculate_FGr/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas
         """
 
 # Run GWAS
