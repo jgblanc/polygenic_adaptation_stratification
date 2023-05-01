@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = ["B1"]
-#for i in range(1, 101):
-#  REP.append("B"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("B"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["PS", "LAT", "DIAG"]
@@ -378,7 +378,7 @@ rule GWAS_PCA:
         plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
         --thin-count 200000 \
-        --pca 100 \
+        --pca 10 \
         --out output/Calculate_FGr/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas
         """
 
