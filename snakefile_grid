@@ -389,7 +389,7 @@ rule format_covars:
       pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
       fam="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-gwas_common.psam",
       Tm="output/Calculate_FGr/SimpleGrid/{rep}/{config}/{test}/Tm.txt",
-      pc="output/Calculate_FGr/SimpleGrid/{rep}/{config}/gwas_pca.eigenvec"
+      pc="output/Calculate_FGr/SimpleGrid/{rep}/{config}/genos-gwas.eigenvec"
     output:
       "output/Calculate_FGr/SimpleGrid/{rep}/{config}/{pheno}/{test}/Tm-ID_covars.txt"
     shell:
@@ -495,7 +495,7 @@ rule pick_SNPS:
       pc_list = get_pc_list(PC)
     shell:
       """
-      Rscript code/PRS/clump_PCs.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common {params.pc_list}
+      Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common {params.pc_list}
       rm {input.gwas_u} {input.gwas_Tm} {input.gwas_ID} {input.gwas_PC}
       """
 

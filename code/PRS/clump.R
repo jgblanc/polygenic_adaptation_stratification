@@ -114,14 +114,17 @@ main_nc <- function(gwas_path, out_path) {
 ## Uncorrected
 main_casual(gwas_file_prefix, output_file_prefix)
 main_nc(gwas_file_prefix, output_file_prefix)
+print("clumped uc")
 
 ## Tm corrected
 main_casual(paste0(gwas_file_prefix, "-Tm"), paste0(output_file_prefix, "-Tm"))
 main_nc(paste0(gwas_file_prefix, "-Tm"), paste0(output_file_prefix, "-Tm"))
+print("clumped Tm")
 
 ## ID corrected
 main_casual(paste0(gwas_file_prefix, "-ID"), paste0(output_file_prefix, "-ID"))
 main_nc(paste0(gwas_file_prefix, "-ID"), paste0(output_file_prefix, "-ID"))
+print("clumped ID")
 
 ## PC corrected
 for (i in 1:length(pcs)) {
@@ -130,6 +133,6 @@ for (i in 1:length(pcs)) {
   main_nc(paste0(gwas_file_prefix, "-", pcs[i]), paste0(output_file_prefix, "-", pcs[i]))
 
 }
-
+print("clumped PC")
 
 
