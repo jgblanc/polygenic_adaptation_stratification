@@ -2,7 +2,7 @@
 #SBATCH --job-name=SimpleGrids
 #SBATCH --output=logs/SimpleGrid.out
 #SBATCH --error=logs/SimpleGrid.err
-#SBATCH --time=06:00:00
+#SBATCH --time=04:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
@@ -16,5 +16,5 @@ module load bcftools
 
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
-snakemake --cores all --rerun-incomplete -s snakefile_grid  
-#snakemake -j10 --rerun-incomplete -s snakefile_grid 
+#snakemake --cores all --rerun-incomplete -s snakefile_grid  
+snakemake -j10 --rerun-incomplete -s snakefile_grid 

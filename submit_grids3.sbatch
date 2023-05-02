@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=SimpleGrids2
-#SBATCH --output=logs/SimpleGrid2.out
-#SBATCH --error=logs/SimpleGrid2.err
+#SBATCH --job-name=SimpleGrids3
+#SBATCH --output=logs/SimpleGrid3.out
+#SBATCH --error=logs/SimpleGrid3.err
 #SBATCH --time=04:00:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
@@ -17,4 +17,4 @@ module load bcftools
 echo "SLURM_JOBID="$SLURM_JOBID
 cat snakefile
 #snakemake --cores all --rerun-incomplete -s snakefile_grid  
-snakemake -j10 --rerun-incomplete -s snakefile_grid2 
+snakemake -j10 --rerun-incomplete -s snakefile_grid3 

@@ -73,6 +73,7 @@ calc_q <- function(sscore, Va, tvec) {
   tvec <- as.matrix(tvec)
   numerator <- (1/(N-1)) * t(tvec) %*% sscore
   #qhat <- (1/sqrt(N * Va)) * (numerator)
+  qhat <- numerator
 
   return(qhat)
 }
