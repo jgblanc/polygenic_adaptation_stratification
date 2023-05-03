@@ -477,10 +477,14 @@ make_gwas_weights_plot <- function(df, test_type) {
 }
 
 
-fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_new3.txt.gz")
-pgs <- fread("../code/Make_Plots/large_files/SimpleGrid_pgs_C_new.txt.gz")
-phenos <- fread("../code/Make_Plots/large_files/SimpleGrid_phenos_C_new.txt.gz")
+#fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_new3.txt.gz")
+#pgs <- fread("../code/Make_Plots/large_files/SimpleGrid_pgs_C_new.txt.gz")
+#phenos <- fread("../code/Make_Plots/large_files/SimpleGrid_phenos_C_new.txt.gz")
 gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C_new.txt.gz")
+
+fp <- fread("../code/Plots/SimpleGrid_fp_B.txt.gz")
+pgs <- fread("../code/Plots/bigfiles/SimpleGrid_pgs_B.txt.gz")
+phenos <- fread("../code/Plots/bigfiles/SimpleGrid_phenos_B.txt.gz")
 ```
 
 
@@ -490,9 +494,9 @@ gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C_new.txt.gz")
 * Test vector is latitude 
 
 ```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
-pl_fp <- make_fp_plot(fp, pheno_type = "LAT", env_type = "env-0.2", test_type = "LAT", longitude = F)
-pl_pgs <- make_pgs_plot(pgs, pheno_type = "LAT", env_type = "env-0.2", test_type = "LAT", -0.5, 0.5)
-pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "LAT", env_type = "env-0.2")
+pl_fp <- make_fp_plot(fp, pheno_type = "LAT", env_type = "env-1.0", test_type = "LAT", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "LAT", env_type = "env-1.0", test_type = "LAT", -0.5, 0.5)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "LAT", env_type = "env-1.0")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
 sv1 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.21, 0.48, 0.2, 0.22))
@@ -519,7 +523,7 @@ sv2
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
 #sv
 #ggsave("~/Desktop/DLAT.png", sv, height = 2.5, width = 12)
-ggsave("~/Desktop/DLAT.png", pl_fp, height = 3.3, width = 2.8)
+#ggsave("~/Desktop/DLAT.png", pl_fp, height = 3.3, width = 2.8)
 ```
 
 
@@ -559,7 +563,7 @@ sv4 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = 
 sv4
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
 #ggsave("~/Desktop/DD.png", sv, height = 2.5, width = 11)
-ggsave("~/Desktop/DD.png", pl_fp, height = 3.3, width = 2.8)
+#ggsave("~/Desktop/DD.png", pl_fp, height = 3.3, width = 2.8)
 ```
 
 ## Final Figure 4
@@ -949,3 +953,50 @@ pl <- ggplot(data = df, aes(x = r, y = B)) + geom_point(color = "palegreen3") + 
 pl
 ggsave("~/Desktop/pl2.png",pl, height = 5, width = 10)
 ```
+
+
+
+
+
+
+
+```{r}
+evec <- fread("../code/Plots/bigfiles/genos-gwas.eigenvec")
+pop <- fread("../code/Plots/bigfiles/genos.pop")
+colnames(pop) <- c("IID", "#FID", "deme", "Lat", "Long")
+
+df <- inner_join(evec, pop)
+
+qplot(df$PC1, df$PC2, color = df$Long)
+qplot(df$PC1, df$PC2, color = df$Lat)
+
+#define bivariate color scheme for pca
+d<-expand.grid(lon=1:6,lat=1:6)
+d$deme<-seq(1:36)-1
+
+r1 <- with(d,(lon-min(lon))/(max(lon)-min(lon)))
+r2 <- with(d,(lat-min(lat))/(max(lat)-min(lat)))
+r3 <- 1-sqrt((r1^2+r2^2)/2)
+cc <- rbind(r1, r2, r3, 0.5)
+rownames(cc) <- c("red", "green", "blue", "alpha")
+cols <- rgb(t(cc))
+d$cols=cols
+
+pop9 = merge(df,d,by="deme")
+
+ggplot(pop9,aes(PC1,PC2,color=as.factor(deme)))+
+  geom_point(alpha=0.5, size=0.5)+
+  theme_bw()+
+  scale_color_manual(values=cols) +
+  theme(legend.position="none",
+        axis.text=element_text(size=10),
+        panel.grid = element_blank(),
+        plot.margin = unit(rep(0.5,4), "pt"),
+        plot.background = element_blank())
+```
+
+```{r}
+vals <- fread("../code/Plots/bigfiles/genos-gwas.eigenval")
+plot(vals$V1)
+```
+
