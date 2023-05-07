@@ -6,7 +6,7 @@ reps <- rep(NA, n)
 for (i in 1:n){reps[i] <- paste0("B", i)}
 print(reps)
 h2 <- "h2-0"
-envs <- c("env-0.0", "env-1.0")
+envs <- c("env-0.0", "env-1.0", "env-0.2", "env-2.0")
 cases <- c("C1")
 test <- c("LAT", "PS")
 pheno <- c("LAT", "DIAG", "PS")
