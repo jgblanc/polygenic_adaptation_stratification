@@ -494,9 +494,9 @@ phenos <- fread("../code/Plots/bigfiles/SimpleGrid_phenos_B.txt.gz")
 * Test vector is latitude 
 
 ```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
-pl_fp <- make_fp_plot(fp, pheno_type = "LAT", env_type = "env-1.0", test_type = "LAT", longitude = F)
-pl_pgs <- make_pgs_plot(pgs, pheno_type = "LAT", env_type = "env-1.0", test_type = "LAT", -0.5, 0.5)
-pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "LAT", env_type = "env-1.0")
+pl_fp <- make_fp_plot(fp, pheno_type = "LAT", env_type = "env-0.2", test_type = "LAT", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "LAT", env_type = "env-0.2", test_type = "LAT", -0.5, 0.5)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "LAT", env_type = "env-0.2")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
 sv1 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.21, 0.48, 0.2, 0.22))
@@ -534,9 +534,9 @@ sv2
 * For each simulation do 1 polygenic adaptation test with latitude as the test vector 
 
 ```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
-pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type =  "env-1.0", test_type = "LAT", longitude = F)
-pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-1.0", test_type = "LAT", -1, 1)
-pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-1.0")
+pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type =  "env-2.0", test_type = "LAT", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-2.0", test_type = "LAT", -1, 1)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-2.0")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
 sv3 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.21, 0.48, 0.2, 0.22))
@@ -554,9 +554,9 @@ sv3
 * For each simulation do 1 polygenic adaptation test with single deme vs everybody as the test vector 
 
 ```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
-pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-1.0", test_type = "PS", longitude = F)
-pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-1.0", test_type = "PS", -1, 1)
-pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-1.0")
+pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-2.0", test_type = "PS", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-2.0", test_type = "PS", -1, 1)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-2.0")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
 
 sv4 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.21, 0.48, 0.2, 0.22))
