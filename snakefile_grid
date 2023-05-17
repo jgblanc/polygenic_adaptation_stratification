@@ -2,7 +2,7 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 REP = []
-for i in range(1, 2):
+for i in range(1, 101):
   REP.append("A"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
@@ -55,7 +55,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
+        expand("output/Simulate_Genotypes/SimpleGrid/{rep}/genos_{chr}.ids.vcf.gz", rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
 
 
 rule confounder_PCA_weights:
@@ -103,6 +103,7 @@ rule format_VCF:
 	      head -n6 {input} > output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/header_{wildcards.chr}.txt
 	            cat output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/header_{wildcards.chr}.txt <(cat output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/genos_{wildcards.chr}.vcf | awk -v OFS="\t" 'NR>6 {{$3=$1"_"$2"_A_T";$4="A"; $5="T"; print ;}}') | bgzip > {output.gz}
 			        rm output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/header_{wildcards.chr}.txt
+			        rm {input}
 				      """
 
 rule concat_vcfs:
@@ -115,6 +116,7 @@ rule concat_vcfs:
         bcftools concat {input} -o output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/temp.vcf.gz -O z
         bcftools annotate --rename-chrs code/Simulate_Genotypes/convert_chr.txt output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/temp.vcf.gz -o {output} -O z
         rm output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/temp.vcf.gz
+        rm {input}
         """
 
 rule convert_vcf_to_plink:
@@ -125,11 +127,14 @@ rule convert_vcf_to_plink:
 	      "output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pgen",
       	"output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pvar"
     shell:
-        "plink2 \
+        """
+        plink2 \
         --double-id \
         --make-pgen \
         --out output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/genos \
-        --vcf {input}"
+        --vcf {input}
+        rm {input}
+        """
 
 rule create_panels_SimpleGrid:
     input:
