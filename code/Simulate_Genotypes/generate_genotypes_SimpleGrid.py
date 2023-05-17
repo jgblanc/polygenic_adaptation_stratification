@@ -152,6 +152,7 @@ print("simulating genotypes under demographic model")
 #simulate!
 for i in range(0,int(args.chr)):
     
+    print(i)
     rand_seed = args.seed + i
 
     # Simulate
