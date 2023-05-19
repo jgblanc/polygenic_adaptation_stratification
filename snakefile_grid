@@ -55,7 +55,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",chr=CHR, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
+        expand("output/Calculate_FGr/SimpleGrid/{rep}/{config}/genos-gwas.eigenvec",chr=CHR, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
 
 
 rule confounder_PCA_weights:
@@ -382,8 +382,7 @@ rule GWAS_PCA:
         """
         plink2 \
         --pfile output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas_common \
-        --thin-count 200000 \
-        --pca 10 \
+        --pca {params.n_minus_1} \
         --out output/Calculate_FGr/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-gwas
         """
 
