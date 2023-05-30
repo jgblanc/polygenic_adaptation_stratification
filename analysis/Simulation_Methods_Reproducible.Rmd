@@ -16,7 +16,7 @@ library(dplyr)
 
 ## Introduction 
 
-Here I will reccord the details for the simulations presented in the main text and the supplement. I will also include the code to make the the figures.
+Here I record the details for the simulations presented in the main text and the supplement. I will also include the code to make the the figures.
 
 ## 4PopSplit 
 
@@ -24,11 +24,11 @@ Here I will reccord the details for the simulations presented in the main text a
 
 Generate diplois individuals according to the demographic model below 
 
-* T2 = 2200  
-* T1 (deeper split) = 4400 
-* Ne (ancestral = A = B = C = D)  = 10000
-* sample size = 10000 diploids per population  
-* chromosome length = 100000    
+* T2 = 2500  
+* T1 (deeper split) = 5000 
+* Ne (ancestral = A = B = C = D)  = 10000  
+* sample size = 20000 diploids per population  
+* chromosome length = 1000000      
 * 200 chromosomes  
 * $\mu$ = 1e-08  
 * $\rho$ = 1e-08  
@@ -38,16 +38,16 @@ Generate diplois individuals according to the demographic model below
 1. Split individuals into 2 configurations  
   a. C1: GWAS Panel = A and C, Test Panel = B and D (overlapping structure)  
   b. C2: GWAS Panel = A and B, Test Panel = C and D (no overlapping structure)  
-2. Randomly downsample 1,000 individuals from each test panel population. Finale sample sizes: GWAS panel n=20,000 and Test panel n=2,000.  
+2. Randomly downsample 1,000 individuals from each test panel population. Finale sample sizes: GWAS panel n=40,000 and Test panel n=2,000.  
 3. Restrict snps to sites segregating at greater than 5% frequency within each panel.   
 
-See [link](Simulate_Genotypes.html) for more simluations details.  
+See [link](Simulate_Genotypes.html) for more simluation details.  
 
 ### Draw phenotypes 
 
-We simulated both heritable $h^2 = 0.3$ and non-heritable $h^2=0$ phenotypes with a ranger of environmental confounders $\Delta_{AB}$. Additionally, for the heritable simulations, we also conducted simulations where there was a true signal of polygenic selection by flipping the signs of causal effect sizes depending on allele frequency difference in the test panel.  
+We simulated both heritable $h^2 = 0.3$ and non-heritable $h^2=0$ phenotypes with a range of environmental confounders $\Delta_{AB}$. Additionally, for the heritable simulations, we also conducted simulations where there was a true signal of polygenic association by flipping the signs of causal effect sizes depending on allele frequency difference in the test panel.  
 
-See [link](Simulate_Phenotypes.html) for more simluations details.  
+See [link](Simulate_Phenotypes.html) for more simluation details.  
 
 ### Project Test Vector  
 
@@ -64,14 +64,12 @@ See [link](Simulate_Phenotypes.html) for more simluations details.
 
 1. Pick the SNP with lowest p-value per chromosome to include in PGS (200 SNPs total)  
 2. Compute PGS in test panel individuals 
-3. Calculate $V_a$ 
-4. Calculate the amount of variance explained by the test vector ($\lambda_T$)  
-5. Calculate chi-squared p-vale
-5. Calculate empirical null p-value by permuting the signs of the SNP effect sizes 1,000 times and computing the proportion of permutations greater than the true $Q_x$ value.  
+3. Compute $\hat{q}$
+5. Calculate empirical null p-value by permuting the signs of the SNP effect sizes 1,000 times and computing the proportion of permutations greater than the true $\hat{q}$ value.  
 
 **Causal sites** 
 
-For heritable traits we can also repeat the above steps with the acual causal sites as opposed to choosing the site with the lowest p-value. 
+For heritable traits we can also repeat the above steps with the actual causal sites as opposed to choosing the site with the lowest p-value. 
 
 See [link](Polygenic_Selection_Test.html) for more detail.  
 
@@ -105,43 +103,40 @@ df <- fread("../code/Plots/Fig1.txt.gz")
 
 # C1 - no correction
 nc <- df %>% filter(type == "nc-uncorrected") %>% filter(case == "C1")%>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_") %>% mutate(diff = as.numeric(diff)) %>% filter(diff <= 0.2)  
-pl1 <- plot_data(nc, "goldenrod2") 
-#+ ggtitle("C1 - No correction") + theme(plot.title = element_text(hjust = 0.5,size = 12))
+pl1 <- plot_data(nc, "goldenrod2") + ggtitle("C1 - No correction") + theme(plot.title = element_text(hjust = 0.5,size = 12))
 
 # C1 - correction 
 nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_") %>% mutate(diff = as.numeric(diff)) %>% filter(diff <= 0.2) 
-pl2 <- plot_data(nc, "navy") 
-#+ ggtitle("C1 - TGWAS")+ theme(plot.title = element_text(hjust = 0.5,size = 12))
+pl2 <- plot_data(nc, "navy") + ggtitle("C1 - FGr")+ theme(plot.title = element_text(hjust = 0.5,size = 12))
 
 # C2 - No correction 
 nc <- df %>% filter(type == "nc-uncorrected") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_") %>% mutate(diff = as.numeric(diff)) %>% filter(diff <= 0.2) 
 nc$diff <- as.numeric(nc$diff)
-pl3 <- plot_data(nc, "goldenrod2")
-#+ ggtitle("C2 - No correction") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+pl3 <- plot_data(nc, "goldenrod2") + ggtitle("C2 - No correction") + theme(plot.title = element_text(hjust = 0.5, size = 12))
 
 # C2 - correction 
 nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C2") %>% group_by(envs, type, case) %>% summarise(fp_strat = sum(`P.EN_joint` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")%>% mutate(diff = as.numeric(diff)) %>% filter(diff <= 0.1) 
 nc$diff <- as.numeric(nc$diff) 
-pl4 <- plot_data(nc, "navy") 
-#+ ggtitle("C2 - TGWAS") + theme(plot.title = element_text(hjust = 0.5, size = 12))
+pl4 <- plot_data(nc, "navy") + ggtitle("C2 - FGr") + theme(plot.title = element_text(hjust = 0.5, size = 12))
 
 p <- ggarrange(pl1, pl3, pl2, pl4)
 p
 
-
-#ggsave("~/Desktop/C.png",p, height = 6, width = 7)
+#ggsave("~/Desktop/B.png",p, height = 6, width = 7)
 ```
 
 ### Supplement 1 
 
 ```{r}
-df <- fread("../code/Make_Plots/C_4PopSplit_joint_bias_Fig1.txt.gz")
+#df <- fread("../code/Make_Plots/C_4PopSplit_joint_bias_Fig1.txt.gz")
+df <- fread("../code/Plots/Fig1.txt.gz")
 
 dat <- df %>% filter(case == "C1") %>% group_by(envs, type, case) %>% summarise(avg_q = mean(q_joint),lowerci = avg_q - (1.96 * (sd(q_joint)  /  sqrt(n()))), upperci = avg_q + (1.96 * (sd(q_joint)  /  sqrt(n())))) %>% filter(type %in% c("nc-uncorrected", "nc-Tm")) %>% separate(envs, c("env", "diff"), "_")%>% mutate(diff = as.numeric(diff))
 
 labs <- c(TeX("$\\hat{F}_{Gr}$"), "Uncorrected")
 pl <- ggplot(data = dat, aes(x = diff, y =avg_q, color = type)) + geom_point(size = 2.5)+ geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.005) + theme_bw(base_size = 18) + scale_color_manual(name = "Effect Size",values = c("navy", "goldenrod2"), labels = labs) + 
   theme( panel.border = element_rect(colour = "black", fill=NA, size=1), legend.text = element_text(size = 14), panel.grid.minor = element_line(linetype = 'dashed')) + ylab("") + xlab(TeX("$\\Delta_{AB}$")) + ylab(TeX("$E\\left[\\hat{q}\\right]$"))+ theme(legend.text.align = 0)
+pl
 
 ggsave("~/Desktop/4PopSup_1.png", pl, width = 10, height = 7)
 ```
@@ -149,10 +144,10 @@ ggsave("~/Desktop/4PopSup_1.png", pl, width = 10, height = 7)
 #### Supplement 2
 
 ```{r}
-df <- fread("../output/Calculate_Tm/4PopSplit/C1/Tm-ID_covars.txt")
+df <- fread("../output/Calculate_FGr/4PopSplit/B1/C1/Tm-ID_covars.txt")
 df$Config <- "Overlapping"
 
-df2 <- fread("../output/Calculate_Tm/4PopSplit/C2/Tm-ID_covars.txt")
+df2 <- fread("../output/Calculate_FGr/4PopSplit/B1/C2/Tm-ID_covars.txt")
 df2$Config <- "Non-overlapping"
 
 df_plot <- rbind(df, df2) %>% mutate(Pop = case_when(PopID == 1 ~ "B", PopID == 0 ~ "A"))
@@ -161,34 +156,8 @@ df_mean <- df_plot %>% group_by(Pop, Config) %>% summarise(avg=mean(Tm))
 pl <- ggplot(data = df_plot, aes(x = Pop, y = Tm, color= Pop)) + geom_jitter(alpha = 0.05) + facet_wrap(~Config) + scale_color_manual(values = c("darkred", "goldenrod2")) + geom_errorbar(data = df_mean, width=0.6, colour = "black", size = 1, aes(ymax=..y.., ymin=..y.., y = avg)) + theme_classic(base_size = 22) +  
   theme( panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("GWAS Panel Population") + ylab(TeX("$\\hat{F}_{Gr}$"))
 pl
-ggsave("~/Desktop/4PopSup_2.png", pl, width = 10, height = 7)
+#ggsave("~/Desktop/4PopSup_2.png", pl, width = 10, height = 7)
 ```
-
-
-
-### Main regress out signal -TBD
-
-```{r}
-df <- fread("../code/Make_Plots/D_4PopSplit_snps.txt.gz")
-df <- df %>% distinct()
-
-true_q <- df %>% filter(type == "true") %>% mutate(true_q = q_marginal)%>% select(rep, envs, nc, true_q) %>% distinct()
-dat <- df %>% filter(type %in% c("c-uncorrected", "c-Tm", "c-ID", "c-PC1"))%>% select(rep, envs, nc, q_marginal, type) %>% distinct()
-dat_plot <- inner_join(true_q, dat)%>% separate(nc, c("tmp", "L"), "-") %>% group_by(envs,type, L) %>% summarise(avg_ratio = mean( q_marginal) / mean(q_true),count = n())
-
-#labs <- c(TeX("$\\hat{F}_{Gr}$"), "Uncorrected")
-dat_plot$L <- factor(dat_plot$L, levels = c("100", "200", "1000", "2000", "all"))
-#dat_plot <- dat_plot %>% filter(L %in% c(100,200,1000)) %>% filter(type %in%c("c-Tm", "c-ID", "c-PC1"))
-ggplot(data = dat_plot, aes(x =L, y =avg_ratio, color = type)) + geom_point(size = 2.5) + geom_hline(yintercept = 1, color='red')
-#+ geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.005) 
-#+ theme_bw(base_size = 18) + scale_color_manual(name = "Effect Size",values = c("navy", "goldenrod2"), labels = labs) + 
-#  theme( panel.border = element_rect(colour = "black", fill=NA, size=1), legend.text = element_text(size = 14), panel.grid.minor = element_line(linetype = 'dashed')) + ylab("") + xlab(TeX("$\\Delta_{AB}$")) + ylab(TeX("$E\\left[\\hat{q}\\right]$"))+ theme(legend.text.align = 0)
-
-```
-
-
-
-
 
 #### True Signal Simulations  
 
@@ -263,7 +232,7 @@ ggsave("~/Desktop/TS.png", pl,width = 10, height = 6)
 
 ### Marginal vs Joint figure 
 
-```{r}
+```{r, eval = TRUE, echo=FALSE, warning=FALSE, fig.height=5, fig.width=8}
 df <- fread("../code/Make_Plots/A_2PopSplit_bias.txt.gz")
 
 dat  <- df %>% dplyr::group_by(case, envs, nc, type) %>% summarise(avg_marg = mean(q_marginal), avg_joint = mean(q_joint), fp_marg =sum(`P.EN_marginal` < 0.05)/ n(),  fp_joint =sum(`P.EN_joint` < 0.05)/ n()) %>% separate(envs, c("tmp", "diff"), "_") %>% separate(nc, c("tmp2", "L"), "-") %>% filter(case == "C2", type %in% c( "nc-uncorrected"))%>% select(diff, L, avg_marg, avg_joint) %>% mutate(diff = as.numeric(diff))
@@ -278,70 +247,55 @@ pl <- ggplot(data =df_plot, aes(x = diff, y = value, linetype = L, shape = L)) +
   theme_bw(base_size = 12) + 
   theme(legend.position = "bottom", panel.border = element_rect(colour = "black", fill=NA, size=1), legend.text = element_text(size = 10), panel.grid.minor = element_line(linetype = 'dashed')) +theme(legend.key.size =  unit(0.35, "in")) 
 p2 <- pl + geom_point(data = df_plot,aes( x = diff, y = value, color = variable2))
-ggsave("~/Desktop/marg_vs_joint.png", p2, width = 8, height = 6)
+p2
+
+#ggsave("~/Desktop/marg_vs_joint.png", p2, width = 8, height = 6)
 ```
 
-
-
-
-
-
-
-
-
-
-
+```{r}
 #### Varying the number of SNPs 
 
-To investigate the number of SNPs needed to accurately compute $\vec{T}^{GWAS}$, we re-ran the 4 population simulations in the overlapping structure configuration with environmental stratification equal to 0.03 while changing the number of SNPs used to compute $\vec{T}^{GWAS}$. While the exact number of total SNPs varied across simulations, there were ~22,300 total snps per simulation.        
+#To investigate the number of SNPs needed to accurately compute $\vec{T}^{GWAS}$, we re-ran the 4 population simulations in the overlapping structure configuration with environmental stratification equal to 0.03 while changing the number of SNPs used to compute $\vec{T}^{GWAS}$. While the exact number of total SNPs varied across simulations, there were ~22,300 total snps per simulation. 
 
-```{r}
-df <- fread("../code/Make_Plots/A_4PopSplit_snps.txt.gz")
+#df <- fread("../code/Make_Plots/A_4PopSplit_snps.txt.gz")
+#nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case, snps)%>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  %>% separate(snps, c("snp", "num_snps"), "-")  
+#nc$diff <- as.numeric(nc$diff)
+#nc$num_snps <- as.numeric(nc$num_snps)
 
-nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case, snps)%>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  %>% separate(snps, c("snp", "num_snps"), "-")  
-nc$diff <- as.numeric(nc$diff)
-nc$num_snps <- as.numeric(nc$num_snps)
-
-pl <- ggplot(data=nc, aes(x=num_snps, y=fp_strat))  + scale_x_log10(breaks = c(10,30,100,300,1000, 3000)) + geom_point(size =3, color = "turquoise4")+ xlab("Number of SNPs") + ylab("False Postive Rate") + theme_classic(base_size = 20)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 20),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.1, color = "turquoise4") 
-pl
+#pl <- ggplot(data=nc, aes(x=num_snps, y=fp_strat))  + scale_x_log10(breaks = c(10,30,100,300,1000, 3000)) + geom_point(size =3, color = "turquoise4")+ xlab("Number of SNPs") + ylab("False Postive Rate") + theme_classic(base_size = 20)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 20),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.1, color = "turquoise4") 
+#pl
 #ggsave("~/Desktop/SNPs.png", pl, width = 6, height = 4)
 ```
 
-
-
-
+```{r}
 ## All SNPs
 
-```{r}
-df <- fread("../code/Make_Plots/A_4PopSplit_shift_GXT_allSNPs.txt.gz")
-df_True <- fread("../code/Make_Plots/A_4PopSplit_shift23_TS_GXT.txt.gz")
-df_True <- df_True %>% filter(type == "True", ts %in% c("p-0.50", "p-0.62"))
-df <- rbind(df, df_True)
+#df <- fread("../code/Make_Plots/A_4PopSplit_shift_GXT_allSNPs.txt.gz")
+#df_True <- fread("../code/Make_Plots/A_4PopSplit_shift23_TS_GXT.txt.gz")
+#df_True <- df_True %>% filter(type == "True", ts %in% c("p-0.50", "p-0.62"))
+#df <- rbind(df, df_True)
 
-data_nc <- df %>% group_by(envs, ts, type)%>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(ts, c("ts", "prob"), "-") %>% separate(envs, c("env", "diff"), "_") 
+#data_nc <- df %>% group_by(envs, ts, type)%>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(ts, c("ts", "prob"), "-") %>% separate(envs, c("env", "diff"), "_") 
 
-+ scale_colour_manual(name = "", values = c("darkgreen", "navy", "darkgreen", "red"))
-
-
-labs <- c("Uncorrected","Population ID", expression(T^{GWAS}), "True Effect Size")
-ggplot(data = data_nc, aes(x = prob, y = fp_strat, color = type)) + geom_point() + facet_grid(~diff) + theme_classic(base_size = 12)+ theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1) + scale_colour_manual(name = "", values = c("darkgreen", "navy", "red", "goldenrod2")) + geom_errorbar(data = data_nc, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5) 
+#+ scale_colour_manual(name = "", values = c("darkgreen", "navy", "darkgreen", "red"))
 
 
+#labs <- c("Uncorrected","Population ID", expression(T^{GWAS}), "True Effect Size")
+#ggplot(data = data_nc, aes(x = prob, y = fp_strat, color = type)) + geom_point() + facet_grid(~diff) + theme_classic(base_size = 12)+ theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1) + scale_colour_manual(name = "", values = c("darkgreen", "navy", "red", "goldenrod2")) + geom_errorbar(data = data_nc, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5) 
 ```
 
 ```{r}
-df <- fread("../code/Make_Plots/A_4PopSplit_shift_GXT_allSNPs.txt.gz")
-df_True <- fread("../code/Make_Plots/A_4PopSplit_shift23_TS_GXT.txt.gz")
-df_True <- df_True %>% filter(type == "True", ts %in% c("p-0.50", "p-0.62")) %>% mutate("signal" = type) %>% select(-type)
+#df <- fread("../code/Make_Plots/A_4PopSplit_shift_GXT_allSNPs.txt.gz")
+#df_True <- fread("../code/Make_Plots/A_4PopSplit_shift23_TS_GXT.txt.gz")
+#df_True <- df_True %>% filter(type == "True", ts %in% c("p-0.50", "p-0.62")) %>% mutate("signal" = type) %>% select(-type)
 
-df2 <- left_join(df, df_True, by = c("rep", "case", "h2", "ts", "envs"))
-df2 <- df2 %>% mutate(bias = Qx.x - Qx.y)
+#df2 <- left_join(df, df_True, by = c("rep", "case", "h2", "ts", "envs"))
+#df2 <- df2 %>% mutate(bias = Qx.x - Qx.y)
 
-df_bias <- df2 %>% group_by(envs, ts, type)%>% summarise(avg_bias = mean(bias)) %>% separate(ts, c("ts", "prob"), "-") %>% separate(envs, c("env", "diff"), "_") 
+#df_bias <- df2 %>% group_by(envs, ts, type)%>% summarise(avg_bias = mean(bias)) %>% separate(ts, c("ts", "prob"), "-") %>% separate(envs, c("env", "diff"), "_") 
 
-ggplot(data = data_nc, aes(x = prob, y = fp_strat, color = type)) + geom_point() + facet_grid(~diff) + theme_classic(base_size = 12)+ theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1) + scale_colour_manual(name = "", values = c("darkgreen", "navy", "red", "goldenrod2")) + geom_errorbar(data = data_nc, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5) 
+#ggplot(data = data_nc, aes(x = prob, y = fp_strat, color = type)) + geom_point() + facet_grid(~diff) + theme_classic(base_size = 12)+ theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) + ylim(-0.1,1.1) + scale_colour_manual(name = "", values = c("darkgreen", "navy", "red", "goldenrod2")) + geom_errorbar(data = data_nc, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5) 
 ```
-
 
 
 ## Simple Grid 
@@ -377,8 +331,7 @@ Notes:
 * ENV is the magnitude of the phenotype shift 
 
 1. Sample random phenotype $N(0,1)$ for all GWAS indviduals 
-2. Scale variance within deme to match full size GWAS variance (see __ for more details)
-3. Simulate stratification:  
+2. Simulate stratification:  
   1. Lat/Lat: Shift average phenotype per Latitude (if env is the total shift, shift 1 lat by env/5, 2 lat by 2*(env/5), etc.) and use Latitude as the test vector 
   2. stratD/Lat: Shift the average phenotype on the diagonals of the grid going lower left to upper right and use latitude as the test vector 
   
@@ -395,9 +348,8 @@ Notes:
 
 1. Pick the SNP with lowest p-value per chromosome to include in PGS (200 SNPs total)  
 2. Compute PGS in test panel individuals 
-3. Calculate $V_a$ 
-4. Calculate the amount of variance explained by the test vector ($\lambda_T$; note that we used the mean-centered test vector to compute this)  
-5. Calculate empirical null p-value by permuting the signs of the SNP effect sizes 1,000 times and computing the proportion of permutations greater than the true $Q_x$ value.  
+3. Compute $\hat{q}$  
+4. Calculate empirical null p-value by permuting the signs of the SNP effect sizes 1,000 times and computing the proportion of permutations greater than the true $Q_x$ value.  
 
 
 ### Figures
@@ -470,7 +422,7 @@ make_gwas_weights_plot <- function(df, test_type) {
   
   dat <- df %>% filter(test == test_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(Relative_PC_weights))
   
-  pl <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none",axis.text=element_text(size=8), axis.title.x =element_text(size=10)) + xlab("Principal Component") + ylab("Avg. Relative Weight")  
+  pl <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none",axis.text=element_text(size=8), axis.title.x =element_text(size=10)) + xlab("Principal Component") + ylab("Avg. Relative Weight") 
   
   return(pl)
   
@@ -480,11 +432,12 @@ make_gwas_weights_plot <- function(df, test_type) {
 #fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_new3.txt.gz")
 #pgs <- fread("../code/Make_Plots/large_files/SimpleGrid_pgs_C_new.txt.gz")
 #phenos <- fread("../code/Make_Plots/large_files/SimpleGrid_phenos_C_new.txt.gz")
-gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C_new.txt.gz")
+#gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C_new.txt.gz")
 
-fp <- fread("../code/Plots/SimpleGrid_fp_B.txt.gz")
-pgs <- fread("../code/Plots/bigfiles/SimpleGrid_pgs_B.txt.gz")
-phenos <- fread("../code/Plots/bigfiles/SimpleGrid_phenos_B.txt.gz")
+fp <- fread("../code/Plots/SimpleGrid_fp_A.txt.gz")
+pgs <- fread("../code/Plots/bigfiles/SimpleGrid_pgs_A.txt.gz")
+phenos <- fread("../code/Plots/bigfiles/SimpleGrid_phenos_A.txt.gz")
+gwas_weights <- fread("../code/Plots/SimpleGrid_gw_B.txt.gz")
 ```
 
 
@@ -534,9 +487,9 @@ sv2
 * For each simulation do 1 polygenic adaptation test with latitude as the test vector 
 
 ```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
-pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type =  "env-2.0", test_type = "LAT", longitude = F)
-pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-2.0", test_type = "LAT", -1, 1)
-pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-2.0")
+pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type =  "env-1.0", test_type = "LAT", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-1.0", test_type = "LAT", -1, 1)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-1.0")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
 sv3 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.21, 0.48, 0.2, 0.22))
@@ -554,9 +507,9 @@ sv3
 * For each simulation do 1 polygenic adaptation test with single deme vs everybody as the test vector 
 
 ```{r, eval = TRUE, echo=FALSE, warning=FALSE,fig.width=10, fig.height=3}
-pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-2.0", test_type = "PS", longitude = F)
-pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-2.0", test_type = "PS", -1, 1)
-pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-2.0")
+pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-1.0", test_type = "PS", longitude = F)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-1.0", test_type = "PS", -1, 1)
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-1.0")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
 
 sv4 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.21, 0.48, 0.2, 0.22))
@@ -569,6 +522,7 @@ sv4
 ## Final Figure 4
 ```{r}
 out <- ggarrange(sv1, sv2,sv3, sv4, nrow = 4, ncol = 1)
+out
 #,labels = c("A", "B", "C", "D"),font.label=list(color="black",size=16), hjust=0.8)
 ggsave("~/Desktop/fig4.png", out, height = 10, width = 12)
 ```
@@ -581,7 +535,6 @@ df$type <- factor(df$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-
 pl <- ggplot(df, aes(x = diff, y = fp_strat, color = type)) + geom_point(size=2) + facet_wrap(~sim)+ xlab("Magnitude of confounder") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.text.align = 0) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.05) + scale_color_manual(values = c("goldenrod2","navy", "darkgreen", "red4"), labels = unname(TeX(c("Uncorrected", "$\\hat{F}_{Gr}$", "T measured in GWAS", "10 PCs"))), name = "GWAS Type")
 pl
 
-fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_new2.txt.gz")
 ggsave("~/Desktop/grid_sup1.png", pl, width = 10, height = 6)
 ```
 
