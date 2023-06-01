@@ -540,7 +540,8 @@ ggsave("~/Desktop/grid_sup1.png", pl, width = 10, height = 6)
 
 ## Grid Supplement 2 - PS with different number of PCs
 ```{r}
-fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_PS2.txt.gz")
+#fp <- fread("../code/Make_Plots/SimpleGrid_fp_C_PS2.txt.gz")
+fp <- fread("../code/Plots/SimpleGrid_fp_A_PCs.txt.gz")
 df <- fp %>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()))%>% separate(type, c("tmp", "type"), "-") %>% filter(tmp == "nc")
 df1 <- df %>% filter(type %in% c("PC10", "PC50", "PC100", "PC200", "PC300", "PC500", "PC1000")) 
 df1$type <- factor(df1$type, levels = c("PC10", "PC50", "PC100", "PC200", "PC300", "PC500", "PC1000"))
@@ -553,6 +554,7 @@ pl2 <- ggplot(data = df2, aes(x = type, y = fp_strat, fill = type)) + geom_col()
 
 sv <- egg::ggarrange(pl2, pl1, nrow=1, widths = c(0.4, 0.6))
 ggsave("~/Desktop/grid_sup2.png", sv, width = 10, height = 6)
+sv
 ```
 
 ### Grid supp 3 - pc weights of phenotype
