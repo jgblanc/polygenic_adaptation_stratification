@@ -1,17 +1,17 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = ["A1"]
-#for i in range(1, 101):
-#  REP.append("A"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("A"+str(i))
 CONFIG = ["C1"]
-HERITABILITY = ["pc-0"]
-#PHENO = ["PS", "LAT", "DIAG"]
-PHENO = ["PS"]
-#TEST = ["PS", "LAT"]
-TEST = ["PS"]
+HERITABILITY = ["h2-0"]
+PHENO = ["PS", "LAT", "DIAG"]
+#PHENO = ["PS"]
+TEST = ["PS", "LAT"]
+#TEST = ["PS"]
 #ENV = ["env-0.0","env-0.2", "env-0.4", "env-0.6", "env-0.8", "env-1.0", "env-1.2", "env-1.4", "env-1.6", "env-1.8", "env-2.0"]
-ENV = ["env-1.0"]
+ENV = ["env-1.0", "env-0.2"]
 PC = [10, 50, 100, 200, 300,500,1000]
 #PC = [10]
 SS_TEST = 20 # Number of inidividuals per deme
@@ -24,7 +24,7 @@ NUM_RESAMPLE = 1000
 wildcard_constraints:
     rep="[A-Z]\d+",
     config="C1",
-    h2="pc-[0-1]",
+    h2="h2-[0-1]",
     pheno="[A-Z]*",
     env="env-[0-9]*.[0-9]*",
     test="[A-Z]*",
@@ -62,7 +62,7 @@ rule all:
 
 rule confounder_PCA_weights:
     input:
-        vecs="output/Calculate_Tm/SimpleGrid/{rep}/{config}/genos-gwas.eigenvec",
+        vecs="output/Calculate_FGr/SimpleGrid/{rep}/{config}/genos-gwas.eigenvec",
         phenos="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.phenos.txt",
         pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
         gvalue="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.gvalue.sscore"
