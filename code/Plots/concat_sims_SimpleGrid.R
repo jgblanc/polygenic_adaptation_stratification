@@ -7,7 +7,7 @@ for (i in 1:n){reps[i] <- paste0("A", i)}
 print(reps)
 h2 <- "pc-0"
 #envs <- c("env-0.0", "env-1.0", "env-0.2", "env-0.4", "env-0.6", "env-0.8",  "env-1.2", "env-1.4", "env-1.6", "env-1.8", "env-2.0")
-envs  <-  c("env-1.0")
+envs  <-  c("env-2.0")
 cases <- c("C1")
 #test <- c("PS", "LAT")
 test <- c("PS")
