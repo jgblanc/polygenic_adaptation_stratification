@@ -560,8 +560,8 @@ sv
 ### Grid supp 3 - pc weights of phenotype
 
 ```{r}
-df <- fread("../code/Make_Plots/large_files/SimpleGrid_pheno_weights.txt.gz")
-
+#df <- fread("../code/Make_Plots/large_files/SimpleGrid_pheno_weights.txt.gz")
+df <- fread("../code/Plots/SimpleGrid_A_pheno_weights.txt.gz")
 pheno_type <- "LAT"
 env_type <- "env-0.2"
 
@@ -591,37 +591,38 @@ sv <- egg::ggarrange(pl_LAT, pl_DIAG, pl_PS, nrow=1)
 ggsave("~/Desktop/grid_sup3.png", sv, width = 12, height = 5)
 ```
 
+## Extra Code  
 
 ```{r}
-df <- fread("../code/Make_Plots/A_4PopSplit_snps.txt.gz")
+#df <- fread("../code/Make_Plots/A_4PopSplit_snps.txt.gz")
 
-nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case, snps)%>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  %>% separate(snps, c("snp", "num_snps"), "-")  
-nc$diff <- as.numeric(nc$diff)
-nc$num_snps <- as.numeric(nc$num_snps)
+#nc <- df %>% filter(type == "nc-Tm") %>% filter(case == "C1") %>% group_by(envs, type, case, snps)%>% summarise(fp_strat = sum(`P.EN` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% separate(envs, c("env", "diff"), "_")  %>% separate(snps, c("snp", "num_snps"), "-")  
+#nc$diff <- as.numeric(nc$diff)
+#nc$num_snps <- as.numeric(nc$num_snps)
 
-pl <- ggplot(data=nc, aes(x=num_snps, y=fp_strat))  + scale_x_log10(breaks = c(10,30,100,300,1000, 3000)) + geom_point(size =3, color = "turquoise4")+ xlab("Number of SNPs") + ylab("False Postive Rate") + theme_classic(base_size = 20)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 20),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.1, color = "turquoise4") 
-pl
-ggsave("~/Desktop/SNPs.png", pl, width = 6, height = 4)
+#pl <- ggplot(data=nc, aes(x=num_snps, y=fp_strat))  + scale_x_log10(breaks = c(10,30,100,300,1000, 3000)) + geom_point(size =3, color = "turquoise4")+ xlab("Number of SNPs") + ylab("False Postive Rate") + theme_classic(base_size = 20)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + ylim(-0.1,1) + labs(colour="") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme( axis.title = element_text(size = 20),legend.position = "none") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width = 0.1, color = "turquoise4") 
+#pl
+#ggsave("~/Desktop/SNPs.png", pl, width = 6, height = 4)
 ```
 
 
 ```{r}
-r_bins <- fread("../code/Make_Plots/A_4PopSplit_rbins.txt.gz")
-colnames(r_bins)[4:5] <- c("r_mean", "r_sd")
-B_bins <- fread("../code/Make_Plots/A_4PopSplit_Bbins.txt.gz")
+#r_bins <- fread("../code/Make_Plots/A_4PopSplit_rbins.txt.gz")
+#colnames(r_bins)[4:5] <- c("r_mean", "r_sd")
+#B_bins <- fread("../code/Make_Plots/A_4PopSplit_Bbins.txt.gz")
 
-df <- left_join(B_bins, r_bins)
-df <- df %>% filter(case == "C1", envs %in% c("env_0.0", "env_0.01", "env_0.02", "env_0.03")) 
-labs <- list("env_0.0" = TeX("$\\Delta_{AB}$ = 0"),
-          "env_0.01" = TeX("$\\Delta_{AB}$ = 0.01"),
-          "env_0.02" = TeX("$\\Delta_{AB}$ = 0.02"),
-          "env_0.03" = TeX("$\\Delta_{AB}$ = 0.03"))
-hospital_labeller <- function(variable,value){
-  return(labs[value])
-}
+#df <- left_join(B_bins, r_bins)
+#df <- df %>% filter(case == "C1", envs %in% c("env_0.0", "env_0.01", "env_0.02", "env_0.03")) 
+#labs <- list("env_0.0" = TeX("$\\Delta_{AB}$ = 0"),
+#          "env_0.01" = TeX("$\\Delta_{AB}$ = 0.01"),
+#          "env_0.02" = TeX("$\\Delta_{AB}$ = 0.02"),
+#          "env_0.03" = TeX("$\\Delta_{AB}$ = 0.03"))
+#hospital_labeller <- function(variable,value){
+#  return(labs[value])
+#}
 
-las <- c("Population ID",expression(T^{GWAS}), "Uncorrected")
-pl <- ggplot(data = df, aes(x = r_mean, y = avg, color= type))+ geom_point() +geom_smooth(method = "lm", se = FALSE) + facet_wrap(~envs,labeller=hospital_labeller) + ylab("Mean estimated effect size") + xlab("Mean r per decile") + theme_classic(base_size = 10)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_colour_manual(name = "Correction Type",labels = las,values = c("darkgreen", "navy","goldenrod2"))
+#las <- c("Population ID",expression(T^{GWAS}), "Uncorrected")
+#pl <- ggplot(data = df, aes(x = r_mean, y = avg, color= type))+ geom_point() +geom_smooth(method = "lm", se = FALSE) + facet_wrap(~envs,labeller=hospital_labeller) + ylab("Mean estimated effect size") + xlab("Mean r per decile") + theme_classic(base_size = 10)  + theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_colour_manual(name = "Correction Type",labels = las,values = c("darkgreen", "navy","goldenrod2"))
 
 #ggsave("~/Desktop/r_plot.png", pl, width = 7, height = 5)
 ```
