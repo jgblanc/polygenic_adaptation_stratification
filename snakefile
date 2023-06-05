@@ -1,11 +1,11 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-CONFIG=["C1", "C2"]
-REP = ["B1"]
-#for i in range(1,101):
-#  REP.append("B"+str(i))
-HERITABILITY = ["h2-0.0"]
+CONFIG=["C1"]
+REP = []
+for i in range(1,101):
+  REP.append("B"+str(i))
+HERITABILITY = ["h2-0.3"]
 #ENV = ["env_0.0","env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08", "env_0.09", "env_0.1"]
 #ENV = ["env_0.0","env_0.2", "env_0.5", "env_1.0"]
 ENV = ["env_0.0","env_-0.2", "env_0.2"]
@@ -54,7 +54,8 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/ts_magnitude.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC),
+	expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
 
 
 # Simluate Genotypes
