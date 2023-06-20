@@ -327,6 +327,14 @@ tmp <- main2(type = "-ID", snps  = "nc")
 fam$nc_ID.marginal <- tmp[[1]]
 fam$nc_ID.joint <- tmp[[2]]
 
+for (i in 1:length(pc_list)) {
+  pc <-  pc_list[i]
+  tmp <- main(type = paste0("-",pc), snps = "nc")
+  fam$V1 <- tmp[[1]]
+  fam$V2 <- tmp[[2]]
+  names(fam)[names(df) == "V1"] <- paste0("nc_", pc, ".marginal")
+  names(fam)[names(df) == "V2"] <- paste0("nc_", pc, ".joint")
+}
 
 fam$Tvec <- tvec_scaled
 

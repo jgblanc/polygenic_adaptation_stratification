@@ -169,8 +169,10 @@ The x-axis here is probability that the signs of the allele frequency contrasts 
 
 
 ```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=3, fig.width=8}
-df <- fread("../code/Make_Plots/C_4PopSplit_joint_bias_TS.txt.gz")
-ts <- fread("../code/Make_Plots/C_4PopSplit_h23_TS_magnitude.txt.gz")
+#df <- fread("../code/Make_Plots/C_4PopSplit_joint_bias_TS.txt.gz")
+df <- fread("../code/Plots/Fig3.txt.gz")
+#ts <- fread("../code/Make_Plots/C_4PopSplit_h23_TS_magnitude.txt.gz")
+ts <- fread("../code/Plots/TS_magnitude.txt.gz")
 df <- full_join(ts, df)
 
 # Ascertained sites
