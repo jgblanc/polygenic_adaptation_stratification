@@ -57,7 +57,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx.txt",chr=CHR, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
+        expand("output/Calculate_FGr/SimpleGrid/{rep}/{config}/{test}/gwas_pca_weights.txt",chr=CHR, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
 
 
 rule confounder_PCA_weights:

@@ -27,6 +27,9 @@ Tm = fread(Tm_file)
 print(head(Tm))
 Tm = Tm$Tm
 
+# Normalize T to have var 1
+Tm <- scale(Tm)
+
 # Get weights
 B = t(vecs) %*% Tm
 

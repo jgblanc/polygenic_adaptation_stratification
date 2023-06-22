@@ -395,15 +395,17 @@ make_fp_plot <- function(df, pheno_type, env_type, test_type, longitude=F) {
 # Function to plot PGS on grid
 make_pgs_plot <- function(df, pheno_type, env_type, test_type, ll, up) {
   
-  dat <- df %>% filter(pheno == pheno_type & envs == env_type & test == test_type) %>% mutate(nc_stan = (nc.joint - mean(nc.joint)) / sd(nc.joint), nc_Tm_stan = (nc_Tm.joint - mean(nc_Tm.joint)) / sd(nc_Tm.joint)) %>% ungroup() %>% group_by(POP) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan),LAT = mean(LAT), LONG = mean(LONG))
+  dat <- df %>% filter(pheno == pheno_type & envs == env_type & test == test_type) %>% mutate(nc_stan = (nc.joint - mean(nc.joint)) / sd(nc.joint), nc_Tm_stan = (nc_Tm.joint - mean(nc_Tm.joint)) / sd(nc_Tm.joint),  nc_PC_stan = (nc_10.joint - mean(nc_10.joint)) / sd(nc_10.joint)) %>% ungroup() %>% group_by(POP) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan), avg_PRS_PC = mean(nc_PC_stan),LAT = mean(LAT), LONG = mean(LONG))
   
-  dat <- dat[,2:5] %>%  gather(variable, value, -c(LAT, LONG))
+  dat <- dat[,2:6] %>%  gather(variable, value, -c(LAT, LONG))
   
   plu <- dat %>% filter(variable == "avg_PRS") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() +  theme_classic(base_size = 12) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "brown4", high = "royalblue4",limits = c(ll, up), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) + theme(axis.title = element_blank())
   
   plc <- dat %>% filter(variable == "avg_PRS_Tm") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() +  theme_classic(base_size = 12) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "brown4", high = "royalblue4",limits = c(ll, up), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) + theme(axis.title = element_blank())
   
-  pl <- ggpubr::ggarrange(plu, plc, common.legend = T, legend="right")
+  plpc <- dat %>% filter(variable == "avg_PRS_PC") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() +  theme_classic(base_size = 12) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "brown4", high = "royalblue4",limits = c(ll, up), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) + theme(axis.title = element_blank())
+  
+  pl <- ggpubr::ggarrange(plu, plc, plpc, common.legend = T, legend="right", nrow = 1)
   
   return(pl)
 }
@@ -437,7 +439,7 @@ make_gwas_weights_plot <- function(df, test_type) {
 #gwas_weights <- fread("../code/Make_Plots/SimpleGrid_gw_C_new.txt.gz")
 
 fp <- fread("../code/Plots/SimpleGrid_fp_A.txt.gz")
-pgs <- fread("../code/Plots/bigfiles/SimpleGrid_pgs_A.txt.gz")
+pgs <- fread("../code/Plots/SimpleGrid_pgs_PCs_A.txt.gz")
 phenos <- fread("../code/Plots/bigfiles/SimpleGrid_phenos_A.txt.gz")
 gwas_weights <- fread("../code/Plots/SimpleGrid_gw_B.txt.gz")
 ```
@@ -452,12 +454,12 @@ gwas_weights <- fread("../code/Plots/SimpleGrid_gw_B.txt.gz")
 pl_fp <- make_fp_plot(fp, pheno_type = "LAT", env_type = "env-0.2", test_type = "LAT", longitude = F)
 pl_pgs <- make_pgs_plot(pgs, pheno_type = "LAT", env_type = "env-0.2", test_type = "LAT", -0.5, 0.5)
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "LAT", env_type = "env-0.2")
-pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
+#pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
-sv1 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.21, 0.48, 0.2, 0.22))
+sv1 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.19, 0.61, 0.2))
 sv1
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
-#ggsave("~/Desktop/LAT.png", sv, height = 2.5, width = 12)
+ggsave("~/Desktop/LAT.png", sv1, height = 2.5, width = 12)
 #ggsave("~/Desktop/LAT.png", pl_fp, height = 3.3, width =2.8 )
 ```
 
@@ -471,9 +473,9 @@ sv1
 pl_fp <- make_fp_plot(fp, pheno_type = "DIAG", env_type = "env-1.0", test_type = "LAT", longitude = T)
 pl_pgs <- make_pgs_plot(pgs, pheno_type = "DIAG", env_type = "env-1.0", test_type = "LAT", -1.5, 1.5)
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "DIAG", env_type = "env-1.0")
-pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
+#pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
-sv2 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.21, 0.48, 0.2, 0.22))
+sv2 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.19, 0.61, 0.2))
 sv2
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
 #sv
@@ -494,7 +496,7 @@ pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-1.0", test_type 
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-1.0")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
-sv3 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.21, 0.48, 0.2, 0.22))
+sv3 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.19, 0.61, 0.2))
 sv3
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
 #ggsave("~/Desktop/SLAT.png", sv, height = 2.5, width = 11)
@@ -514,20 +516,91 @@ pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-1.0", test_type 
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-1.0")
 pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
 
-sv4 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, pl_gw, nrow = 1, widths = c(0.21, 0.48, 0.2, 0.22))
+sv4 <-ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.19, 0.61, 0.2))
 sv4
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
 #ggsave("~/Desktop/DD.png", sv, height = 2.5, width = 11)
 #ggsave("~/Desktop/DD.png", pl_fp, height = 3.3, width = 2.8)
 ```
 
-## Final Figure 4
+## Grid Figure
 ```{r}
 out <- ggarrange(sv1, sv2,sv3, sv4, nrow = 4, ncol = 1)
 out
 #,labels = c("A", "B", "C", "D"),font.label=list(color="black",size=16), hjust=0.8)
 ggsave("~/Desktop/fig4.png", out, height = 10, width = 12)
 ```
+
+## PC weights figure 
+
+```{r}
+#df <- fread("../code/Plots/SimpleGrid_gw_B.txt.gz")
+
+make_gwas_weights_plot <- function(df, test_type) {
+  
+  dat <- df %>% filter(test == test_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(Relative_PC_weights), avg_weight = mean(abs(PC_weights)))
+  
+  pl <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none",axis.text=element_text(size=8), axis.title.x =element_text(size=10)) + xlab("Principal Component") + ylab("Avg. Relative Weight") + scale_y_break(c(0.035, .1), scales = 0.2)   
+  
+  return(pl)
+  
+}
+
+make_gwas_weights_plot(df, test_type = "LAT")
+make_gwas_weights_plot(df, test_type = "PS")
+```
+
+
+
+
+
+
+
+
+
+
+```{r}
+df <- fread("../code/Plots/SimpleGrid_A_pheno_weights.txt.gz")
+pheno_type <- "LAT"
+env_type <- "env-0.2"
+
+#dat_10 <- df %>% filter(pheno == pheno_type & env == env_type & PC %in% seq(0,10))%>% group_by(rep) %>% summarise(var_10 = sum(Relative_PC_weights))
+#dat_other <-df %>% filter(pheno == pheno_type & env == env_type & PC %in% seq(11,2159))%>% group_by(rep) %>% summarise(var_other = sum(Relative_PC_weights)) 
+
+
+pheno_type <- "LAT"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(PC_weights)))
+pl_LAT <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 16) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("Principal Component") + ylab("Avg. Relative Weight") + ggtitle("Latitude") +theme(plot.title = element_text(hjust = 0.5)) + ylim(c(0,1))
+pl_LAT
+
+pheno_type <- "DIAG"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(PC_weights)))
+pl_DIAG <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 16) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("Principal Component") + ylab("Avg. Relative Weight") + ggtitle("Diagonal") +theme(plot.title = element_text(hjust = 0.5))+ ylim(c(0,1))
+pl_DIAG
+
+pheno_type <- "PS"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(PC_weights)))
+pl_PS <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 16) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("Principal Component") + ylab("Avg. Relative Weight") + ggtitle("Single Deme") +theme(plot.title = element_text(hjust = 0.5)) + ylim(c(0,1))
+pl_PS
+
+sv <- egg::ggarrange(pl_LAT, pl_DIAG, pl_PS, nrow=1)
+sv
+```
+
+```{r}
+Lat <- df %>% filter(pheno == "LAT", env == "env-1.0",rep == "A1" ) 
+Diag <- df %>% filter(pheno == "DIAG", env == "env-1.0",rep == "A1" ) 
+ggplot(data = Diag, aes(x=PC, y=abs(PC_weights))) + geom_col(color = "purple4") + theme_classic(base_size = 16)
+ggplot(data = Lat, aes(x=PC, y=abs(PC_weights))) + geom_col(color = "purple4")  + scale_y_break(c(3.5, 8), scales = 0.2)  
+
+ggplot(data = Diag, aes(x=PC, y=abs(Relative_PC_weights))) + geom_col(color = "purple4") + theme_classic(base_size = 16)
+ggplot(data = Lat, aes(x=PC, y=abs(Relative_PC_weights))) + geom_col(color = "purple4")  + scale_y_break(c(0.01, 0.06), scales = 0.2) + scale_y_log10()  
+```
+
+
 
 ## Grid Supplement 1 - fp rate over magnitude of confounder
 ```{r}
