@@ -21,4 +21,4 @@ agg_all_data <- function(rep, dir_path, pheno, env, case) {
 
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Simulate_Phenotypes/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_A_pheno_weights.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_A_pheno_weights_evecscaled.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
