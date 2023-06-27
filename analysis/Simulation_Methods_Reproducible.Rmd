@@ -534,9 +534,41 @@ ggsave("~/Desktop/fig4.png", out, height = 10, width = 12)
 ## PC weights figure 
 
 ```{r}
-#df <- fread("../code/Plots/SimpleGrid_gw_B.txt.gz")
-df <- fread("../code/Plots/SimpleGrid_gw_A.txt.gz")
+df <- fread("../code/Plots/SimpleGrid_gw_scaleEvecs_A.txt.gz")
+df$scaled_weight <- abs(df$PC_weights) * (1/2159)
 
+make_gwas_weights_plot <- function(df, test_type) {
+  
+  dat <- df %>% filter(test == test_type)%>% group_by(PC) %>% summarise(avg_weight = mean(abs(scaled_weight)))
+  
+  if (test_type == "LAT") {
+    
+    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(0.05, .25), scales = 0.2,ticklabels=c())+ ylim(0, 1) + ggtitle("Latitude")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) 
+    
+  } else if (test_type == "PS") {
+    
+    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(0.05, 0.25), scales = 0.2,ticklabels=c())+ ylim(0, 1) + ggtitle("Single Deme")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  
+    
+  } else {
+    
+    stop("Enter acceptable test type")
+    
+  }
+  
+  return(pl)
+  
+}
+
+FgrLAT <- make_gwas_weights_plot(df, test_type = "LAT")
+ggsave("~/Desktop/fgr_lat.png",FgrLAT)
+FgrPS <- make_gwas_weights_plot(df, test_type = "PS")
+ggsave("~/Desktop/fgr_PS.png",FgrPS)
+```
+
+
+
+```{r}
+df <- fread("../code/Plots/SimpleGrid_gw_B.txt.gz")
 ## Unscaled
 make_gwas_weights_plot <- function(df, test_type) {
   

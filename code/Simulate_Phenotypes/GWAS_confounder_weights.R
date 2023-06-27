@@ -25,6 +25,7 @@ print(env_s)
 vecs <- fread(vecs_file)
 vecs <- vecs[,3:ncol(vecs)]
 vecs <- apply(vecs, 2, as.numeric)
+vecs <- scale(vecs)
 
 ## Get confounder
 
