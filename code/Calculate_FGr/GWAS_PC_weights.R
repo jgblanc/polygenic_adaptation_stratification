@@ -21,6 +21,8 @@ out_file = args[3]
 vecs <- fread(vecs_file)
 vecs <- vecs[,3:ncol(vecs)]
 vecs <- apply(vecs, 2, as.numeric)
+vecs <- scale(vecs)
+
 
 # Load T^GWAS
 Tm = fread(Tm_file)

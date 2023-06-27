@@ -535,19 +535,64 @@ ggsave("~/Desktop/fig4.png", out, height = 10, width = 12)
 
 ```{r}
 #df <- fread("../code/Plots/SimpleGrid_gw_B.txt.gz")
+df <- fread("../code/Plots/SimpleGrid_gw_A.txt.gz")
 
+## Unscaled
 make_gwas_weights_plot <- function(df, test_type) {
   
   dat <- df %>% filter(test == test_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(Relative_PC_weights), avg_weight = mean(abs(PC_weights)))
   
-  pl <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none",axis.text=element_text(size=8), axis.title.x =element_text(size=10)) + xlab("Principal Component") + ylab("Avg. Relative Weight") + scale_y_break(c(0.035, .1), scales = 0.2)   
+  if (test_type == "LAT") {
+    
+    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(4, 20), scales = 0.2,ticklabels=c(20, 25,30))+ ylim(0, 30) + ggtitle("Latitude")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) 
+    
+  } else if (test_type == "PS") {
+    
+    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(4, 20), scales = 0.2,ticklabels=c(20, 25,30))+ ylim(0, 30) + ggtitle("Single Deme")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  
+    
+  } else {
+    
+    stop("Enter acceptable test type")
+    
+  }
   
   return(pl)
   
 }
 
-make_gwas_weights_plot(df, test_type = "LAT")
-make_gwas_weights_plot(df, test_type = "PS")
+FgrLAT <- make_gwas_weights_plot(df, test_type = "LAT")
+ggsave("~/Desktop/fgr_lat.png",FgrLAT)
+FgrPS <- make_gwas_weights_plot(df, test_type = "PS")
+ggsave("~/Desktop/fgr_PS.png",FgrPS)
+
+
+## Scaled
+make_gwas_weights_plot <- function(df, test_type) {
+  
+  dat <- df %>% filter(test == test_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(Relative_PC_weights), avg_weight = mean(abs(PC_weights)))
+  
+  if (test_type == "LAT") {
+    
+    pl <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Relative Weight") + scale_y_break(c(0.035, 0.09), scales = 0.2,ticklabels=c(0.09, 0.11))+ ylim(0, 0.12) + ggtitle("Latitude")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) 
+    
+  } else if (test_type == "PS") {
+    
+    pl <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg.Relative Weight") + scale_y_break(c(0.035, 0.09), scales = 0.2,ticklabels=c(0.09, 0.11))+ ylim(0, 0.12) + ggtitle("Single Deme")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  
+    
+  } else {
+    
+    stop("Enter acceptable test type")
+    
+  }
+  
+  return(pl)
+  
+}
+
+FgrLAT <- make_gwas_weights_plot(df, test_type = "LAT")
+ggsave("~/Desktop/fgr_lat.png",FgrLAT)
+FgrPS <- make_gwas_weights_plot(df, test_type = "PS")
+ggsave("~/Desktop/fgr_PS.png",FgrPS)
 ```
 
 
@@ -561,44 +606,48 @@ make_gwas_weights_plot(df, test_type = "PS")
 
 ```{r}
 df <- fread("../code/Plots/SimpleGrid_A_pheno_weights.txt.gz")
-pheno_type <- "LAT"
-env_type <- "env-0.2"
-
-#dat_10 <- df %>% filter(pheno == pheno_type & env == env_type & PC %in% seq(0,10))%>% group_by(rep) %>% summarise(var_10 = sum(Relative_PC_weights))
-#dat_other <-df %>% filter(pheno == pheno_type & env == env_type & PC %in% seq(11,2159))%>% group_by(rep) %>% summarise(var_other = sum(Relative_PC_weights)) 
 
 
+## Unscaled 
 pheno_type <- "LAT"
 env_type <- "env-1.0"
-dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(PC_weights)))
-pl_LAT <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 16) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("Principal Component") + ylab("Avg. Relative Weight") + ggtitle("Latitude") +theme(plot.title = element_text(hjust = 0.5)) + ylim(c(0,1))
-pl_LAT
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
+pl_LAT <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(1.5, 3), scales = 0.2,ticklabels=c(3, 5,7,9))+ ylim(0, 10) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Latitude")  
+ggsave("~/Desktop/c_lat.png",pl_LAT)
 
 pheno_type <- "DIAG"
 env_type <- "env-1.0"
-dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(PC_weights)))
-pl_DIAG <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 16) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("Principal Component") + ylab("Avg. Relative Weight") + ggtitle("Diagonal") +theme(plot.title = element_text(hjust = 0.5))+ ylim(c(0,1))
-pl_DIAG
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
+pl_DIAG <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(1.5, 3), scales = 0.2,ticklabels=c(3, 5,7,9))+ ylim(0, 10) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Diagonal")  
+ggsave("~/Desktop/c_diag.png",pl_DIAG)
 
 pheno_type <- "PS"
 env_type <- "env-1.0"
-dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(PC_weights)))
-pl_PS <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_classic(base_size = 16) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("Principal Component") + ylab("Avg. Relative Weight") + ggtitle("Single Deme") +theme(plot.title = element_text(hjust = 0.5)) + ylim(c(0,1))
-pl_PS
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
+pl_PS <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(1.5, 3), scales = 0.2,ticklabels=c(3, 5,7,9))+ ylim(0, 10) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Single Deme")  
+ggsave("~/Desktop/c_ps.png",pl_PS)
 
-sv <- egg::ggarrange(pl_LAT, pl_DIAG, pl_PS, nrow=1)
-sv
+## Scaled
+pheno_type <- "LAT"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
+pl_LAT <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Relative Weight") + scale_y_break(c(0.008, 0.06), scales = 0.2,ticklabels=c(0.06, 0.07))+ ylim(0, 0.07) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Latitude") 
+ggsave("~/Desktop/c_lat.png",pl_LAT)
+
+pheno_type <- "DIAG"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
+pl_DIAG <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(0.008, 0.06), scales = 0.2,ticklabels=c(0.06, 0.07 ))+ ylim(0, 0.07) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Diagonal")  
+ggsave("~/Desktop/c_diag.png",pl_DIAG)
+
+pheno_type <- "PS"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
+pl_PS <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(0.008, 0.06), scales = 0.2,ticklabels=c(0.06, 0.07))+ ylim(0, 0.07) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Single Deme")  
+ggsave("~/Desktop/c_ps.png",pl_PS)
 ```
 
-```{r}
-Lat <- df %>% filter(pheno == "LAT", env == "env-1.0",rep == "A1" ) 
-Diag <- df %>% filter(pheno == "DIAG", env == "env-1.0",rep == "A1" ) 
-ggplot(data = Diag, aes(x=PC, y=abs(PC_weights))) + geom_col(color = "purple4") + theme_classic(base_size = 16)
-ggplot(data = Lat, aes(x=PC, y=abs(PC_weights))) + geom_col(color = "purple4")  + scale_y_break(c(3.5, 8), scales = 0.2)  
 
-ggplot(data = Diag, aes(x=PC, y=abs(Relative_PC_weights))) + geom_col(color = "purple4") + theme_classic(base_size = 16)
-ggplot(data = Lat, aes(x=PC, y=abs(Relative_PC_weights))) + geom_col(color = "purple4")  + scale_y_break(c(0.01, 0.06), scales = 0.2) + scale_y_log10()  
-```
 
 
 
