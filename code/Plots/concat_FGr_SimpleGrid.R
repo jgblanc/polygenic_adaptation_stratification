@@ -1,0 +1,29 @@
+library(dplyr)
+library(data.table)
+
+n <- 100
+reps <- rep(NA, n)
+for (i in 1:n){reps[i] <- paste0("A", i)}
+print(reps)
+cases <- c("C1")
+tests <- c("LAT", "PS") 
+dat <- expand.grid(reps, cases, tests)
+colnames(dat) <- c("rep", "case", "test")
+
+agg_all_data <- function(rep, dir_path, case, test) {
+  
+  FGr <- fread(paste0(dir_path, rep,"/", case, "/", test, "/", "Tm.txt"))
+  IDs <- fread(paste0('../../output/Calculate_FGr/SimpleGrid/A1/C1/LAT/LAT/Tm-ID_covars.txt'))
+  IDs <- IDs[,1:2]
+  IDs$Tm <- FGr$Tm
+
+  pop <- fread(paste0('../../output/Simulate_Genotypes/SimpleGrid/', rep,"/", "genos.pop"))
+  colnames(pop) <- c("IID", "#FID", "POP", "LAT", "LONG" )
+  
+  df <- inner_join(pop, IDs)    
+
+  return(df)
+}
+df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/Calculate_FGr/SimpleGrid/' )
+
+fwrite(df, "SimpleGrid_FGr_A.txt", row.names=F,quote=F,sep="\t", col.names = T)
