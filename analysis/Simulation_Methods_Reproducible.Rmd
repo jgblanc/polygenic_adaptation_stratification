@@ -627,18 +627,33 @@ FgrPS <- make_gwas_weights_plot(df, test_type = "PS")
 ggsave("~/Desktop/fgr_PS.png",FgrPS)
 ```
 
+```{r}
+df <- fread("../code/Plots/bigfiles/SimpleGrid_A_pheno_weights_evecscaled.txt.gz")
+df$scaled_weight <- abs(df$PC_weights) * (1/2159)
 
+## Scaled
+pheno_type <- "LAT"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(avg_weight = mean(abs(scaled_weight)))
+pl_LAT <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Relative Weight") +scale_y_cut(breaks = c(0.03), which = 1, scales=c(0.3),space = 0.1)+ ylim(0, 0.22) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Latitude") 
+ggsave("~/Desktop/c_lat.png",pl_LAT)
 
+pheno_type <- "DIAG"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(avg_weight = mean(abs(scaled_weight)))
+pl_DIAG <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(breaks = c(0.03), which = 1, scales=c(0.3),space = 0.1)+ ylim(0, 0.22) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Diagonal")  
+ggsave("~/Desktop/c_diag.png",pl_DIAG)
 
-
-
-
-
+pheno_type <- "PS"
+env_type <- "env-1.0"
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(avg_weight = mean(abs(scaled_weight)))
+pl_PS <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(breaks = c(0.03), which = 1, scales=c(0.3),space = 0.1)+ ylim(0, 0.22) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Single Deme")  
+ggsave("~/Desktop/c_ps.png",pl_PS)
+```
 
 
 ```{r}
 df <- fread("../code/Plots/SimpleGrid_A_pheno_weights.txt.gz")
-
 
 ## Unscaled 
 pheno_type <- "LAT"

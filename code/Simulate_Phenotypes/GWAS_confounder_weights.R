@@ -95,6 +95,7 @@ if (pheno_pattern == "LAT") {
 }
 
 Tm = prs$env
+Tm = scale(Tm)
 
 # Get weights
 B = t(vecs) %*% Tm
