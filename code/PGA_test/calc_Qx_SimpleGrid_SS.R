@@ -2,7 +2,7 @@
 
 args=commandArgs(TRUE)
 
-if(length(args)!=8){stop("Rscript calc_Qx_SimpleGrid.R <gwas prefix> <tp genotypes prefix> <test vec>
+if(length(args)!=9){stop("Rscript calc_Qx_SimpleGrid.R <gwas prefix> <tp genotypes prefix> <test vec>
                          <pop file> <num resample> <output prefix> <true effect sizes> <list of PCs> <outfile PGS>")}
 
 suppressWarnings(suppressMessages({
@@ -20,6 +20,7 @@ out_pre = args[5] # output prefix
 true_file = args[6]
 out_pgs <- args[7]
 betas_file = args[8]
+outpath = args[9]
 
 
 # Function to read in genotype matrix for a set of variants
@@ -51,25 +52,32 @@ N <- length(Tvec)
 # Rescale test vec to have variance 1
 tvec_scaled <- scale(Tvec)
 
-# Read in TP genotypes and compute r one by one
-print(paste0(geno_test_prefix, ".pvar"))
-pvar <- fread(paste0(geno_test_prefix, ".pvar"), skip=205)
-head(pvar)
-r <- rep(0, nrow(pvar))
-for (l in 1:nrow(pvar)) {
-    
-  print(l)  
-  # Read in genotypes at l site
-  X <- read_genos(geno_test_prefix, pvar[l,])
+# Compute t(X)T using plink
+outpath <-
+outfile_XT <- paste0(outpath, "xt")
+cmd_XT <- paste("sh code/Calculate_FGr/compute_XT.sh", geno_test_prefix, tvec_file, outfile_XT, sep = " ")
+system(cmd_XT)
 
-  # Mean center genotype matrix
-  X <- scale(X, scale = F)
+# Adjust Betas to account for variance in x
 
-  # Compute effect sizes
-  rl <- t(X) %*% tvec_scaled
-  r[l] <- rl
+# Read in betas and genotype counts
+beta_plink <- fread(paste0(outpath, "xt.Tvec.glm.linear"))
+count_plink <- fread(paste0(outpath, "xt.gcount"))
 
-}
+# Calculate length of mean centered genotypes from counts
+nOBS <- (count_plink$HOM_REF_CT + count_plink$HET_REF_ALT_CTS + count_plink$TWO_ALT_GENO_CTS)
+counts <- (count_plink$HOM_REF_CT * 0) + (count_plink$HET_REF_ALT_CTS * 1) + (count_plink$TWO_ALT_GENO_CTS * 2)
+mean_gc <- counts / nOBS
+length_mc_genos <- (count_plink$HOM_REF_CT * (-1 * mean_gc)^2) + (count_plink$HET_REF_ALT_CTS * (1 - mean_gc)^2) +  (count_plink$TWO_ALT_GENO_CTS * (2 - mean_gc)^2)
+
+# Fix betas
+betas_plink_norm <- beta_plink$BETA * length_mc_genos
+
+#  Re-write .linear file with correct betas
+beta_plink$BETA <- betas_plink_norm
+beta_reformat <- beta_plink %>% dplyr::select(ID, A1, BETA)
+r <- beta_reformat$BETA / (N -1)
+
 
 ## Compute corrected effect sizes
 betas <- fread(betas_file)

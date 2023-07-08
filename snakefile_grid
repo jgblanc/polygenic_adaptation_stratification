@@ -580,7 +580,7 @@ rule Calc_ss:
     num=NUM_RESAMPLE
   shell:
     """
-    Rscript code/PGA_test/calc_Qx_SimpleGrid_SS.R output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {output.pgs} {input.betas}
+    Rscript code/PGA_test/calc_Qx_SimpleGrid_SS.R output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {output.pgs} {input.betas} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-test_common
     rm {input.betas}
     """
 
