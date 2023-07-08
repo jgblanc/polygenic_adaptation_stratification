@@ -159,6 +159,22 @@ pl
 #ggsave("~/Desktop/4PopSup_2.png", pl, width = 10, height = 7)
 ```
 
+```{r}
+df <- fread("../code/Plots/bigfiles/4PopSplit_FGr_B.txt.gz")
+
+
+dat <- df %>% group_by(rep, PopID, case) %>% summarise(avg_Tm = mean(Tm)) %>% mutate(Config = case_when(case == "C1" ~ "Overlapping", case == "C2" ~ "Non-overlapping")) %>% mutate(PopID = replace(PopID, (case == "C1" & PopID == "C"), "B"))
+
+df_mean <- dat %>% group_by(PopID, Config) %>% summarise(avg=mean(avg_Tm))
+
+pl <- ggplot(data = dat, aes(x = PopID, y = avg_Tm, color= PopID)) + geom_jitter(alpha = 0.5) + facet_wrap(~Config) + scale_color_manual(values = c("darkred", "goldenrod2")) + geom_errorbar(data = df_mean, width=0.6, colour = "black", size = 1, aes(ymax=..y.., ymin=..y.., y = avg)) + theme_classic(base_size = 18) +  
+  theme( panel.border = element_rect(colour = "black", fill=NA, size=1), legend.position = "none") + xlab("GWAS Panel Population") + ylab(TeX("avg.  $\\hat{F}_{Gr}$"))
+  
+ggsave("~/Desktop/FGr_4PopSplit.png", pl, height = 5, width = 8)
+```
+
+
+
 #### True Signal Simulations  
 
 For these simulations we simulate true signals of polygenic selection on the trait by drawing the sign of the effect sizes according to the allele frequency difference in the test panel. All examples are in the case of overlapping structure (C1).  
@@ -368,24 +384,24 @@ make_fp_plot <- function(df, pheno_type, env_type, test_type, longitude=F) {
   }
   
   if (longitude == F) {
-    dat <- fp %>% filter(envs == env_type & pheno == pheno_type & test == test_type & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
-    dat$type <- factor(dat$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+    dat <- fp %>% filter(envs == env_type & pheno == pheno_type & test == test_type & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
+    dat$type <- factor(dat$type,  levels = c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
     dat$test  <- test_name
 
-    pl <- ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 8, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen", "red4")) + scale_x_discrete(labels = unname(TeX(c("Uncorrected", "$\\hat{F}_{Gr}$", "T in GWAS", "10 PCs")))) + facet_wrap(~test)
+    pl <- ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 8, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "red4")) + scale_x_discrete(labels = unname(TeX(c("Uncorrected", "$\\hat{F}_{Gr}$", "10 PCs")))) + facet_wrap(~test)
   } else {
     
-    dat_lat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
-    dat_lat$type <- factor(dat_lat$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+    dat_lat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
+    dat_lat$type <- factor(dat_lat$type,  levels = c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
     dat_lat$test  <- test_name
     
-    dat_long <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_joint_long <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
-    dat_long$type <- factor(dat_long$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+    dat_long <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_joint_long <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
+    dat_long$type <- factor(dat_long$type,  levels = c("nc-uncorrected", "nc-Tm",   "nc-PC10"))
     dat_long$test  <- "Longitude"
     
     dat <- full_join(dat_lat, dat_long)
 
-    pl <-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 5, color = "black",  angle = 45, hjust=1, vjust=1), legend.position = "none", strip.text.x = element_text(size = 8)) + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "darkgreen", "red4")) + scale_x_discrete(labels = unname(TeX(c("Uncorrected", "$\\hat{F}_{Gr}$", "T in GWAS", "10 PCs")))) + facet_wrap(~test)   
+    pl <-ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 5, color = "black",  angle = 45, hjust=1, vjust=1), legend.position = "none", strip.text.x = element_text(size = 8)) + ylim(-0.01,1) + labs(colour="GWAS") + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "red4")) + scale_x_discrete(labels = unname(TeX(c("Uncorrected", "$\\hat{F}_{Gr}$", "10 PCs")))) + facet_wrap(~test)   
     
   }
   
@@ -459,7 +475,7 @@ pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "LAT", env_type = "env-
 sv1 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.19, 0.61, 0.2))
 sv1
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
-ggsave("~/Desktop/LAT.png", sv1, height = 2.5, width = 12)
+#ggsave("~/Desktop/LAT.png", sv1, height = 2.5, width = 12)
 #ggsave("~/Desktop/LAT.png", pl_fp, height = 3.3, width =2.8 )
 ```
 
@@ -525,11 +541,29 @@ sv4
 
 ## Grid Figure
 ```{r}
-out <- ggarrange(sv1, sv2,sv3, sv4, nrow = 4, ncol = 1)
+#out <- ggarrange(sv1, sv2,sv3, sv4, nrow = 4, ncol = 1)
+out <- ggarrange(sv1, sv2, sv4, nrow = 4, ncol = 1)
 out
 #,labels = c("A", "B", "C", "D"),font.label=list(color="black",size=16), hjust=0.8)
 ggsave("~/Desktop/fig4.png", out, height = 10, width = 12)
 ```
+
+## Grid FGr Figure
+```{r}
+df <- fread("../code/Plots/SimpleGrid_FGr_A.txt.gz")
+
+
+dat <- df %>% group_by(POP, test) %>% summarise(avg_Tm = mean(Tm),LAT = mean(LAT), LONG = mean(LONG)) %>% mutate(test_format = case_when(test == "LAT" ~ "Latitude", test == "PS" ~ "Single Deme"))
+  
+  #dat <- dat[,2:6] %>%  gather(variable, value, -c(LAT, LONG))
+  
+pl <- ggplot(data = dat, aes(x = LONG, y = LAT, fill = avg_Tm)) + geom_tile() + facet_wrap(~test_format) +  theme_classic(base_size = 16) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) + scale_fill_gradient2(low = "goldenrod2", high = "red4", name = TeX("$\\hat{F}_{Gr}$")) + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1))  + ylab("Latitude") + xlab("Longitude")
+
+
+ggsave("~/Desktop/FGr_grids.png", pl, height = 5, width = 8)
+```
+
+
 
 ## PC weights figure 
 
@@ -543,73 +577,11 @@ make_gwas_weights_plot <- function(df, test_type) {
   
   if (test_type == "LAT") {
     
-    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(0.05, .25), scales = 0.2,ticklabels=c())+ ylim(0, 1) + ggtitle("Latitude")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) 
+    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + ggtitle("Latitude")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) 
     
   } else if (test_type == "PS") {
     
-    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(0.05, 0.25), scales = 0.2,ticklabels=c())+ ylim(0, 1) + ggtitle("Single Deme")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  
-    
-  } else {
-    
-    stop("Enter acceptable test type")
-    
-  }
-  
-  return(pl)
-  
-}
-
-FgrLAT <- make_gwas_weights_plot(df, test_type = "LAT")
-ggsave("~/Desktop/fgr_lat.png",FgrLAT)
-FgrPS <- make_gwas_weights_plot(df, test_type = "PS")
-ggsave("~/Desktop/fgr_PS.png",FgrPS)
-```
-
-
-
-```{r}
-df <- fread("../code/Plots/SimpleGrid_gw_B.txt.gz")
-## Unscaled
-make_gwas_weights_plot <- function(df, test_type) {
-  
-  dat <- df %>% filter(test == test_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(Relative_PC_weights), avg_weight = mean(abs(PC_weights)))
-  
-  if (test_type == "LAT") {
-    
-    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(4, 20), scales = 0.2,ticklabels=c(20, 25,30))+ ylim(0, 30) + ggtitle("Latitude")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) 
-    
-  } else if (test_type == "PS") {
-    
-    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(4, 20), scales = 0.2,ticklabels=c(20, 25,30))+ ylim(0, 30) + ggtitle("Single Deme")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  
-    
-  } else {
-    
-    stop("Enter acceptable test type")
-    
-  }
-  
-  return(pl)
-  
-}
-
-FgrLAT <- make_gwas_weights_plot(df, test_type = "LAT")
-ggsave("~/Desktop/fgr_lat.png",FgrLAT)
-FgrPS <- make_gwas_weights_plot(df, test_type = "PS")
-ggsave("~/Desktop/fgr_PS.png",FgrPS)
-
-
-## Scaled
-make_gwas_weights_plot <- function(df, test_type) {
-  
-  dat <- df %>% filter(test == test_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(Relative_PC_weights), avg_weight = mean(abs(PC_weights)))
-  
-  if (test_type == "LAT") {
-    
-    pl <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Relative Weight") + scale_y_break(c(0.035, 0.09), scales = 0.2,ticklabels=c(0.09, 0.11))+ ylim(0, 0.12) + ggtitle("Latitude")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) 
-    
-  } else if (test_type == "PS") {
-    
-    pl <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg.Relative Weight") + scale_y_break(c(0.035, 0.09), scales = 0.2,ticklabels=c(0.09, 0.11))+ ylim(0, 0.12) + ggtitle("Single Deme")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  
+    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + ggtitle("Single Deme")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  
     
   } else {
     
@@ -635,78 +607,38 @@ df$scaled_weight <- abs(df$PC_weights) * (1/2159)
 pheno_type <- "LAT"
 env_type <- "env-1.0"
 dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(avg_weight = mean(abs(scaled_weight)))
-pl_LAT <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Relative Weight") +scale_y_cut(breaks = c(0.03), which = 1, scales=c(0.3),space = 0.1)+ ylim(0, 0.22) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Latitude") 
+pl_LAT <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  + ggtitle("Latitude") 
+pl_LAT
 ggsave("~/Desktop/c_lat.png",pl_LAT)
 
 pheno_type <- "DIAG"
 env_type <- "env-1.0"
-dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(avg_weight = mean(abs(scaled_weight)))
-pl_DIAG <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(breaks = c(0.03), which = 1, scales=c(0.3),space = 0.1)+ ylim(0, 0.22) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Diagonal")  
+dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(avg_weight = mean(abs(scaled_weight))) 
+pl_DIAG <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) + ggtitle("Diagonal")  
+pl_DIAG
 ggsave("~/Desktop/c_diag.png",pl_DIAG)
 
 pheno_type <- "PS"
 env_type <- "env-1.0"
 dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(avg_weight = mean(abs(scaled_weight)))
-pl_PS <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(breaks = c(0.03), which = 1, scales=c(0.3),space = 0.1)+ ylim(0, 0.22) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Single Deme")  
+pl_PS <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) + ggtitle("Single Deme")  
+pl_PS
 ggsave("~/Desktop/c_ps.png",pl_PS)
 ```
-
-
-```{r}
-df <- fread("../code/Plots/SimpleGrid_A_pheno_weights.txt.gz")
-
-## Unscaled 
-pheno_type <- "LAT"
-env_type <- "env-1.0"
-dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
-pl_LAT <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(1.5, 3), scales = 0.2,ticklabels=c(3, 5,7,9))+ ylim(0, 10) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Latitude")  
-ggsave("~/Desktop/c_lat.png",pl_LAT)
-
-pheno_type <- "DIAG"
-env_type <- "env-1.0"
-dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
-pl_DIAG <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(1.5, 3), scales = 0.2,ticklabels=c(3, 5,7,9))+ ylim(0, 10) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Diagonal")  
-ggsave("~/Desktop/c_diag.png",pl_DIAG)
-
-pheno_type <- "PS"
-env_type <- "env-1.0"
-dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
-pl_PS <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(1.5, 3), scales = 0.2,ticklabels=c(3, 5,7,9))+ ylim(0, 10) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Single Deme")  
-ggsave("~/Desktop/c_ps.png",pl_PS)
-
-## Scaled
-pheno_type <- "LAT"
-env_type <- "env-1.0"
-dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
-pl_LAT <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Relative Weight") + scale_y_break(c(0.008, 0.06), scales = 0.2,ticklabels=c(0.06, 0.07))+ ylim(0, 0.07) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Latitude") 
-ggsave("~/Desktop/c_lat.png",pl_LAT)
-
-pheno_type <- "DIAG"
-env_type <- "env-1.0"
-dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
-pl_DIAG <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(0.008, 0.06), scales = 0.2,ticklabels=c(0.06, 0.07 ))+ ylim(0, 0.07) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Diagonal")  
-ggsave("~/Desktop/c_diag.png",pl_DIAG)
-
-pheno_type <- "PS"
-env_type <- "env-1.0"
-dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(relative_avg_weight = mean(abs(Relative_PC_weights)), avg_weight = mean(abs(PC_weights)))
-pl_PS <- ggplot(data = dat, aes(x=PC, y=relative_avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_break(c(0.008, 0.06), scales = 0.2,ticklabels=c(0.06, 0.07))+ ylim(0, 0.07) +  theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))+ ggtitle("Single Deme")  
-ggsave("~/Desktop/c_ps.png",pl_PS)
-```
-
-
 
 
 
 ## Grid Supplement 1 - fp rate over magnitude of confounder
 ```{r}
-df <- fp %>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter((pheno == "LAT" & test == "LAT") | (pheno == "PS" & test == "LAT") | (pheno == "PS" & test == "PS") | (pheno == "DIAG" & test == "LAT")) %>% separate(envs, c("env", "diff"), "-") %>% mutate(diff = as.numeric(diff)) %>% filter(type  %in% c("nc-uncorrected", "nc-PC10", "nc-Tm", "nc-ID")) %>% mutate(sim = case_when(pheno == "LAT" & test == "LAT" ~ "Latitude/Latitude", (pheno == "PS" & test == "LAT") ~ "Single Deme/Latitude", (pheno == "PS" & test == "PS") ~ "Single Deme/Single Deme", (pheno == "DIAG" & test == "LAT") ~ "Diagonal/Latitude"))
-df$type <- factor(df$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-ID",  "nc-PC10"))
+fp <- fread("../code/Plots/SimpleGrid_fp_A.txt.gz")
+df <- fp %>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter((pheno == "LAT" & test == "LAT") | (pheno == "PS" & test == "PS") | (pheno == "DIAG" & test == "LAT")) %>% separate(envs, c("env", "diff"), "-") %>% mutate(diff = as.numeric(diff)) %>% filter(type  %in% c("nc-uncorrected", "nc-PC10", "nc-Tm")) %>% mutate(sim = case_when(pheno == "LAT" & test == "LAT" ~ "Latitude/Latitude", (pheno == "PS" & test == "PS") ~ "Single Deme/Single Deme", (pheno == "DIAG" & test == "LAT") ~ "Diagonal/Latitude"))
+df$type <- factor(df$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-PC10"))
+df$sim_f <- factor(df$sim, levels = c("Latitude/Latitude","Diagonal/Latitude" ,"Single Deme/Single Deme") ) 
 
-pl <- ggplot(df, aes(x = diff, y = fp_strat, color = type)) + geom_point(size=2) + facet_wrap(~sim)+ xlab("Magnitude of confounder") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.text.align = 0) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.05) + scale_color_manual(values = c("goldenrod2","navy", "darkgreen", "red4"), labels = unname(TeX(c("Uncorrected", "$\\hat{F}_{Gr}$", "T measured in GWAS", "10 PCs"))), name = "GWAS Type")
+pl <- ggplot(df, aes(x = diff, y = fp_strat, color = type)) + geom_point(size=2) + facet_wrap(~sim_f)+ xlab("Magnitude of confounder") + ylab("False Postive Rate") + theme_classic(base_size = 18) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.text.align = 0) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.05) + scale_color_manual(values = c("goldenrod2","navy", "red4"), labels = unname(TeX(c("Uncorrected", "$\\hat{F}_{Gr}$", "10 PCs"))), name = "GWAS Type")
 pl
 
-ggsave("~/Desktop/grid_sup1.png", pl, width = 10, height = 6)
+ggsave("~/Desktop/gridSup_range.png", pl, width = 12, height = 5)
 ```
 
 ## Grid Supplement 2 - PS with different number of PCs
@@ -716,15 +648,15 @@ fp <- fread("../code/Plots/SimpleGrid_fp_A_PCs.txt.gz")
 df <- fp %>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()))%>% separate(type, c("tmp", "type"), "-") %>% filter(tmp == "nc")
 df1 <- df %>% filter(type %in% c("PC10", "PC50", "PC100", "PC200", "PC300", "PC500", "PC1000")) 
 df1$type <- factor(df1$type, levels = c("PC10", "PC50", "PC100", "PC200", "PC300", "PC500", "PC1000"))
-df2 <- df %>% filter(type %in% c("uncorrected", "Tm", "ID"))
-df2$type <- factor(df2$type, levels = c("Tm", "ID", "uncorrected"))
+df2 <- df %>% filter(type %in% c("uncorrected", "Tm"))
+df2$type <- factor(df2$type, levels = c("Tm", "uncorrected"))
 
 pl1 <- ggplot(data = df1, aes(x = type, y = fp_strat)) + geom_col(fill ="red4")+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0, axis.text.y = element_blank(), axis.ticks = element_blank()) + ylim(-0.01,1.004) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) 
 
-pl2 <- ggplot(data = df2, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1.004) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("navy", "darkgreen", "goldenrod2")) + scale_x_discrete(labels = unname(TeX(c("$\\hat{F}_{Gr}$", "T in GWAS", "Uncorrected")))) 
+pl2 <- ggplot(data = df2, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1.004) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("navy", "goldenrod2")) + scale_x_discrete(labels = unname(TeX(c("$\\hat{F}_{Gr}$", "Uncorrected")))) 
 
 sv <- egg::ggarrange(pl2, pl1, nrow=1, widths = c(0.4, 0.6))
-ggsave("~/Desktop/grid_sup2.png", sv, width = 10, height = 6)
+ggsave("~/Desktop/grid_supPS.png", sv, width = 10, height = 6)
 sv
 ```
 

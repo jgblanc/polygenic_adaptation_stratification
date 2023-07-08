@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = []
-for i in range(1, 101):
-  REP.append("A"+str(i))
+REP = ["A1"]
+#for i in range(1, 101):
+#  REP.append("A"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 PHENO = ["PS", "LAT", "DIAG"]
@@ -57,7 +57,7 @@ def get_seed_msprime(rep):
 
 rule all:
     input:
-        expand("output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/pca_weights.txt",chr=CHR, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
+        expand("output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx_ss.txt",chr=CHR, rep=REP, config=CONFIG, h2=HERITABILITY, env=ENV, pheno=PHENO, test=TEST,pc=PC)
 
 
 rule confounder_PCA_weights:
@@ -563,6 +563,27 @@ rule Calc_Qx:
     Rscript code/PGA_test/calc_Qx_SimpleGrid.R output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {params.pc_list} {output.pgs}
     rm {input.g1} {input.g2} {input.g3} {input.g4} {input.g5} {input.g6} {input.g7} {input.g8}
     """
+
+# Summary Stat version
+
+rule Calc_ss:
+  input:
+    betas="output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common.pheno_strat.glm.linear",
+    genos_test="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam"
+    Tvec="output/Calculate_FGr/SimpleGrid/{rep}/{config}/{test}/Tvec.txt",
+    pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
+    es="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.effects.txt"
+  output:
+    qx="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/Qx_ss.txt",
+    pgs="output/PGA_test/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/PGS_ss.txt"
+  params:
+    num=NUM_RESAMPLE
+  shell:
+    """
+    Rscript code/PGA_test/calc_Qx_SimpleGrid_SS.R output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {output.pgs} {input.betas}
+    rm {input.betas}
+    """
+
 
 
 # Rule to calculate Fst across demes in GWAS panel
