@@ -569,7 +569,7 @@ rule Calc_Qx:
 rule Calc_ss:
   input:
     betas="output/Run_GWAS/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/{test}/genos-gwas_common.pheno_strat.glm.linear",
-    genos_test="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam"
+    genos_test="output/Simulate_Genotypes/SimpleGrid/{rep}/{config}/genos-test_common.psam",
     Tvec="output/Calculate_FGr/SimpleGrid/{rep}/{config}/{test}/Tvec.txt",
     pops="output/Simulate_Genotypes/SimpleGrid/{rep}/genos.pop",
     es="output/Simulate_Phenotypes/SimpleGrid/{rep}/{config}/{h2}/{pheno}/{env}/genos-gwas_common.effects.txt"

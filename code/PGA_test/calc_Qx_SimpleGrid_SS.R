@@ -52,10 +52,13 @@ N <- length(Tvec)
 tvec_scaled <- scale(Tvec)
 
 # Read in TP genotypes and compute r one by one
-pvar <- fread(paste0(geno_test_prefix, ".pvar"))
+print(paste0(geno_test_prefix, ".pvar"))
+pvar <- fread(paste0(geno_test_prefix, ".pvar"), skip=205)
+head(pvar)
 r <- rep(0, nrow(pvar))
 for (l in 1:nrow(pvar)) {
-
+    
+  print(l)  
   # Read in genotypes at l site
   X <- read_genos(geno_test_prefix, pvar[l,])
 
