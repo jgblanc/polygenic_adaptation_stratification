@@ -78,7 +78,6 @@ beta_plink$BETA <- betas_plink_norm
 beta_reformat <- beta_plink %>% dplyr::select(ID, A1, BETA)
 r <- beta_reformat$BETA / (N -1)
 
-
 ## Compute corrected effect sizes
 betas <- fread(betas_file)
 colnames(betas)[1] <- "CHROM"
@@ -88,7 +87,7 @@ flip_effect = function(gwas_df,beta_colname){
   gwas_df = gwas_df[A1=="A", beta_colname := -BETA]
   gwas_df = gwas_df[A1=="T", beta_colname := BETA]
   gwas_df$A1="T"
-  gwas_df = gwas_df[,.(CHROM,POS,ID,A1,beta_colname,P)]
+  gwas_df = gwas_df[,.(CHROM,POS,ID,A1,beta_colname,P, SE)]
   colnames(gwas_df)[5] = beta_colname
   return(gwas_df)
 }
@@ -100,10 +99,23 @@ betas <- flip_effect(betas, "BETA")
 mod <- lm(betas$BETA ~ r)
 betas$corrected <- mod$residuals
 
-# Clump snps
+# Convert to Chi-sq
+#r_se <- sd(r) / sqrt(length(r))
+#Beta_r <- mod$coefficients[2]
+#seBr <-   (betas$SE)^2 + (Beta_r^2 * (beta_plink$SE^2))
+#chsq2 <- (mod$residuals)^2 /(seBr^2)
+#pvals <- 1- pchisq(chsq2, 1)
+
+
+# Clump snps - random
+#betas <- betas %>% mutate(ID2 = ID) %>%
+#  separate(ID2, c("chr", "pos", "a1", "a2"), "_")%>% group_by(chr) %>%
+#  slice_min(P, with_ties = F) %>% ungroup() %>%
+#  select(CHROM, POS, ID, A1, BETA, P, corrected)
+
 betas <- betas %>% mutate(ID2 = ID) %>%
   separate(ID2, c("chr", "pos", "a1", "a2"), "_")%>% group_by(chr) %>%
-  slice_min(P, with_ties = F) %>% ungroup() %>%
+  sample_n(1) %>% ungroup() %>%
   select(CHROM, POS, ID, A1, BETA, P, corrected)
 
 

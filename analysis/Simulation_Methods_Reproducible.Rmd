@@ -694,6 +694,51 @@ sv <- egg::ggarrange(pl_LAT, pl_DIAG, pl_PS, nrow=1)
 ggsave("~/Desktop/grid_sup3.png", sv, width = 12, height = 5)
 ```
 
+## Summary statistics 
+
+```{r}
+fp <- fread("../code/Plots/SimpleGrid_fp_A_SS.txt.gz")
+
+env_type = "env-0.2"
+pheno_type = "LAT"
+test_type = "LAT"
+
+make_fp_plot_ss <- function(env_type, pheno_type, test_type) {
+
+  dat_u <- fp %>% filter(envs == env_type & pheno == pheno_type & test == test_type & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_uc <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) 
+  dat_u$type <- "uncorrected"
+  dat_c <- fp %>% filter(envs == env_type & pheno == pheno_type & test == test_type & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_c <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) 
+  dat_c$type <- "corrected"
+
+  dat <- rbind(dat_u, dat_c)
+  dat$test  <- test_type
+
+  pl <- ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 8, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) 
+
+  return(pl)
+}
+
+make_fp_plot_ss("env-0.2", "LAT", "LAT")
+make_fp_plot_ss("env-0.2", "DIAG", "LAT")
+make_fp_plot_ss("env-0.2", "PS", "PS")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Extra Code  
 
 ```{r}
