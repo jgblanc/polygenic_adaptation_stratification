@@ -10,6 +10,7 @@ suppressWarnings(suppressMessages({
   library(dplyr)
   library(Matrix)
   library(pgenlibr)
+  library(tidyr)
 }))
 
 geno_test_prefix = args[1] # Prefix to pilnk files
@@ -21,7 +22,7 @@ true_file = args[6]
 out_pgs <- args[7]
 betas_file = args[8]
 outpath = args[9]
-
+geno_prefix = geno_test_prefix
 
 # Function to read in genotype matrix for a set of variants
 read_genos <- function(geno_prefix, betas) {
@@ -53,7 +54,6 @@ N <- length(Tvec)
 tvec_scaled <- scale(Tvec)
 
 # Compute t(X)T using plink
-outpath <-
 outfile_XT <- paste0(outpath, "xt")
 cmd_XT <- paste("sh code/Calculate_FGr/compute_XT.sh", geno_test_prefix, tvec_file, outfile_XT, sep = " ")
 system(cmd_XT)
@@ -169,7 +169,7 @@ en <- function(X, betas, Va, tvec) {
 
 # Make longitude test vector
 pops <- fread(pops_file)
-fam <-  fread(paste0(geno_prefix, ".psam"))
+fam <-  fread(paste0(geno_test_prefix, ".psam"))
 colnames(pops) <- c("IID", "FID", "Pop", "Lat", "Long")
 pop <- dplyr::inner_join(pops, fam, by = c("IID"= "IID"))
 Tvec_long <- pop$Long
@@ -249,7 +249,7 @@ main <- function(type) {
 
   # Concatenate output (Qx, p_strat)
   out <- c(q_uc, p_strat_en_uc, q_c, p_strat_en_c,
-           q_uc_long, p_strat_uc_long, q_c_long, p_strat_en_c_long)
+           q_uc_long, p_strat_en_uc_long, q_c_long, p_strat_en_c_long)
 
   return(out)
 
@@ -259,14 +259,14 @@ main <- function(type) {
 # Run all types of PGS
 
 ### Asecertained
-out_nc <- as.data.frame(matrix(NA, nrow = 2, ncol =8))
-out_nc[1, ] <- rep(0,8)
-out_nc[2, ] <- main(type = "")
-out_nc$type <- c("true","nc-uncorrected")
+out <- as.data.frame(matrix(NA, nrow = 2, ncol =8))
+out[1, ] <- rep(0,8)
+out[2, ] <- main(type = "")
+out$type <- c("true","nc-uncorrected")
 
 
 ### Compute  bias
-tq <- out_c[1,1]
+tq <- out[1,1]
 if (is.na(tq)) {
   tq <- 0
 }

@@ -15,13 +15,13 @@ colnames(dat) <- c("rep", "case", "h2", "pheno", "envs", "test")
 
 agg_all_data <- function(rep, dir_path, case, h2, pheno, envs, test) {
   
-  PGS <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", pheno, "/", envs, "/", test, "/",  "PGS.txt"))
+  PGS <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", pheno, "/", envs, "/", test, "/",  "PGS_ss.txt"))
   pop <- fread(paste0('../../output/Simulate_Genotypes/SimpleGrid/', rep,"/", "genos.pop"))
   colnames(pop) <- c("IID", "#FID", "POP", "LAT", "LONG" )
   
-  df <- inner_join(PGS, pop) %>% select("nc.joint", "nc_Tm.joint", "nc_10.joint", POP, LAT, LONG)
+  df <- inner_join(PGS, pop) %>% select("uc", "c", POP, LAT, LONG)
   return(df)
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_pgs_PCs_A.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_pgs_ss_A.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
