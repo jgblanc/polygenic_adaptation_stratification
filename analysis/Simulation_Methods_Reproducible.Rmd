@@ -697,11 +697,8 @@ ggsave("~/Desktop/grid_sup3.png", sv, width = 12, height = 5)
 ## Summary statistics 
 
 ```{r}
-fp <- fread("../code/Plots/SimpleGrid_fp_A_SS.txt.gz")
+fp <- fread("../code/Plots/SimpleGrid_fp_A_SS_random.txt.gz")
 
-env_type = "env-0.2"
-pheno_type = "LAT"
-test_type = "LAT"
 
 make_fp_plot_ss <- function(env_type, pheno_type, test_type) {
 
@@ -718,9 +715,9 @@ make_fp_plot_ss <- function(env_type, pheno_type, test_type) {
   return(pl)
 }
 
-make_fp_plot_ss("env-0.2", "LAT", "LAT")
-make_fp_plot_ss("env-0.2", "DIAG", "LAT")
-make_fp_plot_ss("env-0.2", "PS", "PS")
+make_fp_plot_ss("env-0.01", "LAT", "LAT")
+make_fp_plot_ss("env-0.01", "DIAG", "LAT")
+make_fp_plot_ss("env-0.01", "PS", "PS")
 ```
 
 
