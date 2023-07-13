@@ -715,9 +715,25 @@ make_fp_plot_ss <- function(env_type, pheno_type, test_type) {
   return(pl)
 }
 
-make_fp_plot_ss("env-0.01", "LAT", "LAT")
-make_fp_plot_ss("env-0.01", "DIAG", "LAT")
-make_fp_plot_ss("env-0.01", "PS", "PS")
+make_fp_plot_ss("env-1.0", "LAT", "LAT")
+make_fp_plot_ss("env-1.0", "DIAG", "LAT")
+make_fp_plot_ss("env-1.0", "PS", "PS")
+
+
+df_u <- fp %>% filter(type != "true")%>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_uc <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter((pheno == "LAT" & test == "LAT") | (pheno == "PS" & test == "PS") | (pheno == "DIAG" & test == "LAT")) %>% separate(envs, c("env", "diff"), "-") %>% mutate(diff = as.numeric(diff)) %>% mutate(sim = case_when(pheno == "LAT" & test == "LAT" ~ "Latitude/Latitude", (pheno == "PS" & test == "PS") ~ "Single Deme/Single Deme", (pheno == "DIAG" & test == "LAT") ~ "Diagonal/Latitude"))
+df_u$type <- "uncorrected"
+df_u$sim_f <- factor(df_u$sim, levels = c("Latitude/Latitude","Diagonal/Latitude" ,"Single Deme/Single Deme") ) 
+
+df_c <- fp %>% filter(type != "true")%>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_c <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter((pheno == "LAT" & test == "LAT") | (pheno == "PS" & test == "PS") | (pheno == "DIAG" & test == "LAT")) %>% separate(envs, c("env", "diff"), "-") %>% mutate(diff = as.numeric(diff)) %>% mutate(sim = case_when(pheno == "LAT" & test == "LAT" ~ "Latitude/Latitude", (pheno == "PS" & test == "PS") ~ "Single Deme/Single Deme", (pheno == "DIAG" & test == "LAT") ~ "Diagonal/Latitude"))
+df_c$type <- "corrected"
+df_c$sim_f <- factor(df_u$sim, levels = c("Latitude/Latitude","Diagonal/Latitude" ,"Single Deme/Single Deme") ) 
+
+df <- as.data.frame(rbind(df_u, df_c))
+
+pl <- ggplot(df, aes(x = diff, y = fp_strat, color = type)) + geom_point(size=2) + facet_wrap(~sim_f)+ xlab("Magnitude of confounder") + ylab("False Postive Rate") + theme_classic(base_size = 18) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), legend.text.align = 0) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.05)+ scale_color_manual(values = c("navy", "goldenrod2"), name = "Effect Sizes")
+pl
+
+ggsave("~/Desktop/ss.png", pl, height = 5, width = 12)
 ```
 
 

@@ -2,9 +2,9 @@ CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
 CONFIG=["C1"]
-REP = []
-for i in range(1,101):
-  REP.append("B"+str(i))
+REP = ["B1"]
+#for i in range(1,101):
+#  REP.append("B"+str(i))
 HERITABILITY = ["h2-0.3"]
 #ENV = ["env_0.0","env_0.01", "env_0.02", "env_0.03", "env_0.04", "env_0.05", "env_0.06", "env_0.07", "env_0.08", "env_0.09", "env_0.1"]
 #ENV = ["env_0.0","env_0.2", "env_0.5", "env_1.0"]
@@ -54,8 +54,29 @@ def get_pc_num(x):
 
 rule all:
     input:
-        expand("output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/ts_magnitude.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC),
-	expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+        expand("output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx_ss.txt", chr=CHR,rep=REP, config=CONFIG, h2=HERITABILITY, ts=TS, env=ENV,nc=NUM_CAUSAL, pc=PC)
+
+
+# Summary Stat version
+
+rule Calc_ss:
+  input:
+    betas="output/Run_GWAS/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.pheno_strat.glm.linear",
+    genos_test="output/Simulate_Genotypes/4PopSplit/{rep}/{config}/genos-test_common.psam",
+    Tvec="output/Calculate_FGr/4PopSplit/{rep}/{config}/Tvec.txt",
+    pops="output/Simulate_Genotypes/4PopSplit/{rep}/genos.pop",
+    es="output/Simulate_Phenotypes/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/genos-gwas_common.effects.txt"
+  output:
+    qx="output/PGA_test/4PopSplit/{rep}/{config}/{h2}/{ts}/{nc}/{env}/Qx_ss.txt"
+  params:
+    num=NUM_RESAMPLE
+  shell:
+    """
+    Rscript code/PGA_test/calc_Qx_4PopSplit_SS.R output/Simulate_Genotypes/4PopSplit/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {output.pgs} {input.betas} output/Run_GWAS/4PopSplit/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.ts}/{wildcards.nc}/{wildcards.env}/
+    rm {input.betas}
+    """
+
+
 
 
 # Simluate Genotypes
@@ -595,6 +616,7 @@ rule bin_effect_size:
       """
       Rscript code/Run_GWAS/bin_avg_effect_sizes.R {input.r} {input.gwas} {input.gwas_Tm} {input.gwas_ID} {output.es} {output.es_Tm} {output.es_ID}
       """
+
 
 # Compute r and bin
 
