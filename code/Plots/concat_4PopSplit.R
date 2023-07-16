@@ -17,11 +17,11 @@ colnames(dat) <- c("rep", "case", "h2", "ts", "envs", "nc")
 
 agg_all_data <- function(rep, dir_path, case, h2, ts, envs, nc) {
   
-  Qx <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/", nc, "/", envs, "/",  "Qx.txt"))
+  Qx <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", ts, "/", nc, "/", envs, "/",  "Qx_ss.txt"))
   #Qx$type <- c("nc-uncorrected", "nc-Tm", "nc-ID", "c-uncorrected", "c-Tm","c-ID","true")
 
   return(Qx)
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/4PopSplit/' )
 
-fwrite(df, "Fig3.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "ts_ss.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)

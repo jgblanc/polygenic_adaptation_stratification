@@ -18,9 +18,8 @@ pops_file = args[3]
 num = as.numeric(args[4]) # number of times to resapme
 out_pre = args[5] # output prefix
 true_file = args[6]
-out_pgs <- args[7]
-betas_file = args[8]
-outpath = args[9]
+betas_file = args[7]
+outpath = args[8]
 geno_prefix = geno_test_prefix
 
 
@@ -121,8 +120,11 @@ betas$corrected <- mod$residuals
 ts <- fread(true_file)
 colnames(ts) <- c("ID", "A1", "TS")
 betas_ts <- inner_join(ts, betas)
+betas <- betas_ts
 betas_ts$BETA <- betas_ts$TS
 betas_ts$corrected <- betas_ts$TS
+print(nrow(betas))
+print(nrow(betas_ts))
 
 # Function to calculate Va
 calc_Va <- function(geno_mat, es) {
@@ -255,10 +257,8 @@ tq <- out[1,1]
 if (is.na(tq)) {
    tq <- 0
 }
-out <- rbind(out_nc, out_c)
+
 colnames(out) <- c("q_uc", "P.EN_uc", "q_c", "P.EN_c", "type")
-out$Bias_marginal <- out$q_marginal - tq
-out$Bias_joint <- out$q_joint - tq
 out$Bias_uc <- out$q_uc - tq
 out$Bias_c <- out$q_c - tq
 
