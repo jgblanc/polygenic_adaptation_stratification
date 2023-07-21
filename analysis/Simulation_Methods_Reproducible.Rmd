@@ -576,6 +576,22 @@ out
 ggsave("~/Desktop/fig4.png", out, height = 10, width = 12)
 ```
 
+## Additional confounder
+```{r}
+fp <- fread("../code/Plots/SimpleGrid_fp_A_dc.txt.gz")
+pgs <- fread("../code/Plots/SimpleGrid_pgs_dc_A.txt.gz")
+phenos <- fread("../code/Plots/SimpleGrid_phenos_dc_A.txt.gz")
+
+pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-4.0", test_type = "PS", longitude = F)
+pl_fp
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-4.0", test_type = "PS", -1, 1)
+pl_pgs
+pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-2.0")
+pl_phenotype
+```
+
+
+
 ## Grid FGr Figure
 ```{r}
 df <- fread("../code/Plots/SimpleGrid_FGr_A.txt.gz")
