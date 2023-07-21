@@ -564,7 +564,8 @@ sv4 <-ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.19, 
 sv4
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
 #ggsave("~/Desktop/DD.png", sv, height = 2.5, width = 11)
-#ggsave("~/Desktop/DD.png", pl_fp, height = 3.3, width = 2.8)
+#ggsave
+pl_fp
 ```
 
 ## Grid Figure
@@ -578,13 +579,13 @@ ggsave("~/Desktop/fig4.png", out, height = 10, width = 12)
 
 ## Additional confounder
 ```{r}
-fp <- fread("../code/Plots/SimpleGrid_fp_A_dc.txt.gz")
-pgs <- fread("../code/Plots/SimpleGrid_pgs_dc_A.txt.gz")
-phenos <- fread("../code/Plots/SimpleGrid_phenos_dc_A.txt.gz")
+fp <- fread("../code/Plots/SimpleGrid_fp_A_dc2.txt.gz")
+pgs <- fread("../code/Plots/SimpleGrid_pgs_dc2_A.txt.gz")
+phenos <- fread("../code/Plots/SimpleGrid_phenos_dc2_A.txt.gz")
 
 pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-4.0", test_type = "PS", longitude = F)
 pl_fp
-pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-4.0", test_type = "PS", -1, 1)
+pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-4.0", test_type = "PS", -3, 3)
 pl_pgs
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-2.0")
 pl_phenotype
