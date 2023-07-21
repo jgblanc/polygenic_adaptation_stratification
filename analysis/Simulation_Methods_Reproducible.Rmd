@@ -246,6 +246,34 @@ pl <- ggplot(data = data, aes(x = avg_mag, y = fp_strat, color = PRS, shape = PR
 pl
 ggsave("~/Desktop/TS.png", pl,width = 10, height = 6)
 ```
+#### Summary stat version 
+
+```{r,eval = TRUE, echo=FALSE, warning=FALSE, fig.height=5, fig.width=8}
+#df <- fread("../code/Make_Plots/C_4PopSplit_joint_bias_TS.txt.gz")
+df <- fread("../code/Plots/ts_ss.txt.gz")
+#ts <- fread("../code/Make_Plots/C_4PopSplit_h23_TS_magnitude.txt.gz")
+ts <- fread("../code/Plots/TS_magnitude.txt.gz")
+df <- full_join(ts, df)
+
+# Causal sites
+data_uc <- df %>% group_by(envs, ts, type) %>% summarise(fp_strat = sum(`P.EN_uc` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), avg_mag = mean(ts_magnitude)) %>% separate(ts, c("ts", "prob"), "-") %>% separate(envs, c("env", "diff"), "_")  %>% mutate(prob = as.numeric(prob)) %>% mutate(direction = case_when(diff == "-0.2" ~ "Opposite Direction", diff == "0.0" ~ "No Environmental Stratification", diff == "0.2" ~ "Same Direction")) %>% mutate(PRS = case_when(type == "nc-uncorrected" ~ "Uncorrected", type == "true" ~ "True Effect Size")) 
+d2_uc <- data_uc %>% filter(type %in% c("nc-uncorrected"))
+
+data_c <- df %>% filter(type != "true") %>% group_by(envs, ts, type) %>% summarise(fp_strat = sum(`P.EN_c` < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), avg_mag = mean(ts_magnitude)) %>% separate(ts, c("ts", "prob"), "-") %>% separate(envs, c("env", "diff"), "_")  %>% mutate(prob = as.numeric(prob)) %>% mutate(direction = case_when(diff == "-0.2" ~ "Opposite Direction", diff == "0.0" ~ "No Environmental Stratification", diff == "0.2" ~ "Same Direction")) %>% mutate(PRS = case_when(type == "nc-uncorrected" ~ "Corrected", type == "true" ~ "True Effect Size")) 
+d2_c <- data_c %>% filter(type %in% c("nc-uncorrected"))
+
+data <- rbind(data_uc, data_c)
+d2 <- rbind(d2_uc, d2_c)
+
+pl <-ggplot(data = data, aes(x = avg_mag, y = fp_strat, color = PRS, shape = PRS, size = PRS)) + geom_point() + facet_wrap( ~direction) + theme_classic(base_size = 12) + theme(legend.text.align = 0)+ geom_hline(yintercept = 0.05, color = "red") + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title = element_text(size = 12)) +
+  scale_colour_manual(name = "",labels = c("Corrected", "True Effect Size", "Uncorrected"), values = c("navy","red","goldenrod2")) + 
+  scale_shape_manual(name = "",labels = c("Corrected", "True Effect Size", "Uncorrected"), values = c(16, 8, 16)) + 
+  scale_size_manual(name = "",labels = c("Corrected", "True Effect Size", "Uncorrected"),values = c(2, 3, 2))+ 
+  scale_y_continuous(name = "Positive Rate", breaks = seq(0, 1, 0.2)) + scale_x_continuous(name = TeX("$\\bar{\\Delta}_{CD}$"), breaks = seq(0, 0.25, 0.05)) + geom_errorbar(data = d2, aes(ymin = lowerci, ymax = upperci), width = 0.01, size =0.5) 
+ggsave("~/Desktop/TS_ss.png", pl,width = 10, height = 3)
+```
+
+
 
 
 ### Marginal vs Joint figure 
@@ -577,11 +605,11 @@ make_gwas_weights_plot <- function(df, test_type) {
   
   if (test_type == "LAT") {
     
-    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + ggtitle("Latitude")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) 
+    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. correlation") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + ggtitle("Latitude")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) 
     
   } else if (test_type == "PS") {
     
-    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + ggtitle("Single Deme")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  
+    pl <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "maroon4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. correlation") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + ggtitle("Single Deme")+ theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(),plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  
     
   } else {
     
@@ -607,21 +635,21 @@ df$scaled_weight <- abs(df$PC_weights) * (1/2159)
 pheno_type <- "LAT"
 env_type <- "env-1.0"
 dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(avg_weight = mean(abs(scaled_weight)))
-pl_LAT <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  + ggtitle("Latitude") 
+pl_LAT <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. correlation") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30)))  + ggtitle("Latitude") 
 pl_LAT
 ggsave("~/Desktop/c_lat.png",pl_LAT)
 
 pheno_type <- "DIAG"
 env_type <- "env-1.0"
 dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(avg_weight = mean(abs(scaled_weight))) 
-pl_DIAG <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) + ggtitle("Diagonal")  
+pl_DIAG <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. correlation") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) + ggtitle("Diagonal")  
 pl_DIAG
 ggsave("~/Desktop/c_diag.png",pl_DIAG)
 
 pheno_type <- "PS"
 env_type <- "env-1.0"
 dat <- df %>% filter(pheno == pheno_type & env == env_type) %>% group_by(PC) %>% summarise(avg_weight = mean(abs(scaled_weight)))
-pl_PS <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. Weight") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) + ggtitle("Single Deme")  
+pl_PS <- ggplot(data = dat, aes(x=PC, y=avg_weight)) + geom_col(color = "purple4") + theme_bw(base_size = 22)  + xlab("Principal Component") + ylab("Avg. correlation") + scale_y_cut(c(0.05), which=c(1), scales=c(0.2))+ ylim(0, 1) + theme(axis.ticks.y.right = element_blank(), axis.text.y.right = element_blank(), plot.title=element_text( hjust=0.95, vjust=0, face='bold', margin=margin(t=40,b=-30))) + ggtitle("Single Deme")  
 pl_PS
 ggsave("~/Desktop/c_ps.png",pl_PS)
 ```
