@@ -5,9 +5,9 @@ n <- 100
 reps <- rep(NA, n)
 for (i in 1:n){reps[i] <- paste0("A", i)}
 print(reps)
-h2 <- "dc2-0"
+h2 <- "h2-0"
 #envs <- c("env-1.0", "env-0.2")
-envs <- c("env-2.0", "env-4.0")
+envs <- c("env-1.0")
 cases <- c("C1")
 test <- c("PS")
 pheno <- c("PS")
@@ -16,7 +16,7 @@ colnames(dat) <- c("rep", "case", "h2", "pheno", "envs", "test")
 
 agg_all_data <- function(rep, dir_path, case, h2, pheno, envs, test) {
   
-  PGS <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", pheno, "/", envs, "/", test, "/",  "PGS.txt"))
+  PGS <- fread(paste0(dir_path, rep,"/", case, "/", h2, "/", pheno, "/", envs, "/", test, "/",  "PGS_pcFGr.txt"))
   pop <- fread(paste0('../../output/Simulate_Genotypes/SimpleGrid/', rep,"/", "genos.pop"))
   colnames(pop) <- c("IID", "#FID", "POP", "LAT", "LONG" )
   
@@ -26,4 +26,4 @@ agg_all_data <- function(rep, dir_path, case, h2, pheno, envs, test) {
 }
 df <- plyr::mdply(dat, agg_all_data, dir_path = '../../output/PGA_test/SimpleGrid/' )
 
-fwrite(df, "SimpleGrid_pgs_dc2_A.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)
+fwrite(df, "SimpleGrid_pgs_pcFGr_A.txt.gz", row.names=F,quote=F,sep="\t", col.names = T)

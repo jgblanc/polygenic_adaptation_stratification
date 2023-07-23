@@ -91,9 +91,10 @@ print("Finished ID")
 ## PC corrected
 for (i in pcs) {
 
-  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-",i,".c.betas")), phenos, as.matrix(df_covar[,c(3,5:(i+4))]))
+  #print(dim(as.matrix(cbind(df_covar$Tm, df_covar[,5:(i+4)])))) 
+  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-",i,"_pcFGr",".c.betas")), phenos, as.matrix(cbind(df_covar$Tm, df_covar[,5:(i+4)])))
   fwrite(df, paste0(path_to_SNPs, "-", i,"_pcFGr", ".c.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
-  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-", i, ".nc.betas")), phenos, as.matrix(df_covar[,c(3,5:(i+4))]))
+  df <- compute_joint(path_to_gwas, fread(paste0(path_to_SNPs, "-", i,"_pcFGr", ".nc.betas")), phenos, as.matrix(cbind(df_covar$Tm, df_covar[,5:(i+4)])))
   fwrite(df, paste0(path_to_SNPs, "-", i,"_pcFGr", ".nc.betas.joint"),row.names=F,quote=F,sep="\t", col.names = T)
 
 }

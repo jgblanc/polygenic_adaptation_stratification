@@ -129,8 +129,8 @@ print("clumped ID")
 ## PC corrected
 for (i in 1:length(pcs)) {
 
-  main_casual(paste0(gwas_file_prefix, "-", pcs[i]), paste0(output_file_prefix, "-", pcs[i], "_pcFGr"))
-  main_nc(paste0(gwas_file_prefix, "-", pcs[i]), paste0(output_file_prefix, "-", pcs[i], "_pcFGr"))
+  main_casual(paste0(gwas_file_prefix, "-", pcs[i], "_pcFGr"), paste0(output_file_prefix, "-", pcs[i], "_pcFGr"))
+  main_nc(paste0(gwas_file_prefix, "-", pcs[i], "_pcFGr"), paste0(output_file_prefix, "-", pcs[i], "_pcFGr"))
 
 }
 print("clumped PC")

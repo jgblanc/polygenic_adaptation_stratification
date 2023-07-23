@@ -1,9 +1,9 @@
 CHR =[]
 for i in range(0, 200):
   CHR.append(str(i))
-REP = ["A1"]
-#for i in range(1, 101):
-#  REP.append("A"+str(i))
+REP = []
+for i in range(1, 101):
+  REP.append("A"+str(i))
 CONFIG = ["C1"]
 HERITABILITY = ["h2-0"]
 #PHENO = ["PS", "LAT", "DIAG"]
@@ -501,7 +501,7 @@ rule pick_SNPS:
       pc_list = get_pc_list(PC)
     shell:
       """
-      Rscript code/PRS/clump.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common {params.pc_list}
+      Rscript code/PRS/clump_pcFGr.R {input.causal_effect} output/Run_GWAS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common {params.pc_list}
       rm {input.gwas_u} {input.gwas_Tm} {input.gwas_ID} {input.gwas_PC}
       """
 
@@ -560,7 +560,7 @@ rule Calc_Qx:
     pc_list = get_pc_list(PC)
   shell:
     """
-    Rscript code/PGA_test/calc_Qx_SimpleGrid.R output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {params.pc_list} {output.pgs}
+    Rscript code/PGA_test/calc_Qx_SimpleGrid_pcFGr.R output/PRS/SimpleGrid/{wildcards.rep}/{wildcards.config}/{wildcards.h2}/{wildcards.pheno}/{wildcards.env}/{wildcards.test}/genos-gwas_common output/Simulate_Genotypes/SimpleGrid/{wildcards.rep}/{wildcards.config}/genos-test_common {input.Tvec} {input.pops} {params.num} {output.qx} {input.es} {params.pc_list} {output.pgs}
     rm {input.g1} {input.g2} {input.g3} {input.g4} {input.g5} {input.g6} {input.g7} {input.g8}
     """
 
