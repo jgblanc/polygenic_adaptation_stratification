@@ -74,7 +74,7 @@ if (pheno_pattern == "LAT") {
   print(pheno_pattern)
 
   # Add stratification on deme 25
-  id_diag <- c(26)
+  id_diag <- c(25)
   for (i in 1:length(id_diag)) {
     prs <- prs %>% group_by(Pop) %>% mutate(env = ifelse(Pop == id_diag[i], env + env_s, env))
   }

@@ -579,11 +579,11 @@ ggsave("~/Desktop/fig4.png", out, height = 10, width = 12)
 
 ## Additional confounder
 ```{r}
-fp <- fread("../code/Plots/SimpleGrid_fp_A_dc2.txt.gz")
+fp <- fread("../code/Plots/SimpleGrid_fp_A_dc.txt.gz")
 pgs <- fread("../code/Plots/SimpleGrid_pgs_dc2_A.txt.gz")
 phenos <- fread("../code/Plots/SimpleGrid_phenos_dc2_A.txt.gz")
 
-pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-4.0", test_type = "PS", longitude = F)
+pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-99.0", test_type = "PS", longitude = F)
 pl_fp
 pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-4.0", test_type = "PS", -3, 3)
 pl_pgs
