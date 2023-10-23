@@ -412,14 +412,14 @@ make_fp_plot <- function(df, pheno_type, env_type, test_type, longitude=F) {
   }
   
   if (longitude == F) {
-    dat <- fp %>% filter(envs == env_type & pheno == pheno_type & test == test_type & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
+    dat <- df %>% filter(envs == env_type & pheno == pheno_type & test == test_type & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_joint < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
     dat$type <- factor(dat$type,  levels = c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
     dat$test  <- test_name
 
     pl <- ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 12) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 8, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "red4")) + scale_x_discrete(labels = unname(TeX(c("Uncorrected", "$\\hat{F}_{Gr}$", "10 PCs")))) + facet_wrap(~test)
   } else {
     
-    dat_lat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
+    dat_lat <- df %>% filter(test == test_type & pheno == pheno_type & envs == env_type) %>% group_by(type) %>% summarise(fp_strat = sum(P.EN_joint < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
     dat_lat$type <- factor(dat_lat$type,  levels = c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
     dat_lat$test  <- test_name
     
@@ -486,6 +486,7 @@ fp <- fread("../code/Plots/SimpleGrid_fp_A.txt.gz")
 pgs <- fread("../code/Plots/SimpleGrid_pgs_PCs_A.txt.gz")
 phenos <- fread("../code/Plots/bigfiles/SimpleGrid_phenos_A.txt.gz")
 gwas_weights <- fread("../code/Plots/SimpleGrid_gw_B.txt.gz")
+
 ```
 
 
@@ -538,7 +539,7 @@ sv2
 pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type =  "env-1.0", test_type = "LAT", longitude = F)
 pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-1.0", test_type = "LAT", -1, 1)
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-1.0")
-pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
+#pl_gw <- make_gwas_weights_plot(gwas_weights, "LAT")
 
 sv3 <- ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.19, 0.61, 0.2))
 sv3
@@ -558,15 +559,14 @@ sv3
 pl_fp <- make_fp_plot(fp, pheno_type = "PS", env_type = "env-1.0", test_type = "PS", longitude = F)
 pl_pgs <- make_pgs_plot(pgs, pheno_type = "PS", env_type = "env-1.0", test_type = "PS", -1, 1)
 pl_phenotype <- make_phenotype_plot(phenos, pheno_type = "PS", env_type = "env-1.0")
-pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
+#pl_gw <- make_gwas_weights_plot(gwas_weights, "PS")
 
 sv4 <-ggpubr::ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.19, 0.61, 0.2))
 sv4
 #sv <- ggarrange(pl_phenotype, pl_pgs, pl_fp, nrow = 1, widths = c(0.23, 0.5, 0.2))
 #ggsave("~/Desktop/DD.png", sv, height = 2.5, width = 11)
-#ggsave
-pl_fp
 ```
+
 
 ## Grid Figure
 ```{r}
@@ -576,6 +576,68 @@ out
 #,labels = c("A", "B", "C", "D"),font.label=list(color="black",size=16), hjust=0.8)
 ggsave("~/Desktop/fig4.png", out, height = 10, width = 12)
 ```
+
+## Combining PCs plus covariate
+
+```{r}
+fp_pcFGr <- fread("../code/Plots/SimpleGrid_fp_A_pcFGr.txt.gz")
+pgs_pcFGr <- fread("../code/Plots/SimpleGrid_pgs_pcFGr_A.txt.gz")
+
+make_fp_plot(fp_pcFGr, pheno_type = "PS", env_type = "env-1.0", test_type = "PS", longitude = F)
+
+
+pheno_type = "PS"
+env_type = "env-1.0"
+test_type = "PS"
+ll = -1
+up = 1
+test_name = "Single Deme"
+
+dat <- pgs_pcFGr %>% filter(pheno == pheno_type & envs == env_type & test == test_type) %>% mutate(nc_stan = (nc.joint - mean(nc.joint)) / sd(nc.joint), nc_Tm_stan = (nc_Tm.joint - mean(nc_Tm.joint)) / sd(nc_Tm.joint),  nc_PC_stan = (nc_10.joint - mean(nc_10.joint)) / sd(nc_10.joint)) %>% ungroup() %>% group_by(POP) %>% summarise(avg_PRS = mean(nc_stan), avg_PRS_Tm = mean(nc_Tm_stan), avg_PRS_PC = mean(nc_PC_stan),LAT = mean(LAT), LONG = mean(LONG))
+  
+dat <- dat[,2:6] %>%  gather(variable, value, -c(LAT, LONG))
+
+plpc <- dat %>% filter(variable == "avg_PRS_PC") %>% ggplot(aes(x = LONG, y = LAT, fill = value)) + geom_tile() +  theme_classic(base_size = 16) +  theme(panel.border = element_rect(colour = "black", fill=NA, size=1), plot.title = element_text(hjust = 0.5)) + scale_fill_gradient2(low = "brown4", high = "royalblue4",limits = c(ll, up), name = "PGS") + xlab("Longitude") + ylab("Latitude") + scale_y_continuous(breaks=seq(0,6,1)) + scale_x_continuous(breaks=seq(0,6,1)) + ggtitle(TeX( "$\\hat{F}_{Gr}$ + 10 PCs")) + xlab("Longitude") + ylab("Latitude")
+
+plpc
+
+dat <- fp %>% filter(envs == env_type & pheno == pheno_type & test == test_type & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_joint < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
+dat$type <- factor(dat$type,  levels = c("nc-uncorrected", "nc-Tm",  "nc-PC10", "nc-both"))
+dat$test  <- test_name
+
+dat2 <-  fp_pcFGr %>% filter(envs == env_type & pheno == pheno_type & test == test_type & type != "true") %>% group_by(type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter(type %in% c("nc-uncorrected", "nc-Tm",  "nc-PC10"))
+dat2$type <- factor(dat$type,  levels = c("nc-uncorrected", "nc-Tm",  "nc-PC10", "nc-both"))
+dat2$test  <- test_name
+toAdd <- dat2[1,]
+toAdd[1,1] <- "nc-both"
+
+dat <- rbind(dat, toAdd)
+
+pl <- ggplot(data = dat, aes(x = type, y = fp_strat, fill = type)) + geom_col()+ geom_point(fill = "black", size = 3)+ xlab("") + ylab("False Postive Rate") + theme_classic(base_size = 14) + theme(panel.border = element_rect(colour = "black", fill=NA, size=1), axis.text.x = element_text(size = 12, color = "black",  angle = 35, hjust=1), legend.position = "none", legend.text.align = 0) + ylim(-0.01,1) + geom_hline(yintercept = 0.05, color = "red") + geom_errorbar(aes(ymin = lowerci, ymax = upperci), width =0.25) + scale_fill_manual(values = c("goldenrod2","navy", "red4", "darkmagenta")) + scale_x_discrete(labels = unname(TeX(c("Uncorrected", "$\\hat{F}_{Gr}$", "10 PCs", "$\\hat{F}_{Gr}$ + 10PCs")))) + facet_wrap(~test)
+
+#ggpubr::ggarrange(plpc, pl, nrow = 1, widths = c(0.5, 0.5))
+sv <- egg::ggarrange(plpc, pl, nrow=1, widths = c(0.55, 0.45))
+ggsave("~/Desktop/both.png", sv, height = 6, width = 10)
+```
+
+
+## Eigenvalues 
+
+```{r}
+df <- fread("../code/Plots/SimpleGrid_evals_A.txt.gz")
+
+top1000 <- seq(1,1000)
+df2 <- df %>% group_by(rep) %>% mutate(total = sum(V1), cum_sum = cumsum(V1) / total) %>% ungroup() %>% group_by(number) %>% summarise(avg_cum_sum = mean(cum_sum))
+
+pl <- ggplot(df2, aes(number, avg_cum_sum)) + geom_point() + geom_vline(xintercept = 1000, color = "red") + xlab("Principal component") + ylab("Avg. Cumulative fraction of eigenvalues") + theme_bw(base_size = 12) + theme(legend.position = "bottom", panel.border = element_rect(colour = "black", fill=NA, size=1), legend.text = element_text(size = 10), panel.grid.minor = element_line(linetype = 'dashed'))
+
+ggsave("~/Desktop/evals.png", pl, height = 6, width = 8)
+```
+
+
+
+
+
 
 ## Additional confounder
 ```{r}
@@ -676,7 +738,7 @@ ggsave("~/Desktop/c_ps.png",pl_PS)
 ## Grid Supplement 1 - fp rate over magnitude of confounder
 ```{r}
 fp <- fread("../code/Plots/SimpleGrid_fp_A.txt.gz")
-df <- fp %>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_joint <= 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter((pheno == "LAT" & test == "LAT") | (pheno == "PS" & test == "PS") | (pheno == "DIAG" & test == "LAT")) %>% separate(envs, c("env", "diff"), "-") %>% mutate(diff = as.numeric(diff)) %>% filter(type  %in% c("nc-uncorrected", "nc-PC10", "nc-Tm")) %>% mutate(sim = case_when(pheno == "LAT" & test == "LAT" ~ "Latitude/Latitude", (pheno == "PS" & test == "PS") ~ "Single Deme/Single Deme", (pheno == "DIAG" & test == "LAT") ~ "Diagonal/Latitude"))
+df <- fp %>% group_by(envs, test, pheno, type) %>% summarise(fp_strat =  sum(P.EN_joint < 0.05)/ n(), lowerci = fp_strat - 1.96 * sqrt((fp_strat * (1-fp_strat))/ n()), upperci = fp_strat + 1.96 * sqrt((fp_strat * (1-fp_strat))/ n())) %>% filter((pheno == "LAT" & test == "LAT") | (pheno == "PS" & test == "PS") | (pheno == "DIAG" & test == "LAT")) %>% separate(envs, c("env", "diff"), "-") %>% mutate(diff = as.numeric(diff)) %>% filter(type  %in% c("nc-uncorrected", "nc-PC10", "nc-Tm")) %>% mutate(sim = case_when(pheno == "LAT" & test == "LAT" ~ "Latitude/Latitude", (pheno == "PS" & test == "PS") ~ "Single Deme/Single Deme", (pheno == "DIAG" & test == "LAT") ~ "Diagonal/Latitude"))
 df$type <- factor(df$type,  levels = c("nc-uncorrected", "nc-Tm", "nc-PC10"))
 df$sim_f <- factor(df$sim, levels = c("Latitude/Latitude","Diagonal/Latitude" ,"Single Deme/Single Deme") ) 
 
