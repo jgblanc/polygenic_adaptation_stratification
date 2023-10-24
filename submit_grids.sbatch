@@ -2,11 +2,13 @@
 #SBATCH --job-name=SimpleGrids
 #SBATCH --output=logs/SimpleGrid.out
 #SBATCH --error=logs/SimpleGrid.err
-#SBATCH --time=01:00:00
+#SBATCH --time=00:03:00
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=28
 #SBATCH --mem-per-cpu=2000
+#SBATCH --account=pi-jjberg  
+
 
 module load python/cpython-3.7.0
 module load R

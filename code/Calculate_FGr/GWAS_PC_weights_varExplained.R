@@ -44,8 +44,8 @@ for (i in 1:nrow(dfOut)) {
 
 
   # Compute variance explained
-  mod <- lm(Tm ~ . ,data=vecs[,1:i])
-  r2 <- cor(dfCombine$FGr, fitted(mod))^2
+  mod <- lm(Tm ~ vecs[,1:i])
+  r2 <- cor(Tm, fitted(mod))^2
   print(r2)
 
 
